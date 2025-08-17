@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "Astro Docs": {
+      "url": "https://mcp.docs.astro.build/mcp"
+    },
+    "daisyUI Docs": {
+      "url": "https://gitmcp.io/saadeghi/daisyui"
+    },
+    "MDN Web Docs": {
+      "url": "https://gitmcp.io/mdn/content"
+    },
+    "Tailwind CSS Docs": {
+      "url": "https://gitmcp.io/tailwindlabs/tailwindcss"
+    }
+  }
+}

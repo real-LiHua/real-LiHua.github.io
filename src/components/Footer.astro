@@ -1,7 +1,8 @@
 ---
-import Social from './Social.astro';
+import "../styles/global.css"
 ---
-
-<footer>
-  <Social platform="github" username="real-LiHua" />
+<footer class="footer sm:footer-horizontal footer-center bg-base-300 text-base-content p-4">
+  <aside>
+    <p>Copyright © {new Date().getFullYear()}</p>
+  </aside>
 </footer>
