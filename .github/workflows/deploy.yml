@@ -16,6 +16,10 @@ jobs:
     steps:
       - name: Checkout your repository using git
         uses: actions/checkout@v5
+        with:
+          ssh-key: ${{ secrets.CODEBERG_PAGES }}
+          ssh-known-hosts: "codeberg.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIVIC02vnjFyL+I4RHfvIGNtOgJMe769VTF1VR4EB3ZB"
+          submodules: true
       - name: Install, build, and upload your site
         uses: withastro/action@v4
         with:
