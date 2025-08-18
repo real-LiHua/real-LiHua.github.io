@@ -6,9 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
   pages: write
-  id-token: write
 
 jobs:
   build:
@@ -24,6 +22,15 @@ jobs:
         uses: withastro/action@v4
         with:
           package-manager: "bun"
+
+  codeberg:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          ls -a
+          echo 'gitdir: ../.git/modules/dist' > dist/.git
+          ls -a dist
 
   deploy:
     needs: build
