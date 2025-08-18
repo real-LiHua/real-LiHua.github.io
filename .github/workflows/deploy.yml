@@ -1,4 +1,4 @@
-name: Deploy website to GitHub and Codeberg Pages
+name: Deploy to Codeberg Pages / GitHub Pages / IPFS
 
 on:
   push:
@@ -15,44 +15,57 @@ jobs:
     steps:
       - name: Checkout your repository using git
         uses: actions/checkout@v5
+      
       - name: Install, build, and upload your site
         uses: withastro/action@v4
         with:
           package-manager: "bun"
 
-  deploy2codeberg:
+  codeberg:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v5
         with:
           name: github-pages
+
       - name: Extract artifact
         run: tar xvf artifact.tar --recursive-unlink
+      
       - name: Create SSH directory
         run: mkdir ~/.ssh
+      
       - name: Add Codeberg to known_hosts
         run: echo "codeberg.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIVIC02vnjFyL+I4RHfvIGNtOgJMe769VTF1VR4EB3ZB" >> ~/.ssh/known_hosts
+      
       - name: Write SSH key
         run: echo "${{ secrets.CODEBERG_PAGES }}" > ~/.ssh/id_ed25519
+      
       - name: Set SSH key permissions
         run: chmod 400 ~/.ssh/id_ed25519
+      
       - name: Clone repository
         run: git clone --bare ssh://git@codeberg.org/lihua/pages .git
+      
       - name: Unset core.bare
         run: git config unset core.bare
+      
       - name: Set user email
         run: git config set user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      
       - name: Set user name
         run: git config set user.name "github-actions[bot]"
+      
       - name: Add files
         run: git add .
+      
       - name: Commit changes
-        run: git commit -m "Update"
+        run: git commit -m "Update" || true
+      
       - name: Push changes
         run: git push -f origin main
 
-  deploy2github:
+  github:
     needs: build
     runs-on: ubuntu-latest
     environment:
@@ -62,3 +75,40 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  ipfs:
+    if: ${{ false }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: github-pages
+
+      - name: Extract artifact
+        run: tar xvf artifact.tar --recursive-unlink
+
+      - name: Setup Kubo CLI
+        uses: ipfs/download-ipfs-distribution-action@v1
+
+      - name: ipfs init
+        run: ipfs init
+
+      - name: Set pin name
+        run: |
+          REPO_NAME=$(echo "${{ github.repository }}" | tr '/' '-')
+          COMMIT_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          COMMIT_SHA_SHORT="${COMMIT_SHA:0:7}"
+
+          # Set the pin name
+          PIN_NAME="${REPO_NAME}-${COMMIT_SHA_SHORT}"
+
+          echo "pin_name=${PIN_NAME}" >> "$GITHUB_ENV"
+          echo "Using pin name: ${PIN_NAME}"
+
+      - name: Pin CID to Pinata
+        run: |
+          CID=$(ipfs add --cid-version 1 --chunker size-1048576 -Q -r .)
+          ipfs pin remote service add pinata "https://api.pinata.cloud/psa" ${{ secrets.PINATA_JWT_TOKEN }}
+          ipfs pin remote add --service=pinata --background --name="${pin_name}" $CID
+          echo "✅ Pinned CID ${CID} to Pinata" >> $GITHUB_STEP_SUMMARY
