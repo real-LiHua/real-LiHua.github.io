@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy website to GitHub and Codeberg Pages
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  id-token: write
   pages: write
 
 jobs:
@@ -23,16 +24,39 @@ jobs:
         with:
           package-manager: "bun"
 
-  codeberg:
+  deploy2codeberg:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          ls -a
-          echo 'gitdir: ../.git/modules/dist' > dist/.git
-          ls -a dist
+      - uses: actions/download-artifact@v5
+        with:
+          name: github-pages
+      - name: Extract artifact
+        run: tar xvf artifact.tar --recursive-unlink
+      - name: Create SSH directory
+        run: mkdir ~/.ssh
+      - name: Add Codeberg to known_hosts
+        run: echo "codeberg.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIVIC02vnjFyL+I4RHfvIGNtOgJMe769VTF1VR4EB3ZB" >> ~/.ssh/known_hosts
+      - name: Write SSH key
+        run: echo "${{ secrets.CODEBERG_PAGES }}" > ~/.ssh/id_ed25519
+      - name: Set SSH key permissions
+        run: chmod 400 ~/.ssh/id_ed25519
+      - name: Clone repository
+        run: git clone --bare ssh://git@codeberg.org/lihua/pages .git
+      - name: Unset core.bare
+        run: git config unset core.bare
+      - name: Set user email
+        run: git config set user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Set user name
+        run: git config set user.name "github-actions[bot]"
+      - name: Add files
+        run: git add .
+      - name: Commit changes
+        run: git commit -m "Update"
+      - name: Push changes
+        run: git push -f origin main
 
-  deploy:
+  deploy2github:
     needs: build
     runs-on: ubuntu-latest
     environment:
