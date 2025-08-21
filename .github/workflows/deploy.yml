@@ -15,11 +15,27 @@ jobs:
     steps:
       - name: Checkout your repository using git
         uses: actions/checkout@v5
-      
-      - name: Install, build, and upload your site
-        uses: withastro/action@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Node (Bun)
+        uses: actions/setup-node@v4
+
+      - name: Install
+        run: |
+          bun i
+          cd node_modules/@ipshipyard/node-datachannel
+          bun i
+          cd -
+
+      - name: Build
+        run: bun run build
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          package-manager: "bun"
+          path: "./dist/"
 
   codeberg:
     needs: build
@@ -31,37 +47,37 @@ jobs:
 
       - name: Extract artifact
         run: tar xvf artifact.tar --recursive-unlink
-      
+
       - name: Create SSH directory
         run: mkdir ~/.ssh
-      
+
       - name: Add Codeberg to known_hosts
         run: echo "codeberg.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIVIC02vnjFyL+I4RHfvIGNtOgJMe769VTF1VR4EB3ZB" >> ~/.ssh/known_hosts
-      
+
       - name: Write SSH key
         run: echo "${{ secrets.CODEBERG_PAGES }}" > ~/.ssh/id_ed25519
-      
+
       - name: Set SSH key permissions
         run: chmod 400 ~/.ssh/id_ed25519
-      
+
       - name: Clone repository
         run: git clone --bare ssh://git@codeberg.org/lihua/pages .git
-      
+
       - name: Unset core.bare
         run: git config unset core.bare
-      
+
       - name: Set user email
         run: git config set user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      
+
       - name: Set user name
         run: git config set user.name "github-actions[bot]"
-      
+
       - name: Add files
         run: git add .
-      
+
       - name: Commit changes
         run: git commit -m "Update" || true
-      
+
       - name: Push changes
         run: git push -f origin main
 

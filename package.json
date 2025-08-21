@@ -13,11 +13,14 @@
     "@astrojs/mdx": "^4.3.4",
     "@astrojs/rss": "^4.0.12",
     "@astrojs/sitemap": "^3.5.0",
+    "@astrojs/ts-plugin": "^1.10.4",
     "@fontsource/twinkle-star": "^5.2.6",
+    "@helia/strings": "^4.1.0",
     "@tailwindcss/vite": "^4.1.12",
     "astro": "^5.13.2",
     "astro-llms-generate": "^1.3.3",
     "daisyui": "^5.0.50",
+    "helia": "^5.5.1",
     "tailwindcss": "^4.1.12"
   },
   "devDependencies": {
