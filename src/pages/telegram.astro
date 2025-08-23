@@ -1,0 +1,14 @@
+---
+
+---
+
+<script type="module">
+  let keyPair = await window.crypto.subtle.generateKey(
+    {
+      name: "ECDSA",
+      namedCurve: "P-384",
+    },
+    true,
+    ["encrypt", "decrypt"],
+  );
+</script>
