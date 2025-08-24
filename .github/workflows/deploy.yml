@@ -42,7 +42,7 @@ jobs:
       - run: rm -vr "./dist/_worker.js" "./dist/.assetsignore"
 
       - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: "./dist/"
 
