@@ -1,5 +1,6 @@
 import eslintPluginAstro from "eslint-plugin-astro";
 export default [
+  { ignores: ["dist/"] },
   ...eslintPluginAstro.configs.recommended,
   {
     rules: {
@@ -9,6 +10,7 @@ export default [
       "astro/sort-attributes": "error",
       "astro/jsx-a11y/aria-proptypes": "error",
       "astro/jsx-a11y/aria-role": "error",
+      "sort-imports": "error",
     },
   },
 ];
