@@ -3,6 +3,7 @@ import { defineMiddleware } from "astro:middleware";
 const corsOrigin = [
   "https://lihua.codeberg.page",
   "https://real-lihua.github.io",
+  "http://localhost:4321",
 ];
 
 const SAFE_METHODS = ["GET", "HEAD", "OPTIONS"];
