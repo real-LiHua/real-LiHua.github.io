@@ -13,9 +13,9 @@ export default defineConfig({
     mdx(),
     sitemap(),
     llmsGenerate(),
-    obfuscator({
+    /*obfuscator({
       excludes: [/\/_worker.js/],
-    }),
+    }),*/
   ],
   security: { checkOrigin: false },
   site: "https://lihua.codeberg.page",

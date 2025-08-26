@@ -1,5 +1,6 @@
 export const prerender = false;
 
+import answer from "the-answer";
 import type { APIRoute } from "astro";
 import { Api } from "grammy";
 import { autoRetry } from "@grammyjs/auto-retry";
@@ -45,10 +46,9 @@ export const POST: APIRoute = async ({ request }) => {
 
   await pinata.files.public.delete([upload.id]);
 
-  const iv = crypto.getRandomValues(new Uint8Array(12));
   return new Response(
     await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
+      { name: "AES-GCM", iv: new Uint8Array([answer]) },
       aesKey,
       new TextEncoder().encode("114514"),
     ),
