@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "wrangler types && astro dev",
     "build": "wrangler types && astro check && astro build",
-    "preview": "wrangler types && astro preview",
+    "preview": "wrangler types && astro check && astro build && wrangler dev",
     "astro": "astro",
     "prepare": "husky"
   },
@@ -19,6 +19,7 @@
     "@fontsource/twinkle-star": "^5.2.6",
     "@grammyjs/auto-retry": "^2.0.2",
     "@helia/strings": "^4.1.0",
+    "@tailwindcss/typography": "^0.5.16",
     "@tailwindcss/vite": "^4.1.12",
     "astro": "^5.13.3",
     "astro-llms-generate": "^1.3.3",
@@ -33,16 +34,19 @@
   },
   "devDependencies": {
     "@types/bun": "^1.2.20",
-    "@typescript-eslint/parser": "^8.40.0",
+    "@typescript-eslint/parser": "^8.41.0",
     "eslint": "^9.34.0",
     "eslint-plugin-astro": "^1.3.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.5",
+    "postcss-html": "^1.8.0",
     "prettier": "3.6.2",
     "prettier-plugin-astro": "0.14.1",
     "prettier-plugin-tailwindcss": "0.6.14",
     "stylelint": "^16.23.1",
+    "stylelint-config-html": "^1.1.0",
+    "stylelint-config-standard": "^39.0.0",
     "wrangler": "^4.32.0"
   },
   "lint-staged": {
