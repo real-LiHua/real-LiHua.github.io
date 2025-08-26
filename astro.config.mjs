@@ -1,5 +1,4 @@
 // @ts-check
-
 import cloudflare from "@astrojs/cloudflare";
 import { defineConfig } from "astro/config";
 import llmsGenerate from "astro-llms-generate";
@@ -10,16 +9,6 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
-  experimental: {
-    csp: {
-      styleDirective: {
-        hashes: ["sha512-styleHash", "sha384-styleHash", "sha256-styleHash"],
-      },
-      scriptDirective: {
-        hashes: ["sha512-scriptHash", "sha384-scriptHash", "sha256-scriptHash"],
-      },
-    },
-  },
   integrations: [
     mdx(),
     sitemap(),
