@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { ClientRouter } from "astro:transitions";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 ---
@@ -11,6 +12,30 @@ import Header from "../components/Header.astro";
     <meta content="width=device-width,initial-scale=1" name="viewport" />
     <meta content={Astro.generator} name="generator" />
     <title>114514</title>
+    <script is:inline>
+      document.documentElement.setAttribute(
+        "data-theme",
+        localStorage.getItem("theme") ?? "light",
+      );
+    </script>
+    <ClientRouter />
+    <script>
+      document.addEventListener("astro:page-load", () => {
+        const tc = document.querySelector(
+          ".theme-controller",
+        ) as HTMLInputElement;
+        if (localStorage.getItem("theme") === "dark") tc.checked = true;
+        tc.addEventListener("change", () => {
+          if (localStorage.getItem("theme") === "dark") {
+            document.documentElement.setAttribute("data-theme", "light");
+            localStorage.setItem("theme", "light");
+          } else {
+            document.documentElement.setAttribute("data-theme", "dark");
+            localStorage.setItem("theme", "dark");
+          }
+        });
+      });
+    </script>
   </head>
   <body>
     <Header />

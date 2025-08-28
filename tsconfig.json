@@ -4,6 +4,8 @@
   "exclude": ["dist"],
   "compilerOptions": {
     "jsx": "preserve",
-    "types": ["./worker-configuration.d.ts", "node"]
+    "types": ["./worker-configuration.d.ts", "node"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   }
 }
