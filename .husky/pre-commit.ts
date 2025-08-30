@@ -17,4 +17,4 @@ await writeFile(
   {},
 );
 
-console.log("\rUpdated compatibility date for wrangler.");
+console.log("Updated compatibility date for Wrangler.");
