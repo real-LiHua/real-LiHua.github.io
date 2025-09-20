@@ -1,9 +1,10 @@
 ---
 import Navigation from "./Navigation.astro";
+const { title } = Astro.props;
 ---
 
 <header>
   <nav>
-    <Navigation />
+    <Navigation title={title} />
   </nav>
 </header>

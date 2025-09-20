@@ -3,22 +3,29 @@ import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
+const { title, description } = Astro.props;
 ---
 
-<html lang="zh-CN">
+<html lang="zh-CN" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="utf-8" />
     <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
     <meta content="width=device-width,initial-scale=1" name="viewport" />
-    <meta content={Astro.generator} name="generator" />
-    <title>未命名</title>
+    <title>{title ?? "未命名"}</title>
     <script is:inline>
       document.documentElement.setAttribute(
         "data-theme",
         localStorage.getItem("theme") ?? "light",
       );
     </script>
-    <ClientRouter />
+    <meta content={title} property="og:title" />
+    <meta content="article" property="og:type" />
+    <meta content={description} property="og:description" />
+    <meta content="zh_CN" property="og:locale" />
+    <meta content="未命名" property="og:site_name" />
+    <meta content="Li Hua" property="og:article:author:first_name" />
+    <meta content="summary" name="twitter:card" />
+    <meta content={Astro.generator} name="generator" />
     <script>
       document.addEventListener("astro:page-load", () => {
         const tc = document.querySelector(
@@ -37,8 +44,9 @@ import Header from "../components/Header.astro";
       });
     </script>
   </head>
+  <ClientRouter />
   <body>
-    <Header />
+    <Header title={title} />
     <div class="min-h-screen">
       <slot />
     </div>

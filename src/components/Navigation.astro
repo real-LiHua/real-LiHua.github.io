@@ -1,15 +1,16 @@
 ---
-import Start from "./navbar/Start.astro";
 import Center from "./navbar/Center.astro";
 import End from "./navbar/End.astro";
+import Start from "./navbar/Start.astro";
+const { title } = Astro.props;
 ---
 
-<div class="navbar bg-base-100 shadow-sm">
+<div class="navbar shadow-sm">
   <div class="navbar-start">
     <Start />
   </div>
   <div class="navbar-center">
-    <Center />
+    <Center title={title} />
   </div>
   <div class="navbar-end">
     <End />
