@@ -12,7 +12,12 @@ await writeFile(
   "wrangler.jsonc",
   applyEdits(
     config,
-    modify(config, ["compatibility_date"], dayjs().format("YYYY-MM-DD"), {}),
+    modify(
+      config,
+      ["compatibility_date"],
+      dayjs().subtract(1, "day").format("YYYY-MM-DD"),
+      {},
+    ),
   ),
   {},
 );

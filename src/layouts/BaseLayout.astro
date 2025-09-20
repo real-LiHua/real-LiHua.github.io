@@ -11,7 +11,7 @@ import Header from "../components/Header.astro";
     <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
     <meta content="width=device-width,initial-scale=1" name="viewport" />
     <meta content={Astro.generator} name="generator" />
-    <title>114514</title>
+    <title>未命名</title>
     <script is:inline>
       document.documentElement.setAttribute(
         "data-theme",
@@ -39,7 +39,9 @@ import Header from "../components/Header.astro";
   </head>
   <body>
     <Header />
-    <slot />
+    <div class="min-h-screen">
+      <slot />
+    </div>
     <Footer />
   </body>
 </html>

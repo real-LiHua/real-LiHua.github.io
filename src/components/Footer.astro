@@ -1,33 +1,9 @@
 ---
-import "../styles/global.css";
+import Copyright from "./Copyright.astro";
 ---
 
 <footer
   class="footer sm:footer-horizontal bg-base-300 text-base-content items-center p-4"
 >
-  <nav class="grid-flow-col gap-0.5 md:place-self-center max-h-8">
-    <aside class="grid-flow-col items-center">
-      <p>
-        <a href="https://creativecommons.org">Copyright</a> © 2025 by <a
-          href="https://lihua.codeberg.page/">Li Hua</a
-        > is licensed under <a
-          href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
-          >CC BY-NC-SA 4.0</a
-        >
-      </p>
-    </aside>
-    <img
-      src="https://mirrors.creativecommons.org/presskit/icons/cc.svg"
-      class="max-w-5 ml"
-    /><img
-      src="https://mirrors.creativecommons.org/presskit/icons/by.svg"
-      class="max-w-5 ml"
-    /><img
-      src="https://mirrors.creativecommons.org/presskit/icons/nc.svg"
-      class="max-w-5 ml"
-    /><img
-      src="https://mirrors.creativecommons.org/presskit/icons/sa.svg"
-      class="max-w-5 ml"
-    />
-  </nav>
+  <Copyright />
 </footer>

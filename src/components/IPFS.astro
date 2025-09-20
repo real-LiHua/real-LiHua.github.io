@@ -1,8 +1,0 @@
----
-import { createHelia } from "helia";
-import { strings } from "@helia/strings";
-const helia = await createHelia();
-const str = strings(helia);
-const cid = await str.add("hello world");
-const string = await str.get(cid);
----
