@@ -47,9 +47,11 @@ const { title, description } = Astro.props;
   <ClientRouter />
   <body>
     <Header title={title} />
-    <div class="min-h-screen">
+    <article
+      class="dark:prose-invert prose-h1:font-bold prose-h1:text-xl prose-a:text-blue-600 prose-p:text-justify prose-img:rounded-xl prose-headings:underline min-h-screen"
+    >
       <slot />
-    </div>
+    </article>
     <Footer />
   </body>
 </html>

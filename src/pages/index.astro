@@ -1,7 +1,23 @@
 ---
+import { getCollection, render } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { getCollection } from "astro:content";
-const posts = await getCollection("blog");
+import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+
+dayjs.extend(localizedFormat);
+
+var posts = await Promise.all(
+  (await getCollection("blog")).map(
+    async (post) => (await render(post)).remarkPluginFrontmatter,
+  ),
+);
+posts.sort((a, b) => {
+  const A = dayjs(a.publishDate);
+  const B = dayjs(b.publishDate);
+  if (A.isSame(B)) return 0;
+  if (A.isBefore(B)) return 1;
+  return -1;
+});
 ---
 
 <BaseLayout title="李华的博客">
@@ -32,9 +48,12 @@ const posts = await getCollection("blog");
                 : "timeline-end md:mb-10"
             }
           >
-            <time class="font-mono italic">1984</time>
-            <div class="text-lg font-black">{post[1].data.title}</div>
-            <p>{post[1].data.description}</p>
+            <time class="font-mono italic">
+              {dayjs(post[1].publishDate).format("YYYY-MM-DD HH:MM:ss")}
+            </time>
+            <div class="text-lg font-black">{post[1].title}</div>
+            <p>{post[1].description}</p>
+            <a href={`/posts/${post[1].id}`}>查看更多</a>
           </div>
           <hr />
         </li>

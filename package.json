@@ -39,6 +39,7 @@
   "devDependencies": {
     "@types/bun": "^1.2.22",
     "@typescript-eslint/parser": "^8.44.0",
+    "@vite-pwa/astro": "^1.1.0",
     "dayjs": "^1.11.18",
     "eslint": "^9.36.0",
     "eslint-plugin-astro": "^1.3.1",
@@ -47,13 +48,13 @@
     "jsonc-parser": "^3.3.1",
     "lint-staged": "^16.1.6",
     "playwright": "^1.55.0",
-    "postcss-html": "^1.8.0",
     "prettier": "3.6.2",
     "prettier-plugin-astro": "0.14.1",
     "prettier-plugin-tailwindcss": "0.6.14",
     "stylelint": "^16.24.0",
     "stylelint-config-html": "^1.1.0",
     "stylelint-config-standard": "^39.0.0",
+    "vite-plugin-pwa": "^1.0.3",
     "wrangler": "^4.38.0"
   },
   "lint-staged": {
