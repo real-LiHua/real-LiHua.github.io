@@ -1,2 +1,2 @@
-node .husky/pre-commit.ts
+node .husky/pre-commit.ts || wrangler types
 lint-staged
