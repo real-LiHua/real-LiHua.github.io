@@ -5,44 +5,56 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <BaseLayout>
   <div class="hero bg-base-200 min-h-screen">
     <div class="hero-content flex-col lg:flex-row-reverse">
-      <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-        <div class="card-body">
-          <fieldset class="fieldset">
-            <input class="input" type="text" />
-            <button class="btn btn-neutral mt-4">确认</button>
-          </fieldset>
-        </div>
-      </div>
+      <span class="countdown font-mono text-2xl">
+        <span aria-label="10" aria-live="polite" style="--value:10;">0</span>
+        :
+        <span aria-label="24" aria-live="polite" style="--value:24;"
+          >59<span>
+            :
+            <span aria-label="59" aria-live="polite" style="--value:59;"
+              >59</span
+            >
+          </span>
+          <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
+            <div class="card-body">
+              <fieldset class="fieldset">
+                <input class="input" type="text" />
+                <button class="btn btn-neutral mt-4">确认</button>
+              </fieldset>
+            </div>
+          </div>
+        </span>
+      </span>
+      <script>
+        import answer from "the-answer";
+        import { createHelia } from "helia";
+        try {
+          const helia = await createHelia();
+          console.log(answer);
+          const keyPair = (await window.crypto.subtle.generateKey(
+            {
+              name: "RSA-OAEP",
+              modulusLength: 2048,
+              publicExponent: new Uint8Array([1, 0, 1]),
+              hash: "SHA-256",
+            },
+            true,
+            ["wrapKey", "unwrapKey"],
+          )) as CryptoKeyPair;
+
+          const pubSpki = await window.crypto.subtle.exportKey(
+            "jwk",
+            keyPair.publicKey,
+          );
+          const resp = await fetch("https://blog.lihua0.workers.dev/meow", {
+            method: "POST",
+            body: JSON.stringify(pubSpki),
+          });
+          console.log(resp);
+        } catch (err) {
+          console.error(err);
+        }
+      </script>
     </div>
   </div>
-  <script>
-    import answer from "the-answer";
-    import { createHelia } from "helia";
-    try {
-      const helia = await createHelia();
-      console.log(answer);
-      const keyPair = (await window.crypto.subtle.generateKey(
-        {
-          name: "RSA-OAEP",
-          modulusLength: 2048,
-          publicExponent: new Uint8Array([1, 0, 1]),
-          hash: "SHA-256",
-        },
-        true,
-        ["wrapKey", "unwrapKey"],
-      )) as CryptoKeyPair;
-
-      const pubSpki = await window.crypto.subtle.exportKey(
-        "jwk",
-        keyPair.publicKey,
-      );
-      const resp = await fetch("https://blog.lihua0.workers.dev/meow", {
-        method: "POST",
-        body: JSON.stringify(pubSpki),
-      });
-      console.log(resp);
-    } catch (err) {
-      console.error(err);
-    }
-  </script>
 </BaseLayout>
