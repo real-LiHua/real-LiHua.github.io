@@ -41,12 +41,12 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
-      - run: rm -vr "./dist/_worker.js" "./dist/.assetsignore"
+      - run: rm -vr "./dist/server"
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: "./dist/"
+          path: "./dist/client"
 
   codeberg:
     needs: build
@@ -124,7 +124,7 @@ jobs:
       - name: Set pin name
         run: |
           REPO_NAME=$(echo "${{ github.repository }}" | tr '/' '-')
-          COMMIT_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          COMMIT_SHA="${{ github.sha }}"
           COMMIT_SHA_SHORT="${COMMIT_SHA:0:7}"
 
           # Set the pin name

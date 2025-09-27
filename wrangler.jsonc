@@ -1,15 +1,13 @@
 {
   "name": "blog",
-  "main": "./dist/_worker.js/index.js",
-  "compatibility_date": "2025-09-22",
+  "compatibility_date": "2025-09-26",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
-    "binding": "ASSETS",
     "directory": "./dist",
   },
   "observability": {
     "enabled": true,
   },
   "send_metrics": false,
-  "minify": true,
+  "minify": false,
 }

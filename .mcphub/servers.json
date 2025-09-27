@@ -1,16 +1,20 @@
 {
   "mcpServers": {
     "Astro Docs": {
+      "disabled": false,
       "url": "https://mcp.docs.astro.build/mcp"
     },
-    "daisyUI Docs": {
-      "url": "https://gitmcp.io/saadeghi/daisyui"
-    },
     "MDN Web Docs": {
+      "disabled": false,
       "url": "https://gitmcp.io/mdn/content"
     },
     "Tailwind CSS Docs": {
+      "disabled": false,
       "url": "https://gitmcp.io/tailwindlabs/tailwindcss"
+    },
+    "daisyUI Docs": {
+      "disabled": false,
+      "url": "https://gitmcp.io/saadeghi/daisyui"
     }
   }
 }

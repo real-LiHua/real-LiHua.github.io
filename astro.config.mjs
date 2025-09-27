@@ -1,10 +1,11 @@
 // @ts-check
 import AstroPWA from "@vite-pwa/astro";
-import cloudflare from "@astrojs/cloudflare";
+import { cloudflare } from "@cloudflare/vite-plugin";
 import { defineConfig } from "astro/config";
 import { execSync } from "child_process";
 import llmsGenerate from "astro-llms-generate";
 import mdx from "@astrojs/mdx";
+import node from "@astrojs/node";
 import obfuscator from "astro-obfuscator";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
@@ -36,10 +37,10 @@ export default defineConfig({
         enabled: true,
       },
     }),
-    sitemap(),
     llmsGenerate(),
+    sitemap(),
     obfuscator({
-      excludes: [/\/_worker.js/],
+      excludes: [/dist\/server/],
     }),
   ],
   markdown: {
@@ -52,7 +53,9 @@ export default defineConfig({
   vite: {
     build: { cssMinify: "lightningcss" },
     ssr: { external: ["gaxios"] },
-    plugins: tailwindcss(),
+    plugins: [tailwindcss(), cloudflare({ viteEnvironment: { name: "ssr" } })],
   },
-  adapter: cloudflare(),
+  adapter: node({
+    mode: "middleware",
+  }),
 });
