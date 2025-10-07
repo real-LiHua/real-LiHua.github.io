@@ -16,6 +16,7 @@ const { title, description } = Astro.props;
         "data-theme",
         localStorage.getItem("theme") ?? "light",
       );
+      document.querySelector("head>script:nth-child(4)")?.remove();
     </script>
     <meta content="width=device-width,initial-scale=1" name="viewport" />
     <meta content={title} property="og:title" />
