@@ -7,3 +7,18 @@ import Copyright from "./Copyright.astro";
 >
   <Copyright />
 </footer>
+<script>
+  // 防止爬虫过于直接地获取邮箱地址
+  document
+    .querySelector("footer a+a")
+    ?.setAttribute(
+      "href",
+      encodeURI(
+        `mailto:${decodeURIComponent(
+          "%4c%69%20%48%75%61%3c%6c%69%68%75%61%40%65%6d%61%69%6c%2e%63%6f%6d%3e",
+        )}?subject=[${location.host}]&body=\n\n请保留下行:\n${encodeURI(location.href)}`,
+      ),
+    );
+  // 干掉自己
+  document.querySelector("body>script")?.remove();
+</script>

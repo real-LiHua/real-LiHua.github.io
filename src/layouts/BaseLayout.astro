@@ -10,7 +10,6 @@ const { title, description } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
-    <meta content="width=device-width,initial-scale=1" name="viewport" />
     <title>{title ?? "未命名"}</title>
     <script is:inline>
       document.documentElement.setAttribute(
@@ -18,6 +17,7 @@ const { title, description } = Astro.props;
         localStorage.getItem("theme") ?? "light",
       );
     </script>
+    <meta content="width=device-width,initial-scale=1" name="viewport" />
     <meta content={title} property="og:title" />
     <meta content="article" property="og:type" />
     <meta content={description} property="og:description" />
@@ -26,6 +26,11 @@ const { title, description } = Astro.props;
     <meta content="Li Hua" property="og:article:author:first_name" />
     <meta content="summary" name="twitter:card" />
     <meta content={Astro.generator} name="generator" />
+    <link
+      href="https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt"
+      rel="license"
+    />
+    <link href="/sitemap-index.xml" rel="sitemap" />
     <script>
       document.addEventListener("astro:page-load", () => {
         const tc = document.querySelector(
