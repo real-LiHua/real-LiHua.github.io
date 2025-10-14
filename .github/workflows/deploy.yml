@@ -29,9 +29,6 @@ jobs:
       - name: Install
         run: |
           bun i
-          cd node_modules/@ipshipyard/node-datachannel
-          bun i
-          cd -
 
       - name: Build
         run: bun run build
