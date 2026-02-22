@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import dayjs from "dayjs";
 export async function getStaticPaths() {
   const posts = await getCollection("blog");
   return posts.map((post) => ({
@@ -9,9 +10,166 @@ export async function getStaticPaths() {
   }));
 }
 const { post } = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
+const tags = post.data.tags ?? [];
+const toc = headings.filter((h) => h.depth <= 3);
 ---
 
 <BaseLayout description={post.data.description} title={post.data.title}>
-  <Content />
+  {
+    tags.length > 0 && (
+      <div class="flex flex-wrap gap-2 mb-6">
+        {tags.map((tag) => (
+          <a
+            href={`/tags/${tag}`}
+            class="px-2 py-1 text-xs border border-base-content/20 rounded-full opacity-70 hover:opacity-100 hover:border-pink-500 hover:text-pink-500 transition-all"
+          >
+            {tag}
+          </a>
+        ))}
+      </div>
+    )
+  }
+  <div class="lg:flex lg:gap-12">
+    {
+      toc.length > 0 && (
+        <aside class="hidden lg:block w-48 shrink-0">
+          <nav id="toc-sidebar" class="sticky top-28">
+            <h2 class="text-sm font-medium mb-3 opacity-60">目录</h2>
+            <ul class="space-y-1 text-sm">
+              {toc.map((heading) => (
+                <li
+                  class={`${heading.depth === 2 ? "" : "ml-3"} ${heading.depth === 3 ? "ml-5" : ""}`}
+                >
+                  <a
+                    href={`#${heading.slug}`}
+                    class="block py-1 hover:text-pink-500 transition-colors opacity-50 hover:opacity-100"
+                  >
+                    {heading.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </aside>
+      )
+    }
+    <div class="flex-1">
+      {
+        toc.length > 0 && (
+          <>
+            <div class="lg:hidden">
+              <button
+                id="toc-toggle"
+                class="fixed right-4 top-24 z-10 btn btn-circle btn-ghost btn-sm bg-base-200/80 backdrop-blur"
+                aria-label="目录"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 12h16M4 18h7"
+                  />
+                </svg>
+              </button>
+              <nav
+                id="toc-panel"
+                class="hidden fixed right-16 top-24 w-48 max-h-[70vh] overflow-y-auto p-4 bg-base-200/95 backdrop-blur rounded-lg shadow-lg"
+              >
+                <h2 class="text-sm font-medium mb-3 opacity-80">目录</h2>
+                <ul class="space-y-1 text-sm">
+                  {toc.map((heading) => (
+                    <li
+                      class={`${heading.depth === 2 ? "" : "ml-3"} ${heading.depth === 3 ? "ml-5" : ""}`}
+                    >
+                      <a
+                        href={`#${heading.slug}`}
+                        class="block py-1 hover:text-pink-500 transition-colors opacity-70 hover:opacity-100"
+                      >
+                        {heading.text}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </div>
+          </>
+        )
+      }
+      <div class="mb-8 pb-6 border-b border-base-200">
+        <h1 class="text-3xl font-bold mb-4">{post.data.title}</h1>
+        <p class="text-sm opacity-60 mb-4">{post.data.description}</p>
+        <div class="flex items-center gap-4 text-xs opacity-50">
+          <time>{dayjs(post.data.publishDate).format("YYYY-MM-DD")}</time>
+          <span>·</span>
+          <a
+            href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            class="hover:text-pink-500 transition-colors"
+          >
+            CC BY-NC-SA 4.0
+          </a>
+        </div>
+      </div>
+      <Content />
+    </div>
+  </div>
 </BaseLayout>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const toggle = document.getElementById("toc-toggle");
+    const panel = document.getElementById("toc-panel");
+    if (toggle && panel) {
+      toggle.addEventListener("click", () => {
+        panel.classList.toggle("hidden");
+      });
+      document.addEventListener("click", (e) => {
+        if (
+          !toggle.contains(e.target as Node) &&
+          !panel.contains(e.target as Node)
+        ) {
+          panel.classList.add("hidden");
+        }
+      });
+    }
+
+    const tocLinks = document.querySelectorAll(
+      "#toc-sidebar a, #toc-panel a",
+    ) as NodeListOf<HTMLAnchorElement>;
+    const headings = Array.from(tocLinks)
+      .map((link) => {
+        const id = link.getAttribute("href")?.slice(1);
+        return id ? document.getElementById(id) : null;
+      })
+      .filter(Boolean) as HTMLElement[];
+
+    if (headings.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            tocLinks.forEach((link) => {
+              const isActive = link.getAttribute("href") === `#${id}`;
+              link.classList.toggle("text-pink-500", isActive);
+              link.classList.toggle("opacity-100", isActive);
+              link.classList.toggle("opacity-50", !isActive);
+            });
+          }
+        });
+      },
+      { rootMargin: "-80px 0px -80% 0px" },
+    );
+
+    headings.forEach((heading) => {
+      if (heading) observer.observe(heading);
+    });
+  });
+</script>

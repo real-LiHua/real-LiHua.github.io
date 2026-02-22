@@ -1,6 +1,5 @@
 // @ts-check
 import AstroPWA from "@vite-pwa/astro";
-import { cloudflare } from "@cloudflare/vite-plugin";
 import { defineConfig } from "astro/config";
 import { execSync } from "child_process";
 import llmsGenerate from "astro-llms-generate";
@@ -11,7 +10,7 @@ import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 
 function remarkPublishDate() {
-  return function (tree, file) {
+  return function (/** @type {any} */ _tree, /** @type {any} */ file) {
     const filepath = file.history[0];
     const result = execSync(
       `git log --follow --diff-filter=A -1 --pretty="format:%cI" "${filepath}"`,
@@ -21,7 +20,7 @@ function remarkPublishDate() {
 }
 
 function remarkUpdatedDate() {
-  return function (tree, file) {
+  return function (/** @type {any} */ _tree, /** @type {any} */ file) {
     const filepath = file.history[0];
     const result = execSync(`git log -1 --pretty="format:%cI" "${filepath}"`);
     file.data.astro.frontmatter.updatedDate = result.toString();
@@ -30,6 +29,9 @@ function remarkUpdatedDate() {
 
 // https://astro.build/config
 export default defineConfig({
+  adapter: node({
+    mode: "standalone",
+  }),
   integrations: [
     mdx(),
     AstroPWA({
@@ -48,14 +50,9 @@ export default defineConfig({
   },
   security: { checkOrigin: false },
   site: "https://lihua.codeberg.page",
-  trailingSlash: "never",
-  output: "static",
+  trailingSlash: "always",
   vite: {
     build: { cssMinify: "lightningcss" },
-    ssr: { external: ["gaxios"] },
-    plugins: [tailwindcss(), cloudflare({ viteEnvironment: { name: "ssr" } })],
+    plugins: [tailwindcss()],
   },
-  adapter: node({
-    mode: "middleware",
-  }),
 });

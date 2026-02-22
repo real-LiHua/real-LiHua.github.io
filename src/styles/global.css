@@ -10,34 +10,34 @@
   prefersdark: false;
   color-scheme: "light";
 
-  --color-base-100: oklch(98% 0 0deg);
-  --color-base-200: oklch(97% 0 0deg);
-  --color-base-300: oklch(92% 0 0deg);
-  --color-base-content: oklch(20% 0 0deg);
-  --color-primary: oklch(67% 0.182 276.935deg);
-  --color-primary-content: oklch(25% 0.09 281.288deg);
-  --color-secondary: oklch(75% 0.183 55.934deg);
-  --color-secondary-content: oklch(26% 0.079 36.259deg);
-  --color-accent: oklch(70% 0.183 293.541deg);
-  --color-accent-content: oklch(28% 0.141 291.089deg);
-  --color-neutral: oklch(26% 0 0deg);
-  --color-neutral-content: oklch(98% 0 0deg);
-  --color-info: oklch(68% 0.169 237.323deg);
-  --color-info-content: oklch(97% 0.013 236.62deg);
-  --color-success: oklch(76% 0.233 130.85deg);
-  --color-success-content: oklch(98% 0.031 120.757deg);
-  --color-warning: oklch(76% 0.188 70.08deg);
-  --color-warning-content: oklch(98% 0.022 95.277deg);
-  --color-error: oklch(63% 0.237 25.331deg);
-  --color-error-content: oklch(97% 0.013 17.38deg);
-  --radius-selector: 0.5rem;
-  --radius-field: 1rem;
-  --radius-box: 1rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
+  --color-base-100: #fff;
+  --color-base-200: #f5f5f5;
+  --color-base-300: #e5e5e5;
+  --color-base-content: #171717;
+  --color-primary: #171717;
+  --color-primary-content: #fff;
+  --color-secondary: #404040;
+  --color-secondary-content: #fff;
+  --color-accent: #525252;
+  --color-accent-content: #fff;
+  --color-neutral: #171717;
+  --color-neutral-content: #fff;
+  --color-info: #ec4899;
+  --color-info-content: #fff;
+  --color-success: #16a34a;
+  --color-success-content: #fff;
+  --color-warning: #ca8a04;
+  --color-warning-content: #fff;
+  --color-error: #dc2626;
+  --color-error-content: #fff;
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.25rem;
+  --size-selector: 0.125rem;
+  --size-field: 0.125rem;
   --border: 1px;
-  --depth: 1;
-  --noise: 1;
+  --depth: 0;
+  --noise: 0;
 }
 
 @plugin "daisyui/theme" {
@@ -46,40 +46,143 @@
   prefersdark: true;
   color-scheme: "dark";
 
-  --color-base-100: oklch(25.33% 0.016 252.42deg);
-  --color-base-200: oklch(23.26% 0.014 253.1deg);
-  --color-base-300: oklch(21.15% 0.012 254.09deg);
-  --color-base-content: oklch(97.807% 0.029 256.847deg);
-  --color-primary: oklch(58% 0.233 277.117deg);
-  --color-primary-content: oklch(96% 0.018 272.314deg);
-  --color-secondary: oklch(65% 0.241 354.308deg);
-  --color-secondary-content: oklch(94% 0.028 342.258deg);
-  --color-accent: oklch(77% 0.152 181.912deg);
-  --color-accent-content: oklch(38% 0.063 188.416deg);
-  --color-neutral: oklch(14% 0.005 285.823deg);
-  --color-neutral-content: oklch(92% 0.004 286.32deg);
-  --color-info: oklch(74% 0.16 232.661deg);
-  --color-info-content: oklch(29% 0.066 243.157deg);
-  --color-success: oklch(76% 0.177 163.223deg);
-  --color-success-content: oklch(37% 0.077 168.94deg);
-  --color-warning: oklch(82% 0.189 84.429deg);
-  --color-warning-content: oklch(41% 0.112 45.904deg);
-  --color-error: oklch(71% 0.194 13.428deg);
-  --color-error-content: oklch(27% 0.105 12.094deg);
-  --radius-selector: 0.5rem;
+  --color-base-100: #171717;
+  --color-base-200: #262626;
+  --color-base-300: #404040;
+  --color-base-content: #fafafa;
+  --color-primary: #fafafa;
+  --color-primary-content: #171717;
+  --color-secondary: #d4d4d4;
+  --color-secondary-content: #171717;
+  --color-accent: #a3a3a3;
+  --color-accent-content: #171717;
+  --color-neutral: #fafafa;
+  --color-neutral-content: #171717;
+  --color-info: #f472b6;
+  --color-info-content: #171717;
+  --color-success: #22c55e;
+  --color-success-content: #fff;
+  --color-warning: #eab308;
+  --color-warning-content: #171717;
+  --color-error: #ef4444;
+  --color-error-content: #fff;
+  --radius-selector: 0.25rem;
   --radius-field: 0.25rem;
-  --radius-box: 0.5rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
+  --radius-box: 0.25rem;
+  --size-selector: 0.125rem;
+  --size-field: 0.125rem;
   --border: 1px;
-  --depth: 1;
+  --depth: 0;
   --noise: 0;
 }
 
 [data-theme="light"] {
-  transition: 2s;
+  transition:
+    background-color 0.5s,
+    color 0.5s,
+    border-color 0.5s;
 }
 
 [data-theme="dark"] {
-  transition: 2s;
+  transition:
+    background-color 0.5s,
+    color 0.5s,
+    border-color 0.5s;
+
+  --tw-prose-body: #f5f5f5;
+  --tw-prose-headings: #fafafa;
+  --tw-prose-lead: #e5e5e5;
+  --tw-prose-links: #fafafa;
+  --tw-prose-bold: #fafafa;
+  --tw-prose-counters: #a3a3a3;
+  --tw-prose-bullets: #a3a3a3;
+  --tw-prose-hr: #404040;
+  --tw-prose-quotes: #fafafa;
+  --tw-prose-quote-borders: #525252;
+  --tw-prose-captions: #a3a3a3;
+  --tw-prose-code: #fafafa;
+  --tw-prose-pre-code: #262626;
+  --tw-prose-pre-bg: #404040;
+  --tw-prose-th-borders: #525252;
+  --tw-prose-td-borders: #404040;
+}
+
+html {
+  transition:
+    background-color 0.5s,
+    color 0.5s;
+}
+
+.prose pre {
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.prose blockquote {
+  border-left: 3px solid oklch(70% 0 0deg);
+  padding-left: 1rem;
+  opacity: 0.8;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.prose th,
+.prose td {
+  padding: 0.75rem;
+  border: 1px solid oklch(90% 0 0deg);
+}
+
+.dark .prose th,
+.dark .prose td {
+  border-color: oklch(30% 0 0deg);
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+}
+
+:root {
+  --tw-prose-body: #1a1a1a;
+  --tw-prose-headings: #111;
+  --tw-prose-lead: #262626;
+  --tw-prose-links: #171717;
+  --tw-prose-bold: #111;
+  --tw-prose-counters: #404040;
+  --tw-prose-bullets: #525252;
+  --tw-prose-hr: #e5e5e5;
+  --tw-prose-quotes: #171717;
+  --tw-prose-quote-borders: #d4d4d4;
+  --tw-prose-captions: #525252;
+  --tw-prose-code: #171717;
+  --tw-prose-pre-code: #f5f5f5;
+  --tw-prose-pre-bg: #262626;
+  --tw-prose-th-borders: #d4d4d4;
+  --tw-prose-td-borders: #e5e5e5;
+}
+
+@media not (pointer: coarse) and not (pointer: fine) {
+  .lg\:hidden {
+    display: none !important;
+  }
+}
+
+@media not (pointer: coarse) and not (pointer: fine) and (min-width: 1024px) {
+  .hidden.lg\:flex {
+    display: flex !important;
+  }
+}
+
+@media not (pointer: coarse) and not (pointer: fine) {
+  .lg\:block {
+    display: block !important;
+  }
 }

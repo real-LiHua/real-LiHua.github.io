@@ -1,4 +1,18 @@
-<div class="dropdown">
+<ul class="hidden lg:flex items-center gap-2">
+  <li><a href="/" class="btn btn-ghost btn-sm rounded-full">首页</a></li>
+  <li><a href="/tags" class="btn btn-ghost btn-sm rounded-full">标签</a></li>
+  <li><a href="/about" class="btn btn-ghost btn-sm rounded-full">关于</a></li>
+  {
+    import.meta.env.DEV && (
+      <li>
+        <a href="/drafts" class="btn btn-ghost btn-sm rounded-full">
+          草稿
+        </a>
+      </li>
+    )
+  }
+</ul>
+<div class="lg:hidden dropdown">
   <div class="btn-circle btn-ghost" role="button" tabindex="0">
     <svg
       class="h-5 w-5"
@@ -15,12 +29,18 @@
     </svg>
   </div>
   <ul
-    class="dropdown-content menu z-1 mt-3 w-52 menu-sm rounded-box bg-base-100 p-2 shadow"
+    class="dropdown-content menu z-1 mt-3 w-52 menu-sm rounded-box bg-base-100 border border-base-content/10 p-2"
     tabindex="0"
   >
-    <li><a href="/">主页</a></li>
-    <li><a href="/blogs/">文章</a></li>
-    <li><a href="/tags/">标签</a></li>
-    <li><a href="/about/">关于</a></li>
+    <li><a href="/">首页</a></li>
+    <li><a href="/tags">标签</a></li>
+    <li><a href="/about">关于</a></li>
+    {
+      import.meta.env.DEV && (
+        <li>
+          <a href="/drafts">草稿</a>
+        </li>
+      )
+    }
   </ul>
 </div>

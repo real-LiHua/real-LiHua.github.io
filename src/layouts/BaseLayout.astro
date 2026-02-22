@@ -3,6 +3,7 @@ import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
+import CodeCopy from "../components/CodeCopy.astro";
 const { title, description } = Astro.props;
 ---
 
@@ -51,13 +52,14 @@ const { title, description } = Astro.props;
     </script>
   </head>
   <ClientRouter />
-  <body>
+  <body class="flex flex-col min-h-screen">
     <Header title={title} />
-    <article
-      class="dark:prose-invert prose-h1:font-bold prose-h1:text-xl prose-a:text-blue-600 prose-p:text-justify prose-img:rounded-xl prose-headings:underline min-h-screen"
+    <main
+      class="flex-grow prose prose-neutral max-w-2xl lg:max-w-none mx-auto px-4 py-8 lg:py-12 prose-headings:font-medium prose-h1:text-2xl prose-h2:text-xl prose-a:text-pink-500 prose-a:no-underline hover:prose-a:underline prose-img:rounded-lg prose-pre:bg-base-200 prose-pre:border prose-pre:border-base-content/10 prose-pre:rounded-lg prose-code:text-pink-500 prose-code:before:content-none prose-code:after:content-none"
     >
+      <CodeCopy />
       <slot />
-    </article>
+    </main>
     <Footer />
   </body>
 </html>
