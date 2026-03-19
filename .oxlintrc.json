@@ -1,0 +1,105 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "options": {
+    "denyWarnings": true
+  },
+  "env": {
+    "browser": true,
+    "es2022": true,
+    "node": true
+  },
+  "globals": {
+    "Astro": "readonly",
+    "Buffer": "readonly"
+  },
+  "settings": {
+    "jsx": {
+      "runtime": "automatic"
+    }
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "error",
+    "perf": "error",
+    "style": "error",
+    "restriction": "error",
+    "nursery": "error"
+  },
+  "rules": {
+    "no-console": "warn",
+    "no-alert": "error",
+    "no-debugger": "error",
+    "no-ternary": "off",
+    "no-magic-numbers": "off",
+    "no-null": "off",
+    "no-undefined": "off",
+    "no-optional-chaining": "off",
+    "no-non-null-assertion": "off"
+  },
+  "overrides": [
+    {
+      "files": ["*.astro"],
+      "rules": {
+        "eslint-plugin-unicorn/filename-case": "off",
+        "no-rest-spread-properties": "off",
+        "no-map-spread": "off",
+        "no-async-await": "off",
+        "no-new": "off",
+        "no-ternary": "off",
+        "no-magic-numbers": "off",
+        "no-null": "off",
+        "no-undefined": "off",
+        "no-optional-chaining": "off",
+        "no-non-null-assertion": "off",
+        "unicorn/no-null": "off",
+        "unicorn/no-useless-undefined": "off",
+        "unicorn/prefer-module": "off",
+        "sort-imports": "off"
+      }
+    },
+    {
+      "files": ["astro.config.mjs"],
+      "rules": {
+        "no-rest-spread-properties": "off",
+        "no-async-await": "off",
+        "no-new": "off",
+        "no-ternary": "off",
+        "no-magic-numbers": "off",
+        "no-null": "off",
+        "no-undefined": "off",
+        "no-optional-chaining": "off",
+        "no-non-null-assertion": "off",
+        "new-cap": "off",
+        "sort-imports": "off"
+      }
+    },
+    {
+      "files": ["src/pages/**/*.ts"],
+      "rules": {
+        "no-rest-spread-properties": "off",
+        "no-async-await": "off",
+        "no-ternary": "off",
+        "no-magic-numbers": "off",
+        "no-null": "off",
+        "no-undefined": "off",
+        "no-optional-chaining": "off",
+        "no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [".husky/*.ts"],
+      "rules": {
+        "no-async-await": "off",
+        "no-ternary": "off",
+        "no-magic-numbers": "off",
+        "no-null": "off",
+        "no-undefined": "off",
+        "no-optional-chaining": "off",
+        "no-non-null-assertion": "off",
+        "sort-imports": "off",
+        "unicorn/no-await-expression-member": "off"
+      }
+    }
+  ]
+}

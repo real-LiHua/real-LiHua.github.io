@@ -2,6 +2,7 @@
 title: 测试文章
 description: 这是一篇包含各种 Markdown 格式和代码块的测试文章
 tags: ["测试", "代码", "Markdown"]
+publishDate: 2026-02-23
 ---
 
 ## 文本格式

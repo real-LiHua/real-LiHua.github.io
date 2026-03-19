@@ -1,21 +1,26 @@
-import { readFile, writeFile } from "node:fs/promises";
-import { applyEdits, modify, parse } from "jsonc-parser";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
-import timezone from "dayjs/plugin/timezone.js";
-
-console.log("Updating the compatibility date for Wrangler.");
+import { applyEdits, modify, parse } from "jsonc-parser";
+import { readFile, writeFile } from "node:fs/promises";
 
 dayjs.extend(utc);
-var config = (await readFile("wrangler.jsonc")).toString();
-var compatibility_date = parse(config)["compatibility_date"];
-var yesterday = dayjs().subtract(1, "day").format("YYYY-MM-DD");
+
+const CONFIG_FILE = "wrangler.jsonc";
+const COMPATIBILITY_DATE_KEY = "compatibility_date";
+const ONE_DAY = 1;
+const EXIT_CODE_FAILURE = 1;
+
+const fileContent = await readFile(CONFIG_FILE);
+const configContent = fileContent.toString();
+const { compatibility_date } = parse(configContent) as {
+  compatibility_date: string;
+};
+const yesterday = dayjs().subtract(ONE_DAY, "day").format("YYYY-MM-DD");
 await writeFile(
-  "wrangler.jsonc",
-  applyEdits(config, modify(config, ["compatibility_date"], yesterday, {})),
+  CONFIG_FILE,
+  applyEdits(configContent, modify(configContent, [COMPATIBILITY_DATE_KEY], yesterday, {})),
   {},
 );
-console.log("Updated compatibility date for Wrangler.");
 if (compatibility_date !== yesterday) {
-  process.exit(1);
+  globalThis.process.exit(EXIT_CODE_FAILURE);
 }

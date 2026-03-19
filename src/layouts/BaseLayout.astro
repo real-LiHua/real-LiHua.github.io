@@ -1,9 +1,9 @@
 ---
 import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
+import CodeCopy from "../components/CodeCopy.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
-import CodeCopy from "../components/CodeCopy.astro";
 const { title, description } = Astro.props;
 ---
 
@@ -13,11 +13,9 @@ const { title, description } = Astro.props;
     <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
     <title>{title ?? "未命名"}</title>
     <script is:inline>
-      document.documentElement.setAttribute(
-        "data-theme",
-        localStorage.getItem("theme") ?? "light",
-      );
-      document.querySelector("head>script:nth-child(4)")?.remove();
+      document.documentElement.dataset.theme = localStorage.getItem("theme") ?? "light";
+      const script = document.querySelector("head>script:nth-child(4)");
+      if (script) { script.remove(); }
     </script>
     <meta content="width=device-width,initial-scale=1" name="viewport" />
     <meta content={title} property="og:title" />
@@ -38,13 +36,13 @@ const { title, description } = Astro.props;
         const tc = document.querySelector(
           ".theme-controller",
         ) as HTMLInputElement;
-        if (localStorage.getItem("theme") === "dark") tc.checked = true;
+        if (localStorage.getItem("theme") === "dark") { tc.checked = true; }
         tc.addEventListener("change", () => {
           if (localStorage.getItem("theme") === "dark") {
-            document.documentElement.setAttribute("data-theme", "light");
+            document.documentElement.dataset.theme = "light";
             localStorage.setItem("theme", "light");
           } else {
-            document.documentElement.setAttribute("data-theme", "dark");
+            document.documentElement.dataset.theme = "dark";
             localStorage.setItem("theme", "dark");
           }
         });

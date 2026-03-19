@@ -1,7 +1,5 @@
 export const prerender = false;
 
-// TODO: PHP 重写
-
 import answer from "the-answer";
 import type { APIRoute } from "astro";
 import { Api } from "grammy";
@@ -11,26 +9,26 @@ import { getSecret } from "astro:env/server";
 import { PinataSDK } from "pinata";
 
 const bot = new Api(getSecret("BOT_TOKEN") ?? "");
-bot.config.use(autoRetry({ maxRetryAttempts: 1, maxDelaySeconds: 5 }));
+bot.config.use(autoRetry({ maxDelaySeconds: 5, maxRetryAttempts: 1 }));
 
 const gaxios = new Gaxios();
 gaxios.defaults = { retry: true };
 
-const pinataJwt = getSecret("PINATA_JWT") ?? "";
 const pinataGateway = getSecret("PINATA_GATEWAY") ?? "";
-const pinata = new PinataSDK({ pinataJwt, pinataGateway });
+const pinataJwt = getSecret("PINATA_JWT") ?? "";
+const pinata = new PinataSDK({ pinataGateway, pinataJwt });
 
-export const POST = (async ({ request }) => {
-  const aesKey = await crypto.subtle.generateKey(
-    { name: "AES-GCM", length: 256 },
-    true,
-    ["encrypt", "decrypt", "wrapKey"],
-  );
+export const POST = (async ({ request }): Promise<Response> => {
+  const aesKey = await crypto.subtle.generateKey({ length: 256, name: "AES-GCM" }, true, [
+    "encrypt",
+    "decrypt",
+    "wrapKey",
+  ]);
 
   const rsaKey = await crypto.subtle.importKey(
     "jwk",
     (await request.json()) as JsonWebKey,
-    { name: "RSA-OAEP", hash: "SHA-256" },
+    { hash: "SHA-256", name: "RSA-OAEP" },
     false,
     ["wrapKey"],
   );
@@ -39,16 +37,14 @@ export const POST = (async ({ request }) => {
     name: "RSA-OAEP",
   });
 
-  const upload = await pinata.upload.public.base64(
-    Buffer.from(wrappedKey).toString("base64"),
-  );
+  const upload = await pinata.upload.public.base64(Buffer.from(wrappedKey).toString("base64"));
 
   await gaxios.request({ url: `https://ipfs.io/ipfs/${upload.cid}` });
 
   await pinata.files.public.delete([upload.id]);
 
   const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: new Uint8Array([answer]) },
+    { iv: new Uint8Array([answer]), name: "AES-GCM" },
     aesKey,
     new TextEncoder().encode("114514"),
   );

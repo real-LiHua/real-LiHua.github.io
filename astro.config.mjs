@@ -1,7 +1,7 @@
 // @ts-check
 import AstroPWA from "@vite-pwa/astro";
 import { defineConfig } from "astro/config";
-import { execSync } from "child_process";
+import { execSync } from "node:child_process";
 import llmsGenerate from "astro-llms-generate";
 import mdx from "@astrojs/mdx";
 import node from "@astrojs/node";
@@ -9,23 +9,25 @@ import obfuscator from "astro-obfuscator";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 
-function remarkPublishDate() {
-  return function (/** @type {any} */ _tree, /** @type {any} */ file) {
-    const filepath = file.history[0];
+const remarkPublishDate = () => {
+  const publishDatePlugin = (_tree, file) => {
+    const [filepath] = file.history;
     const result = execSync(
       `git log --follow --diff-filter=A -1 --pretty="format:%cI" "${filepath}"`,
     );
     file.data.astro.frontmatter.publishDate = result.toString();
   };
-}
+  return publishDatePlugin;
+};
 
-function remarkUpdatedDate() {
-  return function (/** @type {any} */ _tree, /** @type {any} */ file) {
-    const filepath = file.history[0];
+const remarkUpdatedDate = () => {
+  const updatedDatePlugin = (_tree, file) => {
+    const [filepath] = file.history;
     const result = execSync(`git log -1 --pretty="format:%cI" "${filepath}"`);
     file.data.astro.frontmatter.updatedDate = result.toString();
   };
-}
+  return updatedDatePlugin;
+};
 
 // https://astro.build/config
 export default defineConfig({

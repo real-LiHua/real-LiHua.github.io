@@ -1,0 +1,36 @@
+[package]
+name = "post-edit"
+version = "0.1.0"
+edition = "2024"
+description = "管理博客文章的命令行工具"
+repository = "https://github.com/real-LiHua/real-LiHua.github.io"
+license = "MIT"
+keywords = ["blog", "cli", "post"]
+categories = ["command-line-utilities"]
+
+[lints.clippy]
+restriction = "allow"
+pedantic = "allow"
+style = "allow"
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+complexity = { level = "deny", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+multiple_crate_versions = "allow"
+
+[dependencies]
+bat = "0.26.1"
+chrono = "0.4.44"
+clap = { version = "4.6.0", features = ["derive"] }
+gray_matter = { version = "0.3.2", features = ["yaml"] }
+itertools = "0.14.0"
+pinyin = "0.11.0"
+serde = "1.0.228"
+skim = "0.14"
+slug = "0.1.6"
+
+[[bin]]
+name = "post-edit"
+path = "src/post-edit/main.rs"

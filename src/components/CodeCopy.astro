@@ -3,67 +3,97 @@
 ---
 
 <script>
-  document.addEventListener("astro:page-load", () => {
-    document.querySelectorAll("pre").forEach((pre) => {
-      if (pre.parentElement?.classList.contains("code-copy-wrapper")) return;
+  const COPY_SUCCESS_TIMEOUT = 2000;
+  const HOVER_HIGHLIGHT_TIMEOUT = 500;
+  const TOAST_DURATION = 3000;
 
-      const wrapper = document.createElement("div");
-      wrapper.className = "code-copy-wrapper relative group";
-      pre.parentNode?.insertBefore(wrapper, pre);
-      wrapper.appendChild(pre);
+  const SVG_COPY = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+  </svg>`;
+  const SVG_CHECK = `<svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+  </svg>`;
+  const SVG_ERROR = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+  </svg>`;
 
-      const btn = document.createElement("button");
-      btn.className =
-        "copy-code-btn absolute top-2 right-2 btn btn-circle btn-ghost btn-xs opacity-0 group-hover:opacity-100 transition-opacity z-10";
-      btn.setAttribute("aria-label", "复制代码");
-      btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-      </svg>`;
+  const showToast = (message: string): void => {
+    const toast = document.createElement("div");
+    toast.className = "toast toast-center toast-middle z-50";
+    toast.innerHTML = `
+      <div class="alert alert-error">
+        ${SVG_ERROR}
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.append(toast);
+    setTimeout(() => { toast.remove(); }, TOAST_DURATION);
+  };
 
-      wrapper.appendChild(btn);
+  const createCopyButton = (): HTMLButtonElement => {
+    const btn = document.createElement("button");
+    btn.className =
+      "copy-code-btn absolute top-2 right-2 btn btn-circle btn-ghost btn-xs opacity-0 group-hover:opacity-100 transition-opacity z-10";
+    btn.setAttribute("aria-label", "复制代码");
+    btn.innerHTML = SVG_COPY;
+    return btn;
+  };
 
-      btn.addEventListener("click", async () => {
-        const code = pre.querySelector("code");
-        const text = code?.innerText || "";
+  const initWrapper = (pre: HTMLPreElement, parent: Element): HTMLDivElement | undefined => {
+    if (parent.classList.contains("code-copy-wrapper")) { return undefined; }
+    const wrapper = document.createElement("div");
+    wrapper.className = "code-copy-wrapper relative group";
+    pre.before(wrapper);
+    wrapper.append(pre);
+    return wrapper;
+  };
 
-        try {
-          await navigator.clipboard.writeText(text);
-          btn.innerHTML = `<svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>`;
-          setTimeout(() => {
-            btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>`;
-          }, 2000);
-        } catch (err) {
-          console.error("复制失败:", err);
-        }
-      });
-    });
+  const handleCopyClick = (btn: HTMLButtonElement, pre: HTMLPreElement): void => {
+    const code = pre.querySelector("code");
+    const text = code ? code.textContent || "" : "";
+    navigator.clipboard.writeText(text).then(() => {
+      btn.innerHTML = SVG_CHECK;
+      setTimeout(() => { btn.innerHTML = SVG_COPY; }, COPY_SUCCESS_TIMEOUT);
+    }).catch(() => { showToast("复制失败"); });
+  };
 
-    document.querySelectorAll("code:not(pre code)").forEach((code) => {
-      const el = code as HTMLElement;
-      if (el.dataset.copyEnabled) return;
-      el.dataset.copyEnabled = "true";
-      el.style.cursor = "pointer";
-      el.classList.add("inline-code-copy");
+  const wrapPreWithCopyButton = (pre: HTMLPreElement): void => {
+    const parent = pre.parentElement;
+    if (!parent) { return; }
+    const wrapper = initWrapper(pre, parent);
+    if (!wrapper) { return; }
+    const btn = createCopyButton();
+    wrapper.append(btn);
+    btn.addEventListener("click", () => { handleCopyClick(btn, pre); });
+  };
 
-      const originalBg = getComputedStyle(el).backgroundColor;
-      el.addEventListener("click", async () => {
-        const text = el.innerText;
-        try {
-          await navigator.clipboard.writeText(text);
-          el.style.backgroundColor = "oklch(76% 0.233 130.85% / 0.3)";
-          setTimeout(() => {
-            el.style.backgroundColor = originalBg;
-          }, 500);
-        } catch (err) {
-          console.error("复制失败:", err);
-        }
-      });
-    });
-  });
+  const handleInlineCopy = (code: HTMLSpanElement): void => {
+    const text = code.textContent;
+    const originalBg = getComputedStyle(code).backgroundColor;
+    navigator.clipboard.writeText(text).then(() => {
+      code.style.backgroundColor = "oklch(76% 0.233 130.85% / 0.3)";
+      setTimeout(() => { code.style.backgroundColor = originalBg; }, HOVER_HIGHLIGHT_TIMEOUT);
+    }).catch(() => { showToast("复制失败"); });
+  };
+
+  const setupInlineCodeCopy = (code: HTMLSpanElement): void => {
+    if (code.dataset.copyEnabled) { return; }
+    code.dataset.copyEnabled = "true";
+    code.style.cursor = "pointer";
+    code.classList.add("inline-code-copy");
+    code.addEventListener("click", () => { handleInlineCopy(code); });
+  };
+
+  const initCodeCopy = (): void => {
+    for (const pre of document.querySelectorAll("pre")) {
+      wrapPreWithCopyButton(pre as HTMLPreElement);
+    }
+    for (const code of document.querySelectorAll("code:not(pre code)")) {
+      setupInlineCodeCopy(code as HTMLSpanElement);
+    }
+  };
+
+  document.addEventListener("astro:page-load", initCodeCopy);
 </script>
 
 <style>

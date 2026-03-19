@@ -1,11 +1,8 @@
 ---
-import { getCollection, render } from "astro:content";
-import type { CollectionEntry } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-
-dayjs.extend(localizedFormat);
+import PostCard from "../components/common/PostCard.astro";
+import { sortByDate } from "../utils/date";
+import { type CollectionEntry, getCollection, render } from "astro:content";
 
 const blogPosts = await getCollection("blog", ({ data }) => !data.draft);
 const posts: (CollectionEntry<"blog">["data"] & { id: string })[] =
@@ -15,49 +12,13 @@ const posts: (CollectionEntry<"blog">["data"] & { id: string })[] =
       return { ...remarkPluginFrontmatter, ...post.data, id: post.id };
     }),
   );
-posts.sort((a, b) => {
-  const A = dayjs(a.publishDate);
-  const B = dayjs(b.publishDate);
-  if (A.isSame(B)) return 0;
-  if (A.isBefore(B)) return 1;
-  return -1;
-});
+const sortedPosts = sortByDate(posts);
 ---
 
 <BaseLayout title="李华的博客">
   <div class="max-w-5xl mx-auto px-4 py-12">
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {
-        posts.map((post) => (
-          <article class="group">
-            <div class="block p-5 rounded-xl border border-base-200 hover:border-pink-500/30 hover:shadow-lg hover:shadow-pink-500/5 transition-all duration-300 h-full flex flex-col">
-              <time class="text-xs font-mono opacity-50">
-                {dayjs(post.publishDate).format("YYYY.MM.DD")}
-              </time>
-              <a href={`/posts/${post.id}`}>
-                <h2 class="text-lg font-medium group-hover:text-pink-500 transition-colors line-clamp-2">
-                  {post.title}
-                </h2>
-                <p class="text-sm opacity-80 line-clamp-3 flex-grow">
-                  {post.description}
-                </p>
-              </a>
-              {post.tags && post.tags.length > 0 && (
-                <div class="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-base-200">
-                  {post.tags.map((tag) => (
-                    <a
-                      href={`/tags/${tag}`}
-                      class="text-xs text-pink-500 hover:underline"
-                    >
-                      #{tag}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          </article>
-        ))
-      }
+      {sortedPosts.map((post) => <PostCard post={post} />)}
     </div>
   </div>
 </BaseLayout>

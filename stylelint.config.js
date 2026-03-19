@@ -1,5 +1,6 @@
 /** @type {import('stylelint').Config} */
 export default {
+  customSyntax: "postcss-html",
   extends: [
     "stylelint-config-standard",
     "stylelint-config-html/html",
@@ -26,7 +27,6 @@ export default {
     "**/*.astro~",
     "AGENTS.md",
   ],
-  customSyntax: "postcss-html",
   rules: {
     "at-rule-no-unknown": [true, { ignoreAtRules: ["plugin"] }],
     "import-notation": "string",

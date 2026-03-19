@@ -1,0 +1,38 @@
+---
+interface Props {
+  tag: string;
+  size?: "sm" | "md";
+  removable?: boolean;
+}
+
+const { tag, size = "sm", removable = false } = Astro.props;
+---
+
+{
+  removable ? (
+    <span
+      class:list={[
+        "inline-flex items-center gap-1 border rounded-full transition-all",
+        size === "sm"
+          ? "px-2 py-1 text-xs"
+          : "px-3 py-1.5 text-sm",
+        "border-base-content/20 opacity-70 hover:opacity-100 hover:border-pink-500 hover:text-pink-500",
+      ]}
+    >
+      #{tag}
+    </span>
+  ) : (
+    <a
+      href={`/tags/${tag}`}
+      class:list={[
+        "inline-flex items-center border rounded-full transition-all hover:border-pink-500 hover:text-pink-500",
+        size === "sm"
+          ? "px-2 py-1 text-xs"
+          : "px-3 py-1.5 text-sm",
+        "border-base-content/10 opacity-70",
+      ]}
+    >
+      #{tag}
+    </a>
+  )
+}

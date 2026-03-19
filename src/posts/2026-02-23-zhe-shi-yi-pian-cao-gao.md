@@ -3,6 +3,7 @@ title: 这是一篇草稿
 description: 这是一篇测试用的草稿文章
 draft: true
 tags: ["测试", "草稿"]
+publishDate: 2026-02-23
 ---
 
 # 草稿文章

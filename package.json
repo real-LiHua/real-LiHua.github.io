@@ -1,14 +1,14 @@
 {
   "name": "",
-  "type": "module",
   "version": "0.0.1",
-  "packageManager": "bun",
+  "type": "module",
   "scripts": {
     "dev": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro check && astro build && wrangler dev",
     "astro": "astro",
-    "prepare": "husky"
+    "prepare": "husky",
+    "post:edit": "cargo run -p post-edit --"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.6",
@@ -20,6 +20,7 @@
     "@fontsource/twinkle-star": "^5.2.8",
     "@grammyjs/auto-retry": "^2.0.2",
     "@helia/strings": "^5.0.7",
+    "@shopify/draggable": "^1.2.1",
     "@swup/astro": "^1.8.0",
     "@swup/overlay-theme": "^2.0.2",
     "@tailwindcss/typography": "^0.5.19",
@@ -39,50 +40,31 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.25.2",
+    "@playwright/mcp": "^0.0.68",
     "@types/bun": "^1.3.9",
-    "@typescript-eslint/parser": "^8.56.0",
     "@vite-pwa/astro": "^1.2.0",
     "dayjs": "^1.11.19",
-    "eslint": "^9.39.3",
-    "eslint-plugin-astro": "^1.6.0",
-    "eslint-plugin-jsx-a11y": "^6.10.2",
     "husky": "^9.1.7",
     "jsonc-parser": "^3.3.1",
     "lint-staged": "^16.2.7",
+    "oxfmt": "^0.41.0",
+    "oxlint": "^1.56.0",
     "playwright": "^1.58.2",
-    "prettier": "3.6.2",
-    "prettier-plugin-astro": "0.14.1",
-    "prettier-plugin-tailwindcss": "0.6.14",
-    "stylelint": "^16.26.1",
-    "stylelint-config-html": "^1.1.0",
-    "stylelint-config-standard": "^39.0.1",
     "vite-plugin-pwa": "^1.2.0",
     "wrangler": "^4.67.0"
   },
   "lint-staged": {
+    "*.{js,mjs,jsx,ts,tsx,astro}": [
+      "oxlint",
+      "oxfmt"
+    ],
     "*.css": [
-      "stylelint --fix",
-      "prettier --write"
+      "oxlint",
+      "oxfmt"
     ],
-    "*.{js,mjs,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "!(*.css|*.js|*.mjs|*.jsx|*.ts|*.tsx)": [
-      "prettier --ignore-unknown --write"
+    "!(*.css|*.js|*.mjs|*.jsx|*.ts|*.tsx|*.astro)": [
+      "oxfmt"
     ]
   },
-  "prettier": {
-    "plugins": [
-      "prettier-plugin-astro"
-    ],
-    "overrides": [
-      {
-        "files": "*.astro",
-        "options": {
-          "parser": "astro"
-        }
-      }
-    ]
-  }
+  "packageManager": "bun"
 }
