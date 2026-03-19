@@ -9,14 +9,16 @@ This project is a blog built using [Astro](https://astro.build/), a modern stati
 
 ## Key Features
 
-- Static site generation with Astro.
+- Static site generation with Astro + MDX.
 - Deployment to Cloudflare Workers.
-- MDX support for content creation.
-- Tailwind CSS and DaisyUI for styling.
-- Possible LLM integration.
+- Tailwind CSS 4 and DaisyUI 5 for styling.
 - RSS feed and sitemap generation.
-- Uses Bun.js
-- Uses Prettier, ESLint and Stylelint for code formatting and linting
+- PWA support with @vite-pwa/astro.
+- Code protection with astro-obfuscator.
+- LLM integration for content generation.
+- Uses [Bun](https://bun.sh/) as package manager.
+- Uses [oxlint](https://oxc.rs/) and [oxfmt](https://oxc.rs/) for linting and formatting.
+- Rust CLI tool for post management.
 
 ## Setup
 
@@ -24,33 +26,26 @@ To set up the project locally, follow these steps:
 
 1.  **Install dependencies:**
 
-    It's likely that the project uses `bun` as a package manager. If you don't have it installed, you will need to install it.
+    The project uses `bun` as a package manager.
 
     ```bash
-    # you can install bun with npm
+    # install bun
     npm install -g bun
-    ```
 
-    Then run
-
-    ```bash
+    # install dependencies
     bun install
     ```
 
-    This command will install all the dependencies listed in the `package.json` file.
+2.  **Rust CLI tool (optional):**
 
-2.  **Set up Wrangler:**
-
-    The project is deployed to Cloudflare Workers, so you need to install and configure Wrangler, the Cloudflare Workers CLI.
+    The project includes a Rust CLI tool for managing blog posts.
 
     ```bash
-    npm install -g wrangler
-    ```
+    # install rust toolchain
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-    Then, log in to your Cloudflare account:
-
-    ```bash
-    wrangler login
+    # build the post-edit tool
+    cargo build
     ```
 
 3.  **Run the development server:**
@@ -59,33 +54,22 @@ To set up the project locally, follow these steps:
     bun run dev
     ```
 
-    This command will start the Astro development server. You can then access the site in your browser at the address printed in the console (likely `localhost:3000`).
+    Access the site at `http://localhost:3000`.
 
-4.  **Build the project:**
+4.  **Build for production:**
 
     ```bash
     bun run build
     ```
 
-    This command will build the project for production. The output will be in the `dist` directory.
+    Output will be in the `dist` directory.
 
-5.  **Preview the build:**
-
-    ```bash
-    bun run preview
-    ```
-
-    This command will preview the built project using Wrangler.
-
-6.  **Deploy the project:**
-
-    To deploy the project to Cloudflare Workers, run:
+5.  **Preview and deploy:**
 
     ```bash
-    wrangler deploy
+    bun run preview   # preview locally
+    wrangler deploy   # deploy to Cloudflare Workers
     ```
-
-    This command will deploy the contents of the `dist` directory to your Cloudflare Worker.
 
 ## Links
 
