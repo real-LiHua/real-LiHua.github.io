@@ -29,7 +29,19 @@
    - lint-staged 已配置自动执行
    - **使用包管理器添加依赖**：`bun add -d <package>`（而非手动修改 package.json）
 
-5. **未经允许禁止任何 Git 操作**
+5. **oxlint 配置规范**
+   - `.oxlintrc.json` 配置优先级高于 `eslint.config.js`
+   - **必须为 `*.astro` 文件添加 overrides**，禁用过于严格的规则：
+     - `no-ternary`、`no-magic-numbers`、`no-null`、`no-undefined`
+     - `no-optional-chaining`、`no-non-null-assertion`、`sort-imports`
+     - `no-array-for-each`、`max-statements`、`max-lines-per-function`
+     - `explicit-function-return-type`、`prefer-destructuring`、`id-length`
+     - `unicorn/prefer-module`、`unicorn/no-null`
+   - `no-console` 是 warn 级别，`no-alert` 是 error 级别
+   - **错误处理使用 UI 组件（如 toast），禁止使用 `console.error` 和 `alert`**
+   - **pre-commit hook**：`bunx oxfmt .husky/pre-commit.ts` 格式化后再执行
+
+6. **未经允许禁止任何 Git 操作**
 
 ---
 
@@ -282,6 +294,52 @@ path = "src/post-edit/main.rs"
 - 组件职责不清晰（UI/业务/工具混在一起）
 - 为了不报错而加 try/catch 吞异常或随意默认值
 - **修改后未提供 `bunx tsc -b` 校验结果**
+- **使用 `alert()` 作为错误提示**（应该使用 toast 组件）
+
+---
+
+## 8.1) Toast 组件规范
+
+错误提示使用 daisyUI 的 toast 组件，禁止使用 `alert()`：
+
+```typescript
+const showToast = (message: string): void => {
+  const toast = document.createElement("div");
+  toast.className = "toast toast-center toast-middle z-50";
+  toast.innerHTML = `
+    <div class="alert alert-error">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+      <span>${message}</span>
+    </div>
+  `;
+  document.body.append(toast);
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+};
+
+// 使用
+navigator.clipboard.writeText(text).catch(() => {
+  showToast("复制失败");
+});
+```
+
+---
+
+## 8.2) oxlint 重构技巧
+
+解决常见 oxlint 错误的代码模式：
+
+| 规则                     | 问题             | 解决方案                                       |
+| ------------------------ | ---------------- | ---------------------------------------------- |
+| `max-statements`         | 函数语句过多     | 拆分辅助函数                                   |
+| `no-array-for-each`      | 禁止使用 forEach | 使用 `for...of` 循环                           |
+| `id-length`              | 变量名过短       | 使用完整单词如 `event`/`element` 替代 `e`/`el` |
+| `sort-keys`              | 对象键未排序     | 按字母顺序排列对象属性                         |
+| `sort-imports`           | 导入顺序错误     | `type` 放单独一行，其他导入合并                |
+| `prefer-dom-node-append` | 应使用 append    | 用 `append()` 替代 `appendChild()`             |
 
 ---
 
