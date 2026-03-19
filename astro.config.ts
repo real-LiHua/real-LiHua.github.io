@@ -1,4 +1,3 @@
-// @ts-check
 import AstroPWA from "@vite-pwa/astro";
 import { defineConfig } from "astro/config";
 import { execSync } from "node:child_process";
@@ -10,7 +9,8 @@ import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 
 const remarkPublishDate = () => {
-  const publishDatePlugin = (_tree, file) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const publishDatePlugin = (_tree: any, file: any) => {
     const [filepath] = file.history;
     const result = execSync(
       `git log --follow --diff-filter=A -1 --pretty="format:%cI" "${filepath}"`,
@@ -21,7 +21,8 @@ const remarkPublishDate = () => {
 };
 
 const remarkUpdatedDate = () => {
-  const updatedDatePlugin = (_tree, file) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updatedDatePlugin = (_tree: any, file: any) => {
     const [filepath] = file.history;
     const result = execSync(`git log -1 --pretty="format:%cI" "${filepath}"`);
     file.data.astro.frontmatter.updatedDate = result.toString();
@@ -29,7 +30,6 @@ const remarkUpdatedDate = () => {
   return updatedDatePlugin;
 };
 
-// https://astro.build/config
 export default defineConfig({
   adapter: node({
     mode: "standalone",

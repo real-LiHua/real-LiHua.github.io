@@ -39,7 +39,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         </span>
       </span>
       <script>
-        import answer from "the-answer";
+        // eslint-disable-next-line id-length
+        import _ from "the-answer";
         // RSA public exponent: 65537 (0x010001) - standard value for RSA keys
         const PUBLIC_EXPONENT = new Uint8Array([1, 0, 1]); // eslint-disable-line no-magic-numbers
         const keyPair = (await globalThis.crypto.subtle.generateKey(

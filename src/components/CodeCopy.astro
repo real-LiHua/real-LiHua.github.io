@@ -26,7 +26,7 @@
         <span>${message}</span>
       </div>
     `;
-    document.body.append(toast);
+    document.body.appendChild(toast);
     setTimeout(() => { toast.remove(); }, TOAST_DURATION);
   };
 
@@ -43,8 +43,8 @@
     if (parent.classList.contains("code-copy-wrapper")) { return undefined; }
     const wrapper = document.createElement("div");
     wrapper.className = "code-copy-wrapper relative group";
-    pre.before(wrapper);
-    wrapper.append(pre);
+    pre.parentNode!.insertBefore(wrapper, pre);
+    wrapper.appendChild(pre);
     return wrapper;
   };
 
@@ -63,7 +63,7 @@
     const wrapper = initWrapper(pre, parent);
     if (!wrapper) { return; }
     const btn = createCopyButton();
-    wrapper.append(btn);
+    wrapper.appendChild(btn);
     btn.addEventListener("click", () => { handleCopyClick(btn, pre); });
   };
 

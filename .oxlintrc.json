@@ -55,11 +55,12 @@
         "unicorn/no-null": "off",
         "unicorn/no-useless-undefined": "off",
         "unicorn/prefer-module": "off",
-        "sort-imports": "off"
+        "sort-imports": "off",
+        "prefer-dom-node-append": "off"
       }
     },
     {
-      "files": ["astro.config.mjs"],
+      "files": ["astro.config.ts"],
       "rules": {
         "no-rest-spread-properties": "off",
         "no-async-await": "off",
@@ -71,7 +72,8 @@
         "no-optional-chaining": "off",
         "no-non-null-assertion": "off",
         "new-cap": "off",
-        "sort-imports": "off"
+        "sort-imports": "off",
+        "explicit-function-return-type": "off"
       }
     },
     {
