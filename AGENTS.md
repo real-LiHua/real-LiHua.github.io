@@ -114,26 +114,14 @@
 - 发现已有相似实现但命名不同、位置不同
 - 同一 UI 模式在多个页面重复出现
 
-### 3.2 文件组织（防散落）
-
-- `src/pages/`：路由页面（.astro/.ts）
-- `src/components/`：**可复用组件**
-  - `src/components/common/`：通用小组件（如 Tag、PostCard）
-- `src/layouts/`：页面布局
-- `src/styles/`：**全局样式**
-- `src/posts/`：博客文章（.md/.mdx）
-- `src/utils/`：工具函数（如日期格式化）
-- `scripts/`：自动化脚本
-  - `src/post-edit/`：Rust 脚本项目
-
-### 3.3 组件设计要求
+### 3.2 组件设计要求
 
 - Astro 组件（.astro）：用于静态布局
 - `.ts` / `.tsx` 文件：**仅在需要客户端交互时使用**
 - **Props 必须显式声明类型**
 - 禁止把通用逻辑塞进页面组件里
 
-### 3.4 Rust 脚本规范
+### 3.2 Rust CLI 工具规范
 
 1. **项目创建**
    - 使用 `cargo new src/<project-name>` 创建项目
@@ -162,33 +150,7 @@
    - 使用 `cargo audit` 检查依赖安全漏洞（传递依赖的 unmaintained 警告可忽略）
    - **网络不通不能跳过**：如果无法拉取 advisory-db，需手动克隆到本地 `~/.cargo/advisory-db` 后再执行
 
-5. **clippy lint 级别配置**
-
-   Cargo.toml 中 `[lints.clippy]` 配置示例：
-
-   ```toml
-   [lints.clippy]
-   restriction = "allow"
-   pedantic = "allow"
-   style = "allow"
-   correctness = "deny"
-   suspicious = "deny"
-   perf = "deny"
-   complexity = "deny"
-   cargo = "warn"
-   nursery = "warn"
-   ```
-
-   **必须 deny 的级别**：correctness、suspicious、perf、complexity（影响正确性和性能）
-
-   **建议 allow 的级别**：
-   - `pedantic`：包含 `assigning_clones`、`map_unwrap_or` 等过于严格的规则
-   - `style`：包含 `str_to_string`、`implicit_return` 等不必要的规则
-   - `restriction`：包含 `non_ascii_literal`（禁止中文）等不合理的规则
-
-   **依赖更新**：使用 `cargo add <package> -p <project-name>` 添加依赖后，需要在源码中添加对应 import
-
-6. **运行方式**
+5. **运行方式**
    - Cargo.toml 放在项目根目录，通过 `[[bin]]` 指定源码路径
 
 ```toml
@@ -198,9 +160,9 @@ path = "src/post-edit/main.rs"
 ```
 
 - 开发调试：`cargo run -p <project-name>`
-- 或直接运行编译后的二进制文件
+  - 或直接运行编译后的二进制文件
 
-7. **单元测试规范**
+6. **单元测试规范**
    - 使用 `#[cfg(test)]` 模块编写单元测试
    - 使用 `cargo test -p <project-name>` 运行测试
    - 测试命名：`test_<function_name>_<scenario>`
@@ -225,7 +187,7 @@ path = "src/post-edit/main.rs"
    }
    ```
 
-8. **skim 预览功能实现**
+7. **skim 预览功能实现**
    - **不建议使用 skim 的 preview 选项**：shell 环境兼容性差（zsh glob、特殊字符等），调试困难
    - **推荐方案**：在 Rust 中直接实现预览逻辑
      - 在 `post_actions` 函数中选择操作前调用 `preview_file()` 显示内容
@@ -441,7 +403,90 @@ toggle.addEventListener("touchend", () => (isDragging = false));
 - 触摸事件必须用 `passive: false` 并调用 `e.preventDefault()`，否则向下拖动时会触发页面滚动导致按钮丢失
 - 使用 `bg-base-300` 而非 `bg-base-200/xx`，保证背景不透明
 
-### 10.2 移动端目录面板
+## 11) 项目结构
 
-- 面板使用 `bg-base-300 backdrop-blur` 保证背景不透明
-- 移动端目录默认折叠，点击按钮展开/收起
+```
+├── src/
+│   ├── components/           # Astro 组件
+│   │   ├── common/           # 通用组件（Tag, PostCard）
+│   │   ├── navbar/          # 导航栏子组件（Start, Center, End）
+│   │   ├── CodeCopy.astro   # 代码复制按钮
+│   │   ├── Copyright.astro  # 版权组件
+│   │   ├── Footer.astro     # 页脚
+│   │   ├── Header.astro     # 头部
+│   │   └── Navigation.astro # 导航栏
+│   ├── content.config.ts   # Astro 内容集合配置
+│   ├── env.d.ts            # 环境类型声明
+│   ├── layouts/            # 布局组件
+│   │   └── BaseLayout.astro
+│   ├── middleware.ts       # 中间件
+│   ├── pages/              # 页面路由
+│   │   ├── 404.astro
+│   │   ├── about.astro
+│   │   ├── drafts.astro
+│   │   ├── index.astro
+│   │   ├── posts/[id].astro
+│   │   ├── tags/
+│   │   │   ├── index.astro
+│   │   │   └── [tag].astro
+│   │   └── telegram.astro
+│   ├── post-edit/          # Rust CLI 工具
+│   │   └── main.rs
+│   ├── posts/              # 博客文章（.md/.mdx）
+│   ├── styles/
+│   │   └── global.css      # 全局样式
+│   └── utils/              # 工具函数
+│       └── date.ts
+├── scripts/                # Shell 脚本
+│   └── post-edit.sh        # post-edit 包装脚本
+├── Cargo.toml             # Rust 项目配置
+├── Cargo.lock
+├── wrangler.jsonc         # Cloudflare Workers 配置
+└── astro.config.mjs       # Astro 配置
+```
+
+## 12) 文件清理
+
+- **未经用户允许不得擅自清理任何文件**
+- 常见的已忽略但可能需要清理的文件（供用户参考是否需要清理）：
+  - `target/doc/` - Rust 编译生成的 API 文档
+  - `tsconfig.tsbuildinfo` - TypeScript 增量编译缓存
+  - `package.json~` - 编辑器备份文件
+  - `src/post-edit/main.rs~` - 编辑器备份文件
+  - 任何 `*~` 后缀的备份文件
+
+## 13) 技术栈速查
+
+| 类别       | 技术                          |
+| ---------- | ----------------------------- |
+| 框架       | Astro 5 + MDX                 |
+| 样式       | Tailwind CSS 4 + daisyUI 5    |
+| 部署       | Cloudflare Workers + Wrangler |
+| PWA        | @vite-pwa/astro               |
+| 代码保护   | astro-obfuscator              |
+| 内容       | RSS + Sitemap + LLM 生成      |
+| TypeScript | 严格模式（禁止 any）          |
+
+## 14) Cargo clippy lint 级别格式
+
+**正确格式**（项目中实际使用）：
+
+```toml
+[lints.clippy]
+restriction = "allow"
+pedantic = "allow"
+style = "allow"
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+complexity = { level = "deny", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+multiple_crate_versions = "allow"
+```
+
+**说明**：
+
+- 必须 deny 的级别使用 `{ level = "deny", priority = -1 }` 对象语法
+- `priority = -1` 确保即使有其他配置覆盖也生效
+- `multiple_crate_versions = "allow"` 允许 workspace 依赖树中存在不同版本
