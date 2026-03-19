@@ -246,14 +246,17 @@ navigator.clipboard.writeText(text).catch(() => {
 
 常见 oxlint 错误的代码模式：
 
-| 规则                     | 问题             | 解决方案                           |
-| ------------------------ | ---------------- | ---------------------------------- |
-| `max-statements`         | 函数语句过多     | 拆分辅助函数                       |
-| `no-array-for-each`      | 禁止使用 forEach | 使用 `for...of` 循环               |
-| `id-length`              | 变量名过短       | 使用完整单词如 `event`/`element`   |
-| `sort-keys`              | 对象键未排序     | 按字母顺序排列对象属性             |
-| `sort-imports`           | 导入顺序错误     | `type` 放单独一行                  |
-| `prefer-dom-node-append` | 应使用 append    | 用 `append()` 替代 `appendChild()` |
+| 规则                            | 问题             | 解决方案                                     |
+| ------------------------------- | ---------------- | -------------------------------------------- |
+| `max-statements`                | 函数语句过多     | 拆分辅助函数                                 |
+| `no-array-for-each`             | 禁止使用 forEach | 使用 `for...of` 循环                         |
+| `id-length`                     | 变量名过短       | 使用完整单词如 `event`/`element`             |
+| `sort-keys`                     | 对象键未排序     | 按字母顺序排列对象属性                       |
+| `sort-imports`                  | 导入顺序错误     | `type` 放单独一行                            |
+| `prefer-dom-node-append`        | 应使用 append    | 用 `append()` 替代 `appendChild()`           |
+| `new-cap`                       | 构造函数调用     | 添加到 overrides 文件列表                    |
+| `explicit-function-return-type` | 缺少返回类型     | 添加到 overrides 文件列表                    |
+| `id-length`                     | 变量名过短       | 添加 `// eslint-disable-next-line id-length` |
 
 ---
 
@@ -442,7 +445,7 @@ toggle.addEventListener("touchend", () => (isDragging = false));
 ├── Cargo.toml             # Rust 项目配置
 ├── Cargo.lock
 ├── wrangler.jsonc         # Cloudflare Workers 配置
-└── astro.config.mjs       # Astro 配置
+└── astro.config.ts        # Astro 配置
 ```
 
 ## 12) 文件清理
