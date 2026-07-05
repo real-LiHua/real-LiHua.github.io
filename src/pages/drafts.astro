@@ -29,12 +29,9 @@ const sortedPosts = sortByDate(posts);
 <BaseLayout title="草稿">
   <div class="max-w-6xl mx-auto px-4 py-24">
     <div class="max-w-2xl mx-auto">
-      <div class="flex items-center gap-4 mb-12 reveal">
-        <span class="text-4xl font-serif text-primary">华</span>
-        <div>
-          <h1 class="text-3xl font-medium">草稿</h1>
-          <p class="text-sm opacity-50 mt-1">Drafts</p>
-        </div>
+      <div class="mb-12 reveal">
+        <h1 class="text-3xl font-medium">草稿</h1>
+        <p class="text-sm opacity-50 mt-1">Drafts</p>
       </div>
       {
         sortedPosts.length === 0 ? (
