@@ -1,0 +1,6 @@
+allowBuilds:
+  esbuild: true
+  javascript-obfuscator: true
+  node-datachannel: true
+  sharp: true
+  workerd: true

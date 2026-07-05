@@ -16,7 +16,7 @@ This project is a blog built using [Astro](https://astro.build/), a modern stati
 - PWA support with @vite-pwa/astro.
 - Code protection with astro-obfuscator.
 - LLM integration for content generation.
-- Uses [Bun](https://bun.sh/) as package manager.
+- Uses [pnpm](https://pnpm.io/) as package manager.
 - Uses [oxlint](https://oxc.rs/) and [oxfmt](https://oxc.rs/) for linting and formatting.
 - Rust CLI tool for post management.
 
@@ -26,14 +26,11 @@ To set up the project locally, follow these steps:
 
 1.  **Install dependencies:**
 
-    The project uses `bun` as a package manager.
+    The project uses `pnpm` as a package manager.
 
     ```bash
-    # install bun
-    npm install -g bun
-
     # install dependencies
-    bun install
+    pnpm install
     ```
 
 2.  **Rust CLI tool (optional):**
@@ -51,7 +48,7 @@ To set up the project locally, follow these steps:
 3.  **Run the development server:**
 
     ```bash
-    bun run dev
+    pnpm dev
     ```
 
     Access the site at `http://localhost:3000`.
@@ -59,7 +56,7 @@ To set up the project locally, follow these steps:
 4.  **Build for production:**
 
     ```bash
-    bun run build
+    pnpm build
     ```
 
     Output will be in the `dist` directory.
@@ -67,7 +64,7 @@ To set up the project locally, follow these steps:
 5.  **Preview and deploy:**
 
     ```bash
-    bun run preview   # preview locally
+    pnpm preview   # preview locally
     wrangler deploy   # deploy to Cloudflare Workers
     ```
 

@@ -10,7 +10,7 @@ updates:
       development-dependencies:
         dependency-type: "development"
 
-  - package-ecosystem: "bun"
+  - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
