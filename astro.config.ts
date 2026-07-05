@@ -53,7 +53,7 @@ export default defineConfig({
   },
   security: { checkOrigin: false },
   site: "https://lihua.codeberg.page",
-  trailingSlash: "always",
+  trailingSlash: "ignore",
   vite: {
     build: { cssMinify: "lightningcss" },
     plugins: [tailwindcss()],

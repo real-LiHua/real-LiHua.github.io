@@ -8,7 +8,7 @@ const tagArray = z.array(stringSchema);
 const blog = defineCollection({
   loader: glob({ base: "./src/posts", pattern: "**/*.md{,x}" }),
   schema: z.object({
-    description: z.string().optional(),
+    description: z.string().optional().nullable(),
     draft: z.boolean().optional().default(false),
     publishDate: z.coerce.date().optional(),
     tags: tagArray.optional(),
