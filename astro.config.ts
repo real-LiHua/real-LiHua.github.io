@@ -1,7 +1,7 @@
 import AstroPWA from "@vite-pwa/astro";
 import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
 import { execSync } from "node:child_process";
-import llmsGenerate from "astro-llms-generate";
 import mdx from "@astrojs/mdx";
 import node from "@astrojs/node";
 import obfuscator from "astro-obfuscator";
@@ -41,14 +41,15 @@ export default defineConfig({
         enabled: true,
       },
     }),
-    llmsGenerate(),
     sitemap(),
     obfuscator({
       excludes: [/dist\/server/],
     }),
   ],
   markdown: {
-    remarkPlugins: [remarkPublishDate, remarkUpdatedDate],
+    processor: unified({
+      remarkPlugins: [remarkPublishDate, remarkUpdatedDate],
+    }),
   },
   security: { checkOrigin: false },
   site: "https://lihua.codeberg.page",
