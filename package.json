@@ -64,5 +64,6 @@
     "!(*.css|*.js|*.mjs|*.jsx|*.ts|*.tsx|*.astro)": [
       "oxfmt"
     ]
-  }
+  },
+  "packageManager": "pnpm@11.3.0"
 }
