@@ -1,3 +1,6 @@
+overrides:
+  style-to-js: ^2.0.0
+
 allowBuilds:
   esbuild: true
   javascript-obfuscator: true
