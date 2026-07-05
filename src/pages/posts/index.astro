@@ -1,0 +1,41 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostCard from "../../components/common/PostCard.astro";
+import { sortByDate } from "../../utils/date";
+import { type CollectionEntry, getCollection, render } from "astro:content";
+
+const blogPosts = await getCollection("blog", ({ data }) => !data.draft);
+const posts: (CollectionEntry<"blog">["data"] & { id: string })[] =
+  await Promise.all(
+    blogPosts.map(async (post) => {
+      const { remarkPluginFrontmatter } = await render(post);
+      return { ...remarkPluginFrontmatter, ...post.data, id: post.id };
+    }),
+  );
+const sortedPosts = sortByDate(posts);
+const pageTitle = `全部文章 (${sortedPosts.length})`;
+---
+
+<BaseLayout title={pageTitle}>
+  <div class="max-w-6xl mx-auto px-4 py-24">
+    <h1 class="text-3xl font-medium mb-2">全部文章</h1>
+    <p class="text-sm opacity-50 mb-12">共 {sortedPosts.length} 篇</p>
+
+    {sortedPosts.length === 0 ? (
+      <p class="text-center opacity-60 py-12">暂无文章</p>
+    ) : (
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {sortedPosts.map((post, idx) => (
+          <div class:list={["reveal", `reveal-delay-${Math.min(idx + 1, 4)}`]}>
+            <PostCard post={post} />
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<script>
+  import "../../scripts/scroll-reveal";
+  import "../../scripts/tilt-card";
+</script>
