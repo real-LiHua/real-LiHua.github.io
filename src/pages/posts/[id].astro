@@ -1,8 +1,108 @@
 ---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Tag from "../../components/common/Tag.astro";
+import { formatDate } from "../../utils/date";
+import { getCollection, render } from "astro:content";
+
 export const prerender = false;
 
+const { id } = Astro.params;
+const posts = await getCollection("blog", ({ data }) => !data.draft);
+const post = posts.find((entry) => entry.id === id);
+
+if (!post) {
+  return Astro.redirect("/404");
+}
+
+const { Content, headings } = await render(post);
+
+const { title, description, publishDate, tags: rawTags } = post.data;
+const tags = rawTags ?? [];
+const hasTags = tags.length > 0;
+const hasToc = headings.length > 0;
 ---
+
+<BaseLayout {title} {description}>
+  <div class="relative max-w-6xl mx-auto px-4 lg:grid lg:grid-cols-[1fr_14rem] lg:gap-12">
+    <article class="py-16 sm:py-24 min-w-0">
+      <div class="mb-12 reveal">
+        <div class="flex items-center gap-3 text-sm font-mono opacity-40 mb-4">
+          <time>{formatDate(publishDate)}</time>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-medium tracking-tight text-balance">
+          {title}
+        </h1>
+        {description && (
+          <p class="text-lg opacity-60 mt-4 leading-relaxed text-balance">{description}</p>
+        )}
+        {hasTags && (
+          <div class="flex flex-wrap gap-2 mt-6">
+            {tags.map((tag) => <Tag tag={tag} />)}
+          </div>
+        )}
+      </div>
+      <div class="prose prose-neutral dark:prose-invert max-w-none reveal reveal-delay-1">
+        <Content />
+      </div>
+    </article>
+
+    {hasToc && (
+      <aside id="toc-sidebar" class="hidden lg:block pt-24">
+        <div class="sticky top-24">
+          <h3 class="text-xs font-mono tracking-widest opacity-40 mb-4 uppercase">目录</h3>
+          <nav class="space-y-1.5 text-sm">
+            {
+              headings.map(({ depth, slug, text }) => (
+                <a
+                  href={`#${slug}`}
+                  class="block transition-all duration-200 opacity-50 hover:opacity-100 hover:text-primary"
+                  style:list={[{ "padding-left": `${(depth - 2) * 0.75}rem` }]}
+                >
+                  {text}
+                </a>
+              ))
+            }
+          </nav>
+        </div>
+      </aside>
+    )}
+  </div>
+
+  {hasToc && (
+    <>
+      <button
+        id="toc-toggle"
+        class="btn btn-circle btn-sm fixed z-40 shadow-lg bg-base-100 border-base-300"
+        aria-label="打开目录"
+        style="right: 1.5rem; bottom: 1.5rem;"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+        </svg>
+      </button>
+
+      <div id="toc-panel" class="hidden fixed z-50 bottom-20 right-4 w-64 max-h-80 overflow-y-auto rounded-box bg-base-100 border border-base-300 shadow-xl p-4">
+        <h3 class="text-xs font-mono tracking-widest opacity-40 mb-3 uppercase">目录</h3>
+        <nav class="space-y-1.5 text-sm">
+          {
+            headings.map(({ depth, slug, text }) => (
+              <a
+                href={`#${slug}`}
+                class="block transition-all duration-200 opacity-50 hover:opacity-100 hover:text-primary"
+                style:list={[{ "padding-left": `${(depth - 2) * 0.75}rem` }]}
+              >
+                {text}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+    </>
+  )}
+</BaseLayout>
 
 <script>
   import "../../scripts/toc";
+  import "../../scripts/reading-progress";
+  import "../../scripts/scroll-reveal";
 </script>

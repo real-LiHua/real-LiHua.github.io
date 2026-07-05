@@ -3,6 +3,7 @@
   "options": {
     "denyWarnings": true
   },
+  "ignorePatterns": [".agents/", "skills-lock.json"],
   "env": {
     "browser": true,
     "es2022": true,

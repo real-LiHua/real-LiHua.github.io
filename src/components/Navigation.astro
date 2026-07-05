@@ -1,18 +1,49 @@
 ---
-import Center from "./navbar/Center.astro";
 import End from "./navbar/End.astro";
-import Start from "./navbar/Start.astro";
-const { title } = Astro.props;
 ---
 
-<div class="navbar shadow-sm">
+<div class="navbar max-w-6xl mx-auto px-4">
   <div class="navbar-start">
-    <Start />
+    <a href="/" class="flex items-center gap-2.5">
+      <span class="text-2xl font-serif font-bold tracking-tight text-primary">华</span>
+      <span class="text-sm font-medium hidden sm:inline opacity-70">李华的博客</span>
+    </a>
   </div>
-  <div class="navbar-center">
-    <Center title={title} />
+  <div class="navbar-center hidden lg:flex">
+    <ul class="flex items-center gap-0.5">
+      <li><a href="/" class="btn btn-ghost btn-sm rounded-full">首页</a></li>
+      <li><a href="/tags" class="btn btn-ghost btn-sm rounded-full">标签</a></li>
+      <li><a href="/about" class="btn btn-ghost btn-sm rounded-full">关于</a></li>
+      {
+        import.meta.env.DEV && (
+          <li>
+            <a href="/drafts" class="btn btn-ghost btn-sm rounded-full">草稿</a>
+          </li>
+        )
+      }
+    </ul>
   </div>
-  <div class="navbar-end">
+  <div class="navbar-end flex items-center gap-2">
+    <div class="lg:hidden dropdown dropdown-end">
+      <div class="btn btn-circle btn-ghost btn-sm" role="button" tabindex="0">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+        </svg>
+      </div>
+      <ul
+        class="dropdown-content menu z-1 mt-3 w-52 rounded-box bg-base-100 border border-base-300 p-2 shadow-lg"
+        tabindex="0"
+      >
+        <li><a href="/">首页</a></li>
+        <li><a href="/tags">标签</a></li>
+        <li><a href="/about">关于</a></li>
+        {
+          import.meta.env.DEV && (
+            <li><a href="/drafts">草稿</a></li>
+          )
+        }
+      </ul>
+    </div>
     <End />
   </div>
 </div>

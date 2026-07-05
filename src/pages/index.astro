@@ -13,12 +13,58 @@ const posts: (CollectionEntry<"blog">["data"] & { id: string })[] =
     }),
   );
 const sortedPosts = sortByDate(posts);
+const recentPosts = sortedPosts.slice(0, 6);
+const hasMore = sortedPosts.length > 6;
 ---
 
 <BaseLayout title="李华的博客">
-  <div class="max-w-5xl mx-auto px-4 py-12">
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {sortedPosts.map((post) => <PostCard post={post} />)}
+  <div class="relative overflow-hidden">
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+      <span class="text-[30rem] sm:text-[40rem] font-serif text-base-200/40 leading-none">华</span>
+    </div>
+    <div class="relative max-w-6xl mx-auto px-4 py-24 sm:py-32">
+      <div class="max-w-2xl">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-3xl font-serif text-primary reveal">华</span>
+          <span class="text-sm font-mono opacity-40 reveal reveal-delay-1">l i h u a</span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-medium tracking-tight text-balance reveal reveal-delay-1">
+          李华的博客
+        </h1>
+        <p class="text-lg opacity-60 mt-4 max-w-lg text-balance leading-relaxed reveal reveal-delay-2">
+          记录技术思考，分享编程心得。偶尔写点别的。
+        </p>
+      </div>
     </div>
   </div>
+
+  <div class="max-w-6xl mx-auto px-4 pb-24">
+    <div class="flex items-center gap-3 mb-8 reveal">
+      <span class="h-px flex-grow bg-base-200"></span>
+      <span class="text-xs font-mono tracking-widest opacity-40">LATEST</span>
+      <span class="h-px flex-grow bg-base-200"></span>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {recentPosts.map((post, idx) => (
+        <div class:list={["reveal", `reveal-delay-${Math.min(idx + 1, 4)}`]}>
+          <PostCard post={post} />
+        </div>
+      ))}
+    </div>
+    {hasMore && (
+      <div class="text-center mt-10 reveal">
+        <a href="/posts" class="btn btn-ghost rounded-full px-8">
+          查看全部文章
+          <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+      </div>
+    )}
+  </div>
 </BaseLayout>
+
+<script>
+  import "../scripts/scroll-reveal";
+  import "../scripts/tilt-card";
+</script>

@@ -2,13 +2,16 @@ import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 
+const stringSchema = z.string();
+const tagArray = z.array(stringSchema);
+
 const blog = defineCollection({
   loader: glob({ base: "./src/posts", pattern: "**/*.md{,x}" }),
   schema: z.object({
-    description: z.coerce.string().optional(),
+    description: z.string().optional(),
     draft: z.boolean().optional().default(false),
     publishDate: z.coerce.date().optional(),
-    tags: z.array(z.string()).optional(),
+    tags: tagArray.optional(),
     title: z.coerce.string(),
     updatedDate: z.coerce.date().optional(),
   }),

@@ -4,6 +4,7 @@ import { ClientRouter } from "astro:transitions";
 import CodeCopy from "../components/CodeCopy.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
+
 const { title, description } = Astro.props;
 ---
 
@@ -13,9 +14,11 @@ const { title, description } = Astro.props;
     <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
     <title>{title ?? "未命名"}</title>
     <script is:inline>
-      document.documentElement.dataset.theme = localStorage.getItem("theme") ?? "light";
-      const script = document.querySelector("head>script:nth-child(4)");
-      if (script) { script.remove(); }
+      // oxlint-disable-next-line typescript/explicit-function-return-type
+      (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        document.documentElement.dataset.theme = theme;
+      })();
     </script>
     <meta content="width=device-width,initial-scale=1" name="viewport" />
     <meta content={title} property="og:title" />
@@ -36,11 +39,10 @@ const { title, description } = Astro.props;
     </script>
   </head>
   <ClientRouter />
-  <body class="flex flex-col min-h-screen">
-    <Header title={title} />
-    <main
-      class="flex-grow prose prose-neutral max-w-2xl lg:max-w-none mx-auto px-4 py-8 lg:py-12 prose-headings:font-medium prose-h1:text-2xl prose-h2:text-xl prose-a:text-pink-500 prose-a:no-underline hover:prose-a:underline prose-img:rounded-lg prose-pre:bg-base-200 prose-pre:border prose-pre:border-base-content/10 prose-pre:rounded-lg prose-code:text-pink-500 prose-code:before:content-none prose-code:after:content-none"
-    >
+  <body class="flex flex-col min-h-screen bg-base-100 text-base-content">
+    <div id="reading-progress" class="fixed top-0 left-0 h-0.5 bg-primary z-[60] transition-[width] duration-150 ease-out" />
+    <Header />
+    <main class="flex-grow">
       <CodeCopy />
       <slot />
     </main>

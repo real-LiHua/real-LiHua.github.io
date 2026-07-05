@@ -3,16 +3,32 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout title="关于">
-  <div class="max-w-2xl mx-auto px-4 py-12">
-    <div class="prose prose-neutral dark:prose-invert">
-      <p>这是一个基于 Astro 构建的博客。</p>
-      <p>博客使用以下技术：</p>
-      <ul>
-        <li>Astro - 静态站点生成器</li>
-        <li>Tailwind CSS - 样式框架</li>
-        <li>DaisyUI - UI 组件库</li>
-        <li>TypeScript - 类型安全</li>
-      </ul>
+  <div class="max-w-6xl mx-auto px-4 py-24">
+    <div class="max-w-2xl mx-auto">
+      <div class="flex items-center gap-4 mb-12 reveal">
+        <span class="text-4xl font-serif text-primary">华</span>
+        <div>
+          <h1 class="text-3xl font-medium">关于</h1>
+          <p class="text-sm opacity-50 mt-1">About</p>
+        </div>
+      </div>
+      <div class="prose prose-neutral dark:prose-invert max-w-none reveal reveal-delay-1">
+        <p>你好，我是李华。一名热爱技术的开发者。</p>
+        <p>这个博客是我的技术笔记本，记录学习过程中的思考与沉淀。</p>
+        <h2>技术栈</h2>
+        <ul>
+          <li>Astro — 静态站点生成器</li>
+          <li>Tailwind CSS + daisyUI — 样式框架</li>
+          <li>TypeScript — 类型安全</li>
+          <li>MDX — 内容管理</li>
+        </ul>
+        <h2>联系</h2>
+        <p>欢迎通过 Telegram 或者邮件与我交流。</p>
+      </div>
     </div>
   </div>
 </BaseLayout>
+
+<script>
+  import "../scripts/scroll-reveal";
+</script>
