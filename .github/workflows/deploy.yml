@@ -50,7 +50,6 @@ jobs:
         run: |
           pnpm build
           rm -vr "./dist/server"
-          touch "./dist/client/.nojekyll"
 
       - name: Create SSH directory
         run: mkdir ~/.ssh
@@ -85,30 +84,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: pnpm/setup@v1
-        with:
-          runtime: node@24
-          cache: true
-
-      - name: Build
+      - uses: withastro/action@v6
         env:
           SITE_URL: https://real-LiHua.github.io
-        run: |
-          pnpm build
-          rm -vr "./dist/server"
-          touch "./dist/client/.nojekyll"
-
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v5
         with:
-          path: "./dist/client"
+          out-dir: dist/client
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
 
   ipfs:
-    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -121,7 +107,9 @@ jobs:
           cache: true
 
       - name: Build
-        run: pnpm build
+        run: |
+          pnpm build
+          rm -vr "./dist/server"
 
       - name: Setup Kubo CLI
         uses: ipfs/download-ipfs-distribution-action@v1
