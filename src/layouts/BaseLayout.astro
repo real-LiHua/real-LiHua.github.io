@@ -21,9 +21,9 @@ const { title, description } = Astro.props;
       })();
     </script>
     <meta content="width=device-width,initial-scale=1" name="viewport" />
-    <meta content={title} property="og:title" />
+    <meta content={title ?? "未命名"} property="og:title" />
     <meta content="article" property="og:type" />
-    <meta content={description} property="og:description" />
+    <meta content={description ?? ""} property="og:description" />
     <meta content="zh_CN" property="og:locale" />
     <meta content="未命名" property="og:site_name" />
     <meta content="Li Hua" property="og:article:author:first_name" />
@@ -37,8 +37,8 @@ const { title, description } = Astro.props;
     <script>
       import "../scripts/theme-toggle";
     </script>
+    <ClientRouter />
   </head>
-  <ClientRouter />
   <body class="flex flex-col min-h-screen bg-base-100 text-base-content">
     <div id="reading-progress" class="fixed top-0 left-0 h-0.5 bg-primary z-[60] transition-[width] duration-150 ease-out" />
     <Header />

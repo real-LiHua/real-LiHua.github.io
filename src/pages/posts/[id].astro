@@ -28,7 +28,7 @@ const hasToc = headings.length > 0;
     <article class="py-16 sm:py-24 min-w-0">
       <div class="mb-12 reveal">
         <div class="flex items-center gap-3 text-sm font-mono opacity-40 mb-4">
-          <time>{formatDate(publishDate)}</time>
+          <time datetime={formatDate(publishDate, "full")}>{formatDate(publishDate)}</time>
         </div>
         <h1 class="text-3xl sm:text-4xl font-medium tracking-tight text-balance">
           {title}
@@ -100,10 +100,9 @@ const hasToc = headings.length > 0;
       </div>
     </>
   )}
+  <script>
+    import "../../scripts/toc";
+    import "../../scripts/reading-progress";
+    import "../../scripts/scroll-reveal";
+  </script>
 </BaseLayout>
-
-<script>
-  import "../../scripts/toc";
-  import "../../scripts/reading-progress";
-  import "../../scripts/scroll-reveal";
-</script>

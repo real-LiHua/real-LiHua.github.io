@@ -1,2 +1,2 @@
-bunx oxfmt .husky/pre-commit.ts && node .husky/pre-commit.ts || wrangler types
+pnpm dlx oxfmt .husky/pre-commit.ts && node .husky/pre-commit.ts || wrangler types
 lint-staged

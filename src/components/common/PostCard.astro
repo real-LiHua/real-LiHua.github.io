@@ -11,20 +11,18 @@ interface Props {
 const { post, variant = "grid" } = Astro.props;
 
 const formattedDate = formatDate(post.publishDate);
+const dateISO = formatDate(post.publishDate, "full");
 const hasTags = post.tags && post.tags.length > 0;
 ---
 
 {
   variant === "grid" ? (
     <article class="group tilt-card">
-      <a
-        href={`/posts/${post.id}`}
-        class="card card-border bg-base-100 border-base-200 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 h-full block"
-      >
+      <div class="card card-border bg-base-100 border-base-200 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 h-full block">
         <div class="card-body">
-          <time class="text-xs font-mono opacity-40">{formattedDate}</time>
-          <h2 class="card-title text-lg mt-1 group-hover:text-primary transition-colors">
-            {post.title}
+          <time class="text-xs font-mono opacity-40" datetime={dateISO}>{formattedDate}</time>
+          <h2 class="card-title text-lg mt-1">
+            <a href={`/posts/${post.id}`} class="group-hover:text-primary transition-colors">{post.title}</a>
           </h2>
           {post.description && <p class="text-sm opacity-70 line-clamp-3">{post.description}</p>}
           {hasTags && (
@@ -33,20 +31,19 @@ const hasTags = post.tags && post.tags.length > 0;
             </div>
           )}
         </div>
-      </a>
+      </div>
     </article>
   ) : (
     <article class="group">
-      <a
-        href={`/posts/${post.id}`}
-        class="flex items-baseline gap-4 p-4 -mx-4 rounded-xl hover:bg-base-200/50 transition-all duration-300"
-      >
-        <time class="text-sm font-mono opacity-40 shrink-0 w-20 text-right">{formattedDate}</time>
+      <div class="flex items-baseline gap-4 p-4 -mx-4 rounded-xl hover:bg-base-200/50 transition-all duration-300">
+        <time class="text-sm font-mono opacity-40 shrink-0 w-20 text-right" datetime={dateISO}>{formattedDate}</time>
         <div>
-          <h2 class="text-lg font-medium group-hover:text-primary transition-colors">{post.title}</h2>
+          <h2 class="text-lg font-medium">
+            <a href={`/posts/${post.id}`} class="group-hover:text-primary transition-colors">{post.title}</a>
+          </h2>
           {post.description && <p class="text-sm opacity-60 mt-1 line-clamp-1">{post.description}</p>}
         </div>
-      </a>
+      </div>
     </article>
   )
 }

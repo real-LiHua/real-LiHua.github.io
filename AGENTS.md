@@ -64,6 +64,12 @@ src/
 │   ├── meow.ts           # API 路由（非 GET 请求受限：仅特定 origin + User-Agent "catgirl" 可访问）
 │   └── *.astro           # 静态页面
 ├── posts/                # .md / .mdx 博客文章（通过 astro:content 加载）
+├── scripts/              # 客户端交互脚本（通过 <script> 导入）
+│   ├── gravatar-fallback.ts  # 图片加载失败时切换到 fallback URL（使用 data-gravatar-fallback 属性）
+│   ├── theme-toggle.ts
+│   ├── scroll-reveal.ts
+│   ├── tilt-card.ts
+│   └── ...
 ├── styles/global.css     # 全局样式：Tailwind + daisyUI 主题配置
 └── utils/date.ts         # 日期工具函数（基于 dayjs）
 Cargo.toml                # 根级 Rust 项目，[[bin]] 指向 src/post-edit/main.rs
@@ -74,6 +80,7 @@ wrangler.jsonc            # Cloudflare Workers 部署配置
 
 - `src/rust/` 目录存在但为空；Rust 项目入口在 `src/post-edit/main.rs`
 - `scripts/` 目录不存在（README 中的 `post-edit.sh` 可能已过时；使用 `pnpm post:edit`）
+- 图片 fallback 方案：用 `data-gravatar-fallback` 属性 + `src/scripts/gravatar-fallback.ts`，避免内联 `onerror` 触发 ts(6133)
 
 ## 文章内容规范
 

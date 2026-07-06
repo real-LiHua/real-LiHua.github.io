@@ -6,4 +6,5 @@ allowBuilds:
   javascript-obfuscator: true
   node-datachannel: true
   sharp: true
+  vnu-jar: false
   workerd: true
