@@ -10,7 +10,7 @@ export const GET = async (context: { site: string }): Promise<Response> => {
   );
 
   return rss({
-    customData: "<language>zh-cn</language>",
+    customData: `<language>zh-cn</language>\n<atom:link rel="self" href="${context.site}rss.xml"/>`,
     description: "Li Hua 的个人博客",
     items: sorted.map((post) => ({
       categories: post.data.tags ?? [],
@@ -22,5 +22,6 @@ export const GET = async (context: { site: string }): Promise<Response> => {
     site: context.site,
     title: "李华的博客",
     trailingSlash: true,
+    xmlns: { atom: "http://www.w3.org/2005/Atom" },
   });
 };
