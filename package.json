@@ -54,9 +54,12 @@
     "wrangler": "^4.107.0"
   },
   "lint-staged": {
-    "*.{js,mjs,jsx,ts,tsx,astro}": [
+    "*.{js,mjs,jsx,ts,tsx}": [
       "oxlint",
       "oxfmt"
+    ],
+    "*.astro": [
+      "oxlint"
     ],
     "*.css": [
       "oxlint",
