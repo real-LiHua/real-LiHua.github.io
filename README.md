@@ -14,7 +14,7 @@ This project is a blog built using [Astro](https://astro.build/), a modern stati
 - Tailwind CSS 4 and DaisyUI 5 for styling.
 - RSS feed and sitemap generation.
 - PWA support with @vite-pwa/astro.
-- Code protection with astro-obfuscator.
+- Bot protection with astro-shield (PoW gate + content obfuscation).
 - LLM integration for content generation.
 - Uses [pnpm](https://pnpm.io/) as package manager.
 - Uses [oxlint](https://oxc.rs/) and [oxfmt](https://oxc.rs/) for linting and formatting.

@@ -4,7 +4,7 @@ import { unified } from "@astrojs/markdown-remark";
 import { execSync } from "node:child_process";
 import mdx from "@astrojs/mdx";
 import node from "@astrojs/node";
-import obfuscator from "astro-obfuscator";
+import { astroShield } from "@meeghele/astro-shield";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 
@@ -40,8 +40,15 @@ export default defineConfig({
       },
     }),
     sitemap(),
-    obfuscator({
-      excludes: [/dist\/server/u],
+    astroShield({
+      autoHideRoot: true,
+      gatePath: "/gate",
+      shield: {
+        difficulty: 4,
+        enableHoneypots: true,
+        enableInputHoneypots: false,
+        enableLinkDecoys: false,
+      },
     }),
   ],
   markdown: {
