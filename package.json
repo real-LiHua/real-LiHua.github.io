@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vnu src && astro dev",
+    "dev": "astro dev",
     "build": "astro check && astro build && vnu --skip-non-html dist/client",
     "preview": "astro check && astro build && vnu --skip-non-html dist/client && wrangler dev",
     "astro": "astro",
