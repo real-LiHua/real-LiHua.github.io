@@ -66,9 +66,8 @@ jobs:
 
       - name: Push to Codeberg
         run: |
-          git clone --bare ssh://git@codeberg.org/lihua/pages /tmp/codeberg-pages
+          git clone --depth 1 ssh://git@codeberg.org/lihua/pages /tmp/codeberg-pages
           cd /tmp/codeberg-pages
-          git config unset core.bare
           git config set user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config set user.name "github-actions[bot]"
           rsync -a --delete "${{ github.workspace }}/dist/client/" .
