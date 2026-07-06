@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Workers / Codeberg Pages / GitHub Pages
+name: deploy
 
 on:
   push:
@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   cloudflare:
+    name: cloudflare
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -33,6 +34,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
   codeberg:
+    name: codeberg
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -75,6 +77,7 @@ jobs:
           git push -f origin main
 
   github:
+    name: github
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -95,6 +98,7 @@ jobs:
         uses: actions/deploy-pages@v5
 
   ipfs:
+    name: ipfs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
