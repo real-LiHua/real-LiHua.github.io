@@ -20,7 +20,7 @@
     "@astrojs/ts-plugin": "^1.10.10",
     "@fontsource/twinkle-star": "^5.2.8",
     "@grammyjs/auto-retry": "^2.0.2",
-    "@helia/strings": "^5.1.1",
+    "@helia/strings": "^6.0.3",
     "@meeghele/astro-shield": "^0.0.8",
     "@shopify/draggable": "^1.2.1",
     "@swup/astro": "^1.8.0",
@@ -32,11 +32,11 @@
     "daisyui": "^5.6.13",
     "gaxios": "^7.1.5",
     "grammy": "^1.44.0",
-    "helia": "^6.1.4",
+    "helia": "^7.0.5",
     "pinata": "^2.5.6",
     "tailwindcss": "^4.3.2",
     "the-answer": "^1.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.43.0",
