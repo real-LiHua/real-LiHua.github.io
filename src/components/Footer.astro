@@ -1,12 +1,19 @@
 ---
 import Copyright from "./Copyright.astro";
+
+const site = Astro.site ?? new URL("https://lihua.codeberg.page");
+const rssUrl = new URL("/rss.xml", site);
+const validatorUrl = `https://validator.w3.org/feed/check.cgi?url=${encodeURIComponent(rssUrl.href)}`;
 ---
 
 <footer class="border-t border-base-200 mt-24">
   <div class="max-w-6xl mx-auto px-4 py-8">
     <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm opacity-60">
       <Copyright />
-      <p class="text-xs">基于 Astro + daisyUI 构建</p>
+      <p class="text-xs">由 Astro + daisyUI 强力驱动</p>
+      <a href={validatorUrl} target="_blank" rel="noopener noreferrer">
+        <img src="/valid-rss-rogers.png" alt="Valid RSS" title="Validate my RSS feed" class="h-5 w-auto" width="88" height="31" />
+      </a>
     </div>
   </div>
 </footer>
