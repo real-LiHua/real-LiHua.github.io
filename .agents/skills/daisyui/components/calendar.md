@@ -32,10 +32,10 @@ For Vanilla Calendar Pro:
 ```
 
 ```js
-import { Calendar } from "vanilla-calendar-pro"
+import { Calendar } from "vanilla-calendar-pro";
 
-const calendar = new Calendar("#calendar")
-calendar.init()
+const calendar = new Calendar("#calendar");
+calendar.init();
 ```
 
 Or using CDN:
@@ -45,10 +45,10 @@ Or using CDN:
 <div id="calendar" class="vc"></div>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const { Calendar } = window.VanillaCalendarPro
-    const calendar = new Calendar("#calendar")
-    calendar.init()
-  })
+    const { Calendar } = window.VanillaCalendarPro;
+    const calendar = new Calendar("#calendar");
+    calendar.init();
+  });
 </script>
 ```
 
