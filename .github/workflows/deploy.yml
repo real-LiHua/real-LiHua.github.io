@@ -1,4 +1,4 @@
-name: Deploy to Codeberg Pages / GitHub Pages / IPFS
+name: Deploy to Cloudflare Workers / Codeberg Pages / GitHub Pages
 
 on:
   push:
@@ -10,11 +10,10 @@ permissions:
   pages: write
 
 jobs:
-  build:
+  cloudflare:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout your repository using git
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -24,33 +23,34 @@ jobs:
           cache: true
 
       - name: Build
+        env:
+          SITE_URL: ${{ vars.CF_PAGES_URL || 'https://lihua.codeberg.page' }}
         run: pnpm build
-
-      - name: Create .nojekyll
-        run: touch "./dist/client/.nojekyll"
 
       - uses: cloudflare/wrangler-action@v3
         with:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
-      - run: rm -vr "./dist/server"
-
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: "./dist/client"
-
   codeberg:
-    needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/checkout@v5
         with:
-          name: github-pages
+          fetch-depth: 0
 
-      - name: Extract artifact
-        run: tar xvf artifact.tar --recursive-unlink
+      - uses: pnpm/setup@v1
+        with:
+          runtime: node@24
+          cache: true
+
+      - name: Build
+        env:
+          SITE_URL: https://lihua.codeberg.page
+        run: |
+          pnpm build
+          rm -vr "./dist/server"
+          touch "./dist/client/.nojekyll"
 
       - name: Create SSH directory
         run: mkdir ~/.ssh
@@ -64,49 +64,65 @@ jobs:
       - name: Set SSH key permissions
         run: chmod 400 ~/.ssh/id_ed25519
 
-      - name: Clone repository
-        run: git clone --bare ssh://git@codeberg.org/lihua/pages .git
-
-      - name: Unset core.bare
-        run: git config unset core.bare
-
-      - name: Set user email
-        run: git config set user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Set user name
-        run: git config set user.name "github-actions[bot]"
-
-      - name: Add files
-        run: git add .
-
-      - name: Commit changes
-        run: git commit -m "Update" || true
-
-      - name: Push changes
-        run: git push -f origin main
+      - name: Push to Codeberg
+        run: |
+          git clone --bare ssh://git@codeberg.org/lihua/pages /tmp/codeberg-pages
+          cd /tmp/codeberg-pages
+          git config unset core.bare
+          git config set user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config set user.name "github-actions[bot]"
+          rsync -a --delete "${{ github.workspace }}/dist/client/" .
+          git add .
+          git commit -m "Update" || true
+          git push -f origin main
 
   github:
-    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/setup@v1
+        with:
+          runtime: node@24
+          cache: true
+
+      - name: Build
+        env:
+          SITE_URL: https://real-LiHua.github.io
+        run: |
+          pnpm build
+          rm -vr "./dist/server"
+          touch "./dist/client/.nojekyll"
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: "./dist/client"
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
 
   ipfs:
     if: ${{ false }}
-    needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/checkout@v5
         with:
-          name: github-pages
+          fetch-depth: 0
 
-      - name: Extract artifact
-        run: tar xvf artifact.tar --recursive-unlink
+      - uses: pnpm/setup@v1
+        with:
+          runtime: node@24
+          cache: true
+
+      - name: Build
+        run: pnpm build
 
       - name: Setup Kubo CLI
         uses: ipfs/download-ipfs-distribution-action@v1
@@ -119,10 +135,7 @@ jobs:
           REPO_NAME=$(echo "${{ github.repository }}" | tr '/' '-')
           COMMIT_SHA="${{ github.sha }}"
           COMMIT_SHA_SHORT="${COMMIT_SHA:0:7}"
-
-          # Set the pin name
           PIN_NAME="${REPO_NAME}-${COMMIT_SHA_SHORT}"
-
           echo "pin_name=${PIN_NAME}" >> "$GITHUB_ENV"
           echo "Using pin name: ${PIN_NAME}"
 
@@ -131,4 +144,4 @@ jobs:
           CID=$(ipfs add --cid-version 1 --chunker size-1048576 -Q -r .)
           ipfs pin remote service add pinata "https://api.pinata.cloud/psa" ${{ secrets.PINATA_JWT_TOKEN }}
           ipfs pin remote add --service=pinata --background --name="${pin_name}" $CID
-          echo "✅ Pinned CID ${CID} to Pinata" >> $GITHUB_STEP_SUMMARY
+          echo "Pinned CID ${CID} to Pinata" >> $GITHUB_STEP_SUMMARY

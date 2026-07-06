@@ -50,7 +50,7 @@ export default defineConfig({
     }),
   },
   security: { checkOrigin: false },
-  site: "https://lihua.codeberg.page",
+  site: process.env.SITE_URL ?? "https://lihua.codeberg.page",
   trailingSlash: "ignore",
   vite: {
     build: { cssMinify: "lightningcss" },
