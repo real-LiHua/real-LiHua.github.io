@@ -3,6 +3,12 @@ name: deploy
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - ".agents/**"
+      - "*.md"
+      - "LICENSE.txt"
+      - "src/post-edit/**"
+      - "Cargo.toml"
   workflow_dispatch:
 
 permissions:
