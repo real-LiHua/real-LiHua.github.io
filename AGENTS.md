@@ -4,15 +4,15 @@
 
 ## 项目概要
 
-Astro 5 + MDX 静态博客，部署到 **Cloudflare Workers + Codeberg Pages + GitHub Pages**。样式栈：Tailwind CSS 4 + daisyUI 5（通过 `@plugin` 指令加载）。CSS 变量定义在 `src/styles/global.css`，双主题（light/dark）完整适配。
+Astro 7 + MDX 静态博客，部署到 **Cloudflare Workers + Codeberg Pages + GitHub Pages**。样式栈：Tailwind CSS 4 + daisyUI 5（通过 `@plugin` 指令加载）。CSS 变量定义在 `src/styles/global.css`，双主题（light/dark）完整适配。
 
 ## 关键命令
 
 ```bash
 pnpm dev              # 启动开发服务器
-pnpm build            # astro check && astro build（先类型检查再构建）
-pnpm preview          # 本地预览（check + build + wrangler dev）
-pnpm post:edit        # cargo run -p post-edit -- （Rust CLI 工具）
+pnpm build            # astro check + astro build + pagefind + vnu
+pnpm preview          # check + build + pagefind + vnu + wrangler dev
+pnpm post:edit        # cargo run -p post-edit -- (Rust CLI 工具)
 pnpm exec oxlint      # 静态检查
 pnpm exec oxfmt       # 格式化代码
 pnpm exec tsc -b      # 修改代码后必须做 TypeScript 构建校验
@@ -35,7 +35,7 @@ cargo audit               # Rust 依赖安全审计
 ## 代码规范
 
 - Lint: **oxlint** 为主（`no-console`: warn, `no-alert`/`no-debugger`: error），`eslint.config.js` 为辅
-- Format: **oxfmt**（取代 prettier）
+- Format: **oxfmt**（取代 prettier），配置见 `oxfmt.config.ts`
 - lint-staged：Stage 文件的 `*.{astro,ts,tsx,js,jsx,css}` 自动执行 oxlint + oxfmt
 
 ### pre-commit hook
@@ -48,39 +48,52 @@ cargo audit               # Rust 依赖安全审计
 - `.oxlintrc.json` 优先级高于 `eslint.config.js`
 - **必须为 `*.astro` 文件添加 overrides**（已在 `.oxlintrc.json` 配置：关闭 `unicorn/filename-case`、`sort-imports`、`prefer-dom-node-append` 等 Astro 不兼容规则）
 - 常见违规处理：`max-statements` -> 拆分函数、`no-array-for-each` -> `for...of`、`id-length` -> 用完整变量名
+- `sort-keys` 在 `oxfmt.config.ts` 等配置文件中启用，注意键名须字母序
 
-## 项目结构 (关键部分)
+## 项目结构（关键部分）
 
 ```
 src/
 ├── components/           # Astro 组件（静态 UI）
 │   ├── common/           # PostCard.astro, Tag.astro
-│   ├── navbar/           # Start.astro, Center.astro, End.astro
-│   └── ...
-├── layouts/BaseLayout.astro  # 唯一布局组件（含主题切换、OGP meta、ClientRouter、CodeCopy）
+│   ├── navbar/           # Start.astro, Center.astro, End.astro (含 pagefind 搜索按钮)
+│   ├── CodeCopy.astro
+│   ├── Copyright.astro
+│   ├── Footer.astro
+│   ├── Header.astro
+│   └── Navigation.astro
+├── layouts/BaseLayout.astro  # 唯一布局组件（含主题切换、OGP meta、ClientRouter、CodeCopy、Pagefind modal）
 ├── pages/
-│   ├── posts/[id].astro  # 文章详情页
+│   ├── posts/[id].astro  # 文章详情页（含 data-pagefind-body）
 │   ├── tags/             # 标签索引页
 │   ├── meow.ts           # API 路由（非 GET 请求受限：仅特定 origin + User-Agent "catgirl" 可访问）
-│   └── *.astro           # 静态页面
+│   ├── drafts.astro      # 草稿列表（含 Telegram 入口）
+│   ├── telegram.astro    # Telegram 集成页面
+│   ├── about.astro       # 关于页面
+│   └── 404.astro         # 404 页面
 ├── posts/                # .md / .mdx 博客文章（通过 astro:content 加载）
 ├── scripts/              # 客户端交互脚本（通过 <script> 导入）
-│   ├── gravatar-fallback.ts  # 图片加载失败时切换到 fallback URL（使用 data-gravatar-fallback 属性）
+│   ├── code-copy.ts      # 代码块复制
+│   ├── gravatar-fallback.ts  # 图片加载失败时切换 fallback URL
+│   ├── reading-progress.ts   # 阅读进度条
+│   ├── scroll-reveal.ts      # 滚动渐入动画
+│   ├── telegram.ts           # Telegram 交互
 │   ├── theme-toggle.ts
-│   ├── scroll-reveal.ts
-│   ├── tilt-card.ts
-│   └── ...
+│   ├── tilt-card.ts          # 3D 倾斜卡片
+│   └── toc.ts                # 目录高亮
 ├── styles/global.css     # 全局样式：Tailwind + daisyUI 主题配置
-└── utils/date.ts         # 日期工具函数（基于 dayjs）
-Cargo.toml                # 根级 Rust 项目，[[bin]] 指向 src/post-edit/main.rs
-wrangler.jsonc            # Cloudflare Workers 部署配置
+├── utils/date.ts         # 日期工具函数（基于 dayjs）
+├── middleware.ts         # Astro 中间件
+├── content.config.ts     # Content collections 定义与 Zod schema
+├── post-edit/main.rs     # Rust CLI 入口
+└── env.d.ts              # 环境类型声明
 ```
 
 **注意**：
 
 - `src/rust/` 目录存在但为空；Rust 项目入口在 `src/post-edit/main.rs`
-- `scripts/` 目录不存在（README 中的 `post-edit.sh` 可能已过时；使用 `pnpm post:edit`）
 - 图片 fallback 方案：用 `data-gravatar-fallback` 属性 + `src/scripts/gravatar-fallback.ts`，避免内联 `onerror` 触发 ts(6133)
+- Pagefind 搜索：构建时自动生成索引到 `dist/client/pagefind/`，开发模式通过 `ln -sf` 链接到 `public/pagefind`
 
 ## 文章内容规范
 
@@ -100,21 +113,15 @@ draft: boolean # 可选，默认 false
 ### Astro config 特殊行为
 
 - `adapter: node({ mode: "standalone" })` —— Node 独立模式
-- `site: "https://lihua.codeberg.page"`
-- `trailingSlash: "always"`
+- `site: "https://lihua.codeberg.page"`（被 `SITE_URL` 环境变量覆盖）
+- `trailingSlash: "ignore"`
 - `security: { checkOrigin: false }` —— 关闭 CSRF 检查
 - `vite.build.cssMinify: "lightningcss"` —— CSS 压缩用 lightningcss
 - remark 插件：`remarkPublishDate` + `remarkUpdatedDate` 自动从 git 历史注入日期到 frontmatter
 
 ## Rust CLI 工具（post-edit）
 
-Cargo.toml 使用 **edition = "2024"**。
-
-```toml
-[[bin]]
-name = "post-edit"
-path = "src/post-edit/main.rs"
-```
+Cargo.toml 使用 **edition = "2024"**。入口：`src/post-edit/main.rs`
 
 依赖速查：
 
@@ -127,7 +134,7 @@ path = "src/post-edit/main.rs"
 | Frontmatter | gray_matter (yaml) |
 | Slug 生成   | slug + pinyin      |
 
-**Cargo clippy 配置**（`Cargo.toml` 中）：
+**Cargo clippy 配置**：
 
 - `correctness`/`suspicious`/`perf`/`complexity` → `deny`
 - `cargo`/`nursery` → `warn`
@@ -136,13 +143,12 @@ path = "src/post-edit/main.rs"
 
 ## 部署流水线（`.github/workflows/deploy.yml`）
 
-触发条件：push 到 `main` 分支
+触发条件：push 到 `main` 分支，排除 `.agents/**` / `*.md` / `LICENSE.txt` / `src/post-edit/**` / `Cargo.toml`
 
-1. **Build**：`pnpm build` → 生成 `dist/client` + `dist/server`
-2. **Cloudflare Workers**：`wrangler deploy` 将完整 `dist/` 部署为 Workers 站点
-3. **Codeberg Pages**：SSH 推 `dist/client` 到 `ssh://git@codeberg.org/lihua/pages`
-4. **GitHub Pages**：`actions/deploy-pages` 部署 `dist/client`
-5. **IPFS**：已禁用（`if: ${{ false }}`）
+1. **Cloudflare Workers**：`pnpm build` + `wrangler deploy`
+2. **Codeberg Pages**：`pnpm build` + SSH 推 `dist/client` 到 `ssh://git@codeberg.org/lihua/pages`
+3. **GitHub Pages**：`withastro/action` 构建 + `actions/deploy-pages` 部署 `dist/client`
+4. **IPFS**：`pnpm build` + `ipfs` 将 CID pin 到 Pinata（已禁用 `if: false`）
 
 ## 组件规范
 
