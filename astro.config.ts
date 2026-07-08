@@ -7,6 +7,7 @@ import node from "@astrojs/node";
 import { astroShield } from "@meeghele/astro-shield";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
+import { visit } from "unist-util-visit";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const publishDatePlugin = (_tree: any, file: any) => {
@@ -27,6 +28,22 @@ const updatedDatePlugin = (_tree: any, file: any) => {
 };
 
 const remarkUpdatedDate = () => updatedDatePlugin;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rehypeTableAlign = () => (tree: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  visit(tree, "element", (el: any) => {
+    if (el.tagName === "th" || el.tagName === "td") {
+      const align = el.properties?.align;
+      if (align) {
+        const existing = el.properties?.style ?? "";
+        el.properties.style = `${existing} text-align: ${align}`.trim();
+        delete el.properties.align;
+      }
+    }
+  });
+};
 
 export default defineConfig({
   adapter: node({
@@ -53,11 +70,12 @@ export default defineConfig({
   ],
   markdown: {
     processor: unified({
+      rehypePlugins: [rehypeTableAlign],
       remarkPlugins: [remarkPublishDate, remarkUpdatedDate],
     }),
   },
   security: { checkOrigin: false },
-  site: process.env.SITE_URL ?? "https://lihua.codeberg.page",
+  site: process.env.SITE_URL ?? "http://localhost:4321",
   trailingSlash: "ignore",
   vite: {
     build: { cssMinify: "lightningcss" },
