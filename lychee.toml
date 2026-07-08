@@ -1,0 +1,4 @@
+cache = false
+root_dir = "dist/client"
+user_agent = "catgirl"
+offline = true
