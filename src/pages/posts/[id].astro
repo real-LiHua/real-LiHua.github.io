@@ -1,10 +1,18 @@
 ---
+import type { GetStaticPathsResult } from "astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Tag from "../../components/common/Tag.astro";
 import { formatDate } from "../../utils/date";
 import { getCollection, render } from "astro:content";
 
-export const prerender = false;
+export const prerender = true;
+
+export const getStaticPaths = async (): Promise<GetStaticPathsResult> => {
+  const posts = await getCollection("blog", ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { id: post.id },
+  }));
+};
 
 const { id } = Astro.params;
 const isDev = import.meta.env.DEV;
@@ -27,9 +35,11 @@ const hasToc = headings.length > 0;
   <div class="relative max-w-6xl mx-auto px-4 lg:grid lg:grid-cols-[1fr_14rem] lg:gap-12">
     <article class="py-16 sm:py-24 min-w-0">
       <div class="mb-12 reveal">
+        {publishDate && (
         <div class="flex items-center gap-3 text-sm font-mono opacity-40 mb-4">
           <time datetime={formatDate(publishDate, "full")}>{formatDate(publishDate)}</time>
         </div>
+      )}
         <h1 class="text-3xl sm:text-4xl font-medium tracking-tight text-balance">
           {title}
         </h1>
