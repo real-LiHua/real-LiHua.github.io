@@ -1,0 +1,64 @@
+---
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostCard from "../../components/common/PostCard.astro";
+import { sortByDate } from "../../utils/date";
+
+export const getStaticPaths = async (): Promise<{ params: { tag: string }; props: { tag: string } }[]> => {
+  const posts = await getCollection("blog", ({ data }) => !data.draft);
+  const tags = new Set<string>();
+
+  for (const post of posts) {
+    for (const tag of post.data.tags ?? []) {
+      tags.add(tag);
+    }
+  }
+
+  return [...tags].map((tag) => ({
+    params: { tag },
+    props: { tag },
+  }));
+};
+
+const { tag } = Astro.props;
+
+const posts = await getCollection("blog", ({ data }) => !data.draft);
+const filteredPosts = posts
+  .filter((post) => (post.data.tags ?? []).includes(tag));
+
+const postWithRender: (CollectionEntry<"blog">["data"] & { id: string })[] = await Promise.all(
+  filteredPosts.map(async (post) => {
+    const { remarkPluginFrontmatter } = await render(post);
+    return { ...remarkPluginFrontmatter, ...post.data, id: post.id };
+  }),
+);
+const sortedPosts = sortByDate(postWithRender);
+---
+
+<BaseLayout title={`标签: ${tag}`}>
+  <div class="max-w-6xl mx-auto px-4 py-24">
+    <div class="max-w-3xl mx-auto">
+      <div class="flex items-center gap-4 mb-12 reveal">
+        <a href="/tags/" class="btn btn-circle btn-ghost btn-sm">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </a>
+        <span class="text-4xl font-serif text-primary">华</span>
+        <div>
+          <h1 class="text-3xl font-medium">
+            <span class="text-primary">#</span>{tag}
+          </h1>
+          <p class="text-sm opacity-50 mt-1">{sortedPosts.length} 篇文章</p>
+        </div>
+      </div>
+
+      <div class="space-y-1 reveal reveal-delay-1">
+        {sortedPosts.map((post) => <PostCard post={post} variant="list" />)}
+      </div>
+    </div>
+  </div>
+  <script>
+    import "../../scripts/scroll-reveal";
+  </script>
+</BaseLayout>

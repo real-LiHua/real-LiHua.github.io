@@ -1,0 +1,34 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Tag from "../../components/common/Tag.astro";
+
+const blogPosts = await getCollection("blog", ({ data }) => !data.draft);
+const allTags = new Set<string>();
+for (const post of blogPosts) {
+  for (const tag of post.data.tags ?? []) {
+    allTags.add(tag);
+  }
+}
+const tags = [...allTags].toSorted();
+---
+
+<BaseLayout title="标签">
+  <div class="max-w-6xl mx-auto px-4 py-24">
+    <div class="max-w-2xl mx-auto">
+      <div class="flex items-center gap-4 mb-12 reveal">
+        <span class="text-4xl font-serif text-primary">华</span>
+        <div>
+          <h1 class="text-3xl font-medium">标签</h1>
+          <p class="text-sm opacity-50 mt-1">Tags</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-3 reveal reveal-delay-1">
+        {tags.map((tag) => <Tag tag={tag} size="md" />)}
+      </div>
+    </div>
+  </div>
+  <script>
+    import "../../scripts/scroll-reveal";
+  </script>
+</BaseLayout>
