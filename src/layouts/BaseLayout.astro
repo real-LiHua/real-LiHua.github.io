@@ -37,11 +37,14 @@ const { title, description } = Astro.props;
     <script>
       import "../scripts/theme-toggle";
     </script>
+    <link href="/pagefind/pagefind-component-ui.css" rel="stylesheet" />
+    <script src="/pagefind/pagefind-component-ui.js" type="module"></script>
     <ClientRouter />
   </head>
   <body class="flex flex-col min-h-screen bg-base-100 text-base-content">
     <div id="reading-progress" class="fixed top-0 left-0 h-0.5 bg-primary z-[60] transition-[width] duration-150 ease-out" />
     <Header />
+    <pagefind-modal reset-on-close />
     <main class="flex-grow">
       <CodeCopy />
       <slot />

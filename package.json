@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build && vnu --skip-non-html dist/client",
-    "preview": "astro check && astro build && vnu --skip-non-html dist/client && wrangler dev",
+    "build": "rm -f public/pagefind && astro check && astro build && pagefind --site dist/client && ln -sf ../dist/client/pagefind public/pagefind && vnu --skip-non-html dist/client",
+    "preview": "rm -f public/pagefind && astro check && astro build && pagefind --site dist/client && ln -sf ../dist/client/pagefind public/pagefind && vnu --skip-non-html dist/client && wrangler dev",
     "astro": "astro",
     "prepare": "husky",
     "post:edit": "cargo run -p post-edit --"
@@ -48,6 +48,7 @@
     "lint-staged": "^17.0.8",
     "oxfmt": "^0.57.0",
     "oxlint": "^1.72.0",
+    "pagefind": "^1.5.2",
     "playwright": "^1.61.1",
     "vite-plugin-pwa": "^1.3.0",
     "vnu-jar": "^26.7.3",

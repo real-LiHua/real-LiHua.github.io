@@ -1,6 +1,9 @@
 # build output
 dist/
 
+# pagefind generated assets (regenerated on build)
+public/pagefind
+
 # generated files
 .astro/
 .wrangler/
