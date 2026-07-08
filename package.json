@@ -5,7 +5,11 @@
   "scripts": {
     "dev": "astro dev",
     "check:links": "lychee dist/client",
-    "build": "rm -f public/pagefind && astro check && astro build && pagefind --site dist/client && ln -sf ../dist/client/pagefind public/pagefind && pnpm run check:links && vnu --skip-non-html dist/client",
+    "build:clean": "rm -f public/pagefind",
+    "build:astro": "astro check && astro build",
+    "build:pagefind": "pagefind --site dist/client && ln -sf ../dist/client/pagefind public/pagefind",
+    "build:vnu": "vnu --skip-non-html dist/client",
+    "build": "pnpm run build:clean && pnpm run build:astro && pnpm run build:pagefind && pnpm run check:links && pnpm run build:vnu",
     "preview": "pnpm run build && wrangler dev",
     "astro": "astro",
     "prepare": "husky",

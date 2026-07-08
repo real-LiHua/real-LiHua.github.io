@@ -10,8 +10,13 @@ Astro 7 + MDX 静态博客，部署到 **Cloudflare Workers + Codeberg Pages + G
 
 ```bash
 pnpm dev              # 启动开发服务器
-pnpm build            # astro check + astro build + pagefind + vnu
-pnpm preview          # check + build + pagefind + vnu + wrangler dev
+pnpm build            # 完整构建：clean → astro check/build → pagefind → check:links → vnu
+pnpm build:clean      # 清理 public/pagefind
+pnpm build:astro      # astro check + astro build
+pnpm build:pagefind   # pagefind 索引 + symlink
+pnpm check:links      # lychee 死链检查
+pnpm build:vnu        # vnu HTML 验证
+pnpm preview          # build + wrangler dev
 pnpm post:edit        # cargo run -p post-edit -- (Rust CLI 工具)
 pnpm exec oxlint      # 静态检查
 pnpm exec oxfmt       # 格式化代码
