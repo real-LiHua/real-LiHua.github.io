@@ -4,7 +4,6 @@ import { unified } from "@astrojs/markdown-remark";
 import { execSync } from "node:child_process";
 import mdx from "@astrojs/mdx";
 import node from "@astrojs/node";
-import { astroShield } from "@meeghele/astro-shield";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import { visit } from "unist-util-visit";
@@ -57,16 +56,6 @@ export default defineConfig({
       },
     }),
     sitemap(),
-    astroShield({
-      autoHideRoot: true,
-      gatePath: "/gate",
-      shield: {
-        difficulty: 4,
-        enableHoneypots: true,
-        enableInputHoneypots: false,
-        enableLinkDecoys: false,
-      },
-    }),
   ],
   markdown: {
     processor: unified({
