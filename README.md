@@ -9,7 +9,7 @@ A personal blog built with Astro 7, deployed to Cloudflare Workers, Codeberg Pag
 - **Astro 7 + MDX** — static site generation with content collections
 - **Tailwind CSS 4 + daisyUI 5** — utility-first styling with component library
 - **Pagefind** — fully client-side search with zero-config indexing
-- **PWA** — offline support via `@vite-pwa/astro`
+- **Favicons** — managed with `astro-favicons` (replaces PWA integration)
 - **RSS + Sitemap** — auto-generated feeds and SEO metadata
 - **Rust CLI** — interactive post management tool (`pnpm post:edit`)
 

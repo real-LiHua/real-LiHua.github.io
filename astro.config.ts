@@ -1,4 +1,4 @@
-import AstroPWA from "@vite-pwa/astro";
+import favicons from "astro-favicons";
 import { defineConfig } from "astro/config";
 import { unified } from "@astrojs/markdown-remark";
 import { execSync } from "node:child_process";
@@ -50,11 +50,9 @@ export default defineConfig({
   }),
   integrations: [
     mdx(),
-    AstroPWA({
-      devOptions: {
-        enabled: true,
-      },
-    }),
+    // Using astro-favicons instead of @vite-pwa/astro
+    // Add favicons integration with default settings; customize via environment or options file as needed
+    favicons(),
     sitemap(),
   ],
   markdown: {
