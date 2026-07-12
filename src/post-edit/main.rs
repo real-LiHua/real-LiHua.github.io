@@ -41,7 +41,6 @@ struct FrontMatter {
     date: Option<String>,
     tags: Option<Vec<String>>,
     description: Option<String>,
-    draft: Option<bool>,
 }
 
 #[derive(Debug, Clone)]
@@ -168,6 +167,10 @@ fn get_full_path(posts_dir: &str, filename: &str) -> PathBuf {
     }
 }
 
+fn is_path_draft(path: &Path) -> bool {
+    path.components().any(|c| c.as_os_str() == "drafts")
+}
+
 fn get_all_posts(dir: &str) -> Vec<PostInfo> {
     let drafts_dir = format!("{}/drafts", dir.trim_end_matches("/posts"));
     let drafts_path = Path::new(&drafts_dir);
@@ -227,8 +230,9 @@ fn get_all_posts(dir: &str) -> Vec<PostInfo> {
 }
 
 fn get_post_info(dir: &str, filename: &str) -> PostInfo {
-    let filepath = format!("{dir}/{filename}");
-    let content = fs::read_to_string(&filepath).unwrap_or_default();
+    let full_path = get_full_path(dir, filename);
+    let filepath_str = full_path.to_string_lossy().to_string();
+    let content = fs::read_to_string(&filepath_str).unwrap_or_default();
 
     let matter = Matter::<YAML>::new();
     let parsed = matter.parse::<FrontMatter>(&content).ok();
@@ -237,12 +241,15 @@ fn get_post_info(dir: &str, filename: &str) -> PostInfo {
         .as_ref()
         .and_then(|f| f.title.clone())
         .unwrap_or_else(|| {
-            Path::new(filename)
+            full_path
                 .file_stem()
                 .and_then(std::ffi::OsStr::to_str)
                 .unwrap_or("")
                 .to_owned()
         });
+
+    // Determine draft status by path (位于 drafts 目录即视为草稿)
+    let is_draft = is_path_draft(&full_path);
 
     PostInfo {
         date: frontmatter
@@ -254,7 +261,7 @@ fn get_post_info(dir: &str, filename: &str) -> PostInfo {
             .and_then(|f| f.description.clone())
             .unwrap_or_default(),
         filename: filename.to_owned(),
-        is_draft: frontmatter.as_ref().and_then(|f| f.draft).unwrap_or(false),
+        is_draft,
         tags: frontmatter.and_then(|f| f.tags).unwrap_or_default(),
         title,
     }
@@ -380,7 +387,7 @@ fn create_new_post(posts_dir: &str) {
     };
 
     let content = format!(
-        "---\ntitle: {title}\ndescription: {description}\ntags: {tags_str}\npublishDate: {date}\ndraft: false\n---\n\n"
+        "---\ntitle: {title}\ndescription: {description}\ntags: {tags_str}\npublishDate: {date}\n---\n\n"
     );
 
     let _ = fs::write(&filepath, content);
@@ -403,28 +410,48 @@ fn edit_post(posts_dir: &str, filename: &str) {
 }
 
 fn toggle_draft(posts_dir: &str, filename: &str, is_draft: bool) {
-    let filepath = if filename.starts_with("../drafts/") {
-        format!(
-            "{}/drafts/{}",
-            posts_dir.trim_end_matches("/posts"),
-            filename.replace("../drafts/", "")
-        )
-    } else {
-        format!("{posts_dir}/{filename}")
-    };
+    // Move files between posts_dir and posts_dir/drafts instead of editing frontmatter
+    let src_path = get_full_path(posts_dir, filename);
 
-    let content = fs::read_to_string(&filepath).unwrap_or_default();
-    let new_content = update_frontmatter_bool(&content, "draft", is_draft);
-
-    if let Err(e) = fs::write(&filepath, new_content) {
-        eprintln!("写入文件失败: {e}");
-        std::process::exit(1);
+    if !src_path.exists() {
+        eprintln!("文件不存在: {}", src_path.to_string_lossy());
+        return;
     }
 
-    println!(
-        "已{}: {filepath}",
-        if is_draft { "设为草稿" } else { "发布" },
-    );
+    let drafts_dir = format!("{}/drafts", posts_dir.trim_end_matches("/posts"));
+    let _ = fs::create_dir_all(&drafts_dir);
+
+    if is_draft {
+        // move to drafts
+        let file_name = src_path
+            .file_name()
+            .and_then(|s| s.to_str())
+            .unwrap_or("");
+        let dst = Path::new(&drafts_dir).join(file_name);
+        if let Err(e) = fs::rename(&src_path, &dst) {
+            eprintln!("移动到草稿失败: {e}");
+            std::process::exit(1);
+        }
+        println!("已设为草稿: {}", dst.to_string_lossy());
+    } else {
+        // publish: move from drafts to posts_dir
+        // filename may be like "../drafts/xxx.md" or just "xxx.md"
+        let src = if filename.starts_with("../drafts/") {
+            src_path
+        } else {
+            src_path
+        };
+        let file_name = src
+            .file_name()
+            .and_then(|s| s.to_str())
+            .unwrap_or("");
+        let dst = Path::new(posts_dir).join(file_name);
+        if let Err(e) = fs::rename(&src, &dst) {
+            eprintln!("发布（移动到 posts）失败: {e}");
+            std::process::exit(1);
+        }
+        println!("已发布: {}", dst.to_string_lossy());
+    }
 }
 
 fn update_frontmatter_bool(content: &str, key: &str, value: bool) -> String {
