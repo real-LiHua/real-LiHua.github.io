@@ -19,18 +19,18 @@
 
 <script>
   const searchTrigger = document.querySelector("#search-trigger");
-  const pfModal = document.querySelector("pagefind-modal");
+  const pfModal = document.querySelector("pagefind-modal") as (Element & { open?: () => void }) | null;
 
   searchTrigger?.addEventListener("click", () => {
     if (pfModal && typeof pfModal.open === "function") {
-      pfModal.open();
+      pfModal.open?.();
     }
   });
 
   document.addEventListener("keydown", (event) => {
     if ((event.metaKey || event.ctrlKey) && event.key === "k") {
       event.preventDefault();
-      pfModal?.open();
+      pfModal?.open?.();
     }
   });
 </script>

@@ -38,7 +38,7 @@ const { title, description } = Astro.props;
       import "../scripts/theme-toggle";
     </script>
     <link href="/pagefind/pagefind-component-ui.css" rel="stylesheet" />
-    <script src="/pagefind/pagefind-component-ui.js" type="module"></script>
+    <script is:inline src="/pagefind/pagefind-component-ui.js" type="module"></script>
     <ClientRouter />
   </head>
   <body class="flex flex-col min-h-screen bg-base-100 text-base-content">
