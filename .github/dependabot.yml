@@ -9,6 +9,8 @@ updates:
         dependency-type: "production"
       development-dependencies:
         dependency-type: "development"
+    cooldown:
+      default-days: 60
 
   - package-ecosystem: "npm"
     directory: "/"
@@ -19,3 +21,5 @@ updates:
         dependency-type: "production"
       development-dependencies:
         dependency-type: "development"
+    cooldown:
+      default-days: 60
