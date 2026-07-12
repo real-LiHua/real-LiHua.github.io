@@ -1,0 +1,74 @@
+---
+// Props 类型显式声明（Astro + TypeScript 风格）
+interface Props {
+  placeholder?: string;
+}
+/* eslint-disable prefer-const */
+export let placeholder: Props["placeholder"] = "搜索（⌘K）";
+---
+
+<!-- 扁平简洁搜索栏（移动端仅图标，中等及以上显示输入） -->
+<div class="relative">
+  <!-- Mobile: icon-only (visible on small screens) -->
+  <div class="flex items-center sm:hidden">
+    <button id="navbar-search-open-mobile" class="btn btn-ghost btn-sm p-2" type="button" aria-label="打开搜索">
+      <svg class="h-5 w-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Desktop/Tablet: full input (hidden on small screens) -->
+  <div class="hidden sm:flex items-center w-full max-w-xs bg-base-200/50 dark:bg-base-300/40 rounded-full px-2 py-1 gap-2 border border-transparent hover:border-base-300 transition-colors">
+    <!-- 左侧放大镜图标（装饰） -->
+    <div class="text-base opacity-60 shrink-0 p-1" aria-hidden="true">
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </div>
+
+    <!-- 输入框作为 pagefind 代理：点击/聚焦会打开 pagefind 模态（保持只读以统一交互） -->
+    <input id="navbar-search" class="input input-ghost input-sm bg-transparent placeholder:opacity-60 w-full rounded-full" type="search" readonly placeholder={placeholder} aria-label="站内搜索" />
+
+    <!-- 右侧打开按钮 -->
+    <button id="navbar-search-open" class="btn btn-ghost btn-xs p-1 opacity-80" type="button" aria-label="打开搜索">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  // 页面加载后在客户端运行的交互逻辑（包含移动端按钮绑定）
+  const openPagefind = (): void => {
+    try {
+      const pfModal = document.querySelector('pagefind-modal') as (Element & { open?: () => void }) | null;
+      pfModal?.open?.();
+    } catch {
+      // 静默失败以避免污染控制台或打断用户体验
+    }
+  };
+
+  const initSearch = (): void => {
+    const input = document.querySelector('#navbar-search') as HTMLInputElement | null;
+    const openBtn = document.querySelector('#navbar-search-open') as HTMLButtonElement | null;
+    const openMobile = document.querySelector('#navbar-search-open-mobile') as HTMLButtonElement | null;
+
+    // 点击或聚焦均打开 modal（保持输入框为只读，便于 UX 与键盘快捷键一致）
+    input?.addEventListener('click', openPagefind);
+    input?.addEventListener('focus', openPagefind);
+    openBtn?.addEventListener('click', openPagefind);
+    openMobile?.addEventListener('click', openPagefind);
+
+    // 全局快捷键：Cmd/Ctrl + K
+    document.addEventListener('keydown', (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        openPagefind();
+      }
+    });
+  };
+
+  initSearch();
+</script>

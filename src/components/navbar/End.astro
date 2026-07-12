@@ -1,11 +1,10 @@
+---
+import SearchBar from './SearchBar.astro';
+---
+
 <div class="flex items-center gap-1">
-  <button class="btn btn-ghost btn-sm gap-1.5 px-3" type="button" id="search-trigger" aria-label="搜索">
-    <svg class="h-4 w-4 opacity-60 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-    </svg>
-    <span class="hidden sm:inline text-xs opacity-60">搜索</span>
-    <kbd class="kbd kbd-xs shrink-0 hidden sm:inline-flex">⌘K</kbd>
-  </button>
+  <SearchBar />
+
   <label class="swap swap-rotate btn btn-circle btn-ghost btn-sm">
     <input class="theme-controller" type="checkbox" value="dark" />
     <svg class="swap-off h-4 w-4 fill-current" viewBox="0 0 24 24">
@@ -16,21 +15,3 @@
     </svg>
   </label>
 </div>
-
-<script>
-  const searchTrigger = document.querySelector("#search-trigger");
-  const pfModal = document.querySelector("pagefind-modal") as (Element & { open?: () => void }) | null;
-
-  searchTrigger?.addEventListener("click", () => {
-    if (pfModal && typeof pfModal.open === "function") {
-      pfModal.open?.();
-    }
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if ((event.metaKey || event.ctrlKey) && event.key === "k") {
-      event.preventDefault();
-      pfModal?.open?.();
-    }
-  });
-</script>
