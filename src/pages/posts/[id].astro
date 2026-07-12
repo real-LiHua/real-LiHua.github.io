@@ -83,7 +83,7 @@ const hasToc = headings.length > 0;
     <>
       <button
         id="toc-toggle"
-        class="btn btn-circle btn-sm fixed z-40 shadow-lg bg-base-100 border-base-300"
+        class="btn btn-circle btn-sm fixed z-40 shadow-lg bg-base-100 border-base-300 lg:hidden"
         aria-label="打开目录"
         style="right: 1.5rem; bottom: 1.5rem;"
       >
@@ -92,7 +92,7 @@ const hasToc = headings.length > 0;
         </svg>
       </button>
 
-      <div id="toc-panel" class="hidden fixed z-50 bottom-20 right-4 w-64 max-h-80 overflow-y-auto rounded-box bg-base-100 border border-base-300 shadow-xl p-4">
+      <div id="toc-panel" class="hidden lg:hidden fixed z-50 bottom-20 right-4 w-64 max-h-80 overflow-y-auto rounded-box bg-base-100 border border-base-300 shadow-xl p-4">
         <h3 class="text-xs font-mono tracking-widest opacity-40 mb-3 uppercase">目录</h3>
         <nav class="space-y-1.5 text-sm">
           {
