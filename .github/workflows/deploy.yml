@@ -111,7 +111,7 @@ jobs:
             | tar xz --strip-components=1 lychee-x86_64-unknown-linux-gnu/lychee
           sudo install lychee /usr/local/bin/
 
-      - uses: withastro/action@v6
+      - uses: withastro/action@v6.1.1
         env:
           SITE_URL: https://real-LiHua.github.io
         with:
