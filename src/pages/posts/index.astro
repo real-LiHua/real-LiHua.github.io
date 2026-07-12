@@ -2,9 +2,10 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import PostCard from "../../components/common/PostCard.astro";
 import { sortByDate } from "../../utils/date";
-import { type CollectionEntry, getCollection, render } from "astro:content";
+import { type CollectionEntry, render } from "astro:content";
+import { getPublishedPosts } from "../../utils/content";
 
-const blogPosts = await getCollection("blog", ({ data }) => !data.draft);
+const blogPosts = await getPublishedPosts();
 const posts: (CollectionEntry<"blog">["data"] & { id: string })[] =
   await Promise.all(
     blogPosts.map(async (post) => {

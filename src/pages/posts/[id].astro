@@ -3,12 +3,13 @@ import type { GetStaticPathsResult } from "astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Tag from "../../components/common/Tag.astro";
 import { formatDate } from "../../utils/date";
-import { getCollection, render } from "astro:content";
+import { render } from "astro:content";
+import { getPublishedPosts, getAllPosts } from "../../utils/content";
 
 export const prerender = true;
 
 export const getStaticPaths = async (): Promise<GetStaticPathsResult> => {
-  const posts = await getCollection("blog", ({ data }) => !data.draft);
+  const posts = await getPublishedPosts();
   return posts.map((post) => ({
     params: { id: post.id },
   }));
@@ -16,7 +17,7 @@ export const getStaticPaths = async (): Promise<GetStaticPathsResult> => {
 
 const { id } = Astro.params;
 const isDev = import.meta.env.DEV;
-const posts = await getCollection("blog", ({ data }) => isDev ? true : !data.draft);
+const posts = isDev ? await getAllPosts() : await getPublishedPosts();
 const post = posts.find((entry) => entry.id === id);
 
 if (!post) {
@@ -67,7 +68,7 @@ const hasToc = headings.length > 0;
                 <a
                   href={`#${slug}`}
                   class="block transition-all duration-200 opacity-50 hover:opacity-100 hover:text-primary"
-                  style={`padding-left: ${(depth - 2) * 0.75}rem`}
+                  style={`padding-left: ${Math.max(depth - 2, 0) * 0.75}rem`}
                 >
                   {text}
                 </a>
@@ -100,7 +101,7 @@ const hasToc = headings.length > 0;
               <a
                 href={`#${slug}`}
                 class="block transition-all duration-200 opacity-50 hover:opacity-100 hover:text-primary"
-                style={`padding-left: ${(depth - 2) * 0.75}rem`}
+                style={`padding-left: ${Math.max(depth - 2, 0) * 0.75}rem`}
               >
                 {text}
               </a>

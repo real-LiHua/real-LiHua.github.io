@@ -1,9 +1,9 @@
 ---
-import { getCollection } from "astro:content";
+import { getPublishedPosts } from "../../utils/content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Tag from "../../components/common/Tag.astro";
 
-const blogPosts = await getCollection("blog", ({ data }) => !data.draft);
+const blogPosts = await getPublishedPosts();
 const allTags = new Set<string>();
 for (const post of blogPosts) {
   for (const tag of post.data.tags ?? []) {

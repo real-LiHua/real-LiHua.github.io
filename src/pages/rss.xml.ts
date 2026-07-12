@@ -1,8 +1,8 @@
-import { getCollection } from "astro:content";
+import { getPublishedPosts } from "../utils/content";
 import rss from "@astrojs/rss";
 
 export const GET = async (context: { site: string }): Promise<Response> => {
-  const posts = await getCollection("blog", ({ data }) => !data.draft);
+  const posts = await getPublishedPosts();
   const sorted = posts.toSorted(
     (prev, next) =>
       new Date(next.data.publishDate ?? 0).getTime() -
