@@ -31,6 +31,7 @@ src/
 ├── layouts/          # BaseLayout (theme, OGP, ClientRouter, Pagefind)
 ├── pages/            # routes: index, about, posts/[id], tags/, meow.ts, …
 ├── posts/            # .md / .mdx blog articles (content collections)
+│   └── drafts/        # Drafts go here; draft status is determined by path (no frontmatter `draft` field)
 ├── scripts/          # client-side JS (theme-toggle, scroll-reveal, tilt-card, …)
 ├── styles/           # global.css — Tailwind + daisyUI theme vars
 └── utils/            # date helpers (dayjs)

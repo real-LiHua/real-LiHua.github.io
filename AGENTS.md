@@ -105,15 +105,14 @@ src/
 ### Frontmatter 字段（由 `src/content.config.ts` 定义）
 
 ```yaml
-title: string # 必填
-publishDate: date # 由 remarkPublishDate 插件从 git log 自动派生（也可手动指定）
-updatedDate: date # 由 remarkUpdatedDate 插件自动从 git log 派生
-description: string # 可选
-tags: string[] # 可选
-draft: boolean # 可选，默认 false
+title: string # required
+publishDate: date # derived from git history by remarkPublishDate (can be set manually)
+updatedDate: date # derived from git history by remarkUpdatedDate
+description: string # optional
+tags: string[] # optional
 ```
 
-**注意**：字段是 `publishDate` 而非 `date`。草稿文件放 `src/posts/drafts/` 或 frontmatter 设 `draft: true`。
+**Note**: The field is `publishDate` not `date`. Draft files should be placed under `src/posts/drafts/` — draft status is determined by path; do not use a frontmatter `draft` flag.
 
 ### Astro config 特殊行为
 
