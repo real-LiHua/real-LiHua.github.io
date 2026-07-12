@@ -23,3 +23,15 @@ updates:
         dependency-type: "development"
     cooldown:
       default-days: 60
+
+  - package-ecosystem: "rust-toolchain"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+      development-dependencies:
+        dependency-type: "development"
+    cooldown:
+      default-days: 60
