@@ -6,6 +6,7 @@ import {
   defineHastPlugin,
   type MdastVisitorContext,
   type HastVisitorContext,
+  type HastNode,
 } from "satteri";
 // Avoid importing 'mdast' and 'hast' types directly to prevent CI type resolution issues.
 // Use generic unknown and narrow where needed. (They are intentionally not imported.)
@@ -83,7 +84,7 @@ const rehypeTableAlign = () =>
         const align = hastNode.properties?.align as string | undefined;
         if (align) {
           const existing = hastNode.properties?.style ?? "";
-          const target = hastNode as unknown as Record<string, unknown>;
+          const target = hastNode as unknown as HastNode;
           ctx.setProperty(target, "style", `${existing} text-align: ${align}`.trim());
           // 删除 align 属性
           ctx.setProperty(target, "align", undefined);
