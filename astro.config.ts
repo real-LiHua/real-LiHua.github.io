@@ -7,8 +7,8 @@ import {
   type MdastVisitorContext,
   type HastVisitorContext,
 } from "satteri";
-import type { Yaml } from "mdast";
-import type { Element } from "hast";
+// Avoid importing 'mdast' and 'hast' types directly to prevent CI type resolution issues.
+// Use generic unknown and narrow where needed. (They are intentionally not imported.)
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import mdx from "@astrojs/mdx";
@@ -36,7 +36,7 @@ const remarkPublishDate = () =>
   defineMdastPlugin({
     name: "remark-publish-date",
     // 在存在 frontmatter（yaml）时触发一次
-    yaml(_yamlNode: Yaml, ctx: MdastVisitorContext) {
+    yaml(_yamlNode: unknown, ctx: MdastVisitorContext) {
       const result = getGitDate(ctx.fileURL, [
         "log",
         "--follow",
@@ -60,7 +60,7 @@ const remarkPublishDate = () =>
 const remarkUpdatedDate = () =>
   defineMdastPlugin({
     name: "remark-updated-date",
-    yaml(_yamlNode: Yaml, ctx: MdastVisitorContext) {
+    yaml(_yamlNode: unknown, ctx: MdastVisitorContext) {
       const result = getGitDate(ctx.fileURL, ["log", "-1", '--pretty="format:%cI"']);
       if (!result) {
         return;
@@ -78,15 +78,15 @@ const rehypeTableAlign = () =>
   defineHastPlugin({
     element: {
       filter: ["th", "td"],
-      visit(el: Element, ctx: HastVisitorContext) {
-        const align = (el.properties as Record<string, unknown> | undefined)?.align as
-          | string
-          | undefined;
+      visit(el: unknown, ctx: HastVisitorContext) {
+        const hastNode = el as { properties?: Record<string, unknown> };
+        const align = hastNode.properties?.align as string | undefined;
         if (align) {
-          const existing = (el.properties as Record<string, unknown> | undefined)?.style ?? "";
-          ctx.setProperty(el, "style", `${existing} text-align: ${align}`.trim());
+          const existing = hastNode.properties?.style ?? "";
+          const target = hastNode as unknown as Record<string, unknown>;
+          ctx.setProperty(target, "style", `${existing} text-align: ${align}`.trim());
           // 删除 align 属性
-          ctx.setProperty(el, "align", undefined);
+          ctx.setProperty(target, "align", undefined);
         }
       },
     },
