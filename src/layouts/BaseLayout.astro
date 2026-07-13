@@ -5,7 +5,7 @@ import CodeCopy from "../components/CodeCopy.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 
-const { title, description } = Astro.props;
+const { title, description, pagefind} = Astro.props;
 ---
 
 <html lang="zh-CN" prefix="og: https://ogp.me/ns#">
@@ -23,7 +23,7 @@ const { title, description } = Astro.props;
     <meta content="width=device-width,initial-scale=1" name="viewport" />
     <meta content={title ?? "未命名"} property="og:title" />
     <meta content="article" property="og:type" />
-    <meta content={description ?? ""} property="og:description" />
+    {description ? (<meta content={String(description)} property="og:description" />) : null}
     <meta content="zh_CN" property="og:locale" />
     <meta content="未命名" property="og:site_name" />
     <meta content="Li Hua" property="og:article:author:first_name" />
@@ -41,10 +41,9 @@ const { title, description } = Astro.props;
     <script is:inline src="/pagefind/pagefind-component-ui.js" type="module"></script>
     <ClientRouter />
   </head>
-  <body class="flex flex-col min-h-screen bg-base-100 text-base-content">
+  <body class="flex flex-col min-h-screen bg-base-100 text-base-content" {...(pagefind ? {"data-pagefind-body": ""} : {})}>
     <div id="reading-progress" class="fixed top-0 left-0 h-0.5 bg-primary z-[60] transition-[width] duration-150 ease-out" />
     <Header />
-    <pagefind-modal reset-on-close />
     <main class="flex-grow">
       <CodeCopy />
       <slot />

@@ -9,9 +9,7 @@ export const getDraftPosts = (): Promise<CollectionEntry<"blog">[]> =>
   getCollection("blog", ({ id }) => id.startsWith("drafts/"));
 
 /** 返回所有帖子（包含草稿），用于开发环境 */
-export const getAllPosts = (): Promise<CollectionEntry<"blog">[]> =>
-  getCollection("blog");
+export const getAllPosts = (): Promise<CollectionEntry<"blog">[]> => getCollection("blog");
 
 /** 方便按需检查条目是否为草稿 */
 export const isDraftEntry = (entry: { id: string }): boolean => entry.id.startsWith("drafts/");
-

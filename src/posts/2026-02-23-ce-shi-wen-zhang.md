@@ -56,6 +56,13 @@ _这是斜体文本_
 
 ## 代码块
 
+### mermaid
+
+```mermaid
+flowchart TD
+  a --> b
+```
+
 ### JavaScript
 
 ```javascript
