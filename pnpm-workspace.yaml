@@ -13,6 +13,7 @@ overrides:
   "esbuild@<0.25.3": "0.25.3"
 
 allowBuilds:
+  "@fortawesome/fontawesome-free": true
   esbuild: true
   javascript-obfuscator: true
   node-datachannel: true
