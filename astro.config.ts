@@ -1,6 +1,8 @@
 import favicons from "astro-favicons";
+import { satteri, satteriHeadingIdsPlugin } from "@astrojs/markdown-satteri";
+import { mdastTocPlugin } from "./src/plugins/mdast-toc";
+import { mermaidMdast, mermaidHast } from "@xingwangzhe/satteri-mermaid";
 import { defineConfig } from "astro/config";
-import { satteri } from "@astrojs/markdown-satteri";
 import {
   defineMdastPlugin,
   defineHastPlugin,
@@ -98,12 +100,11 @@ export default defineConfig({
   adapter: node({
     mode: "standalone",
   }),
-  integrations: [mdx(), favicons(), sitemap()],
+  integrations: [favicons(), mdx(), sitemap()],
   markdown: {
-    // 使用 Sätteri 作为默认处理器并注入自定义插件
     processor: satteri({
-      hastPlugins: [rehypeTableAlign],
-      mdastPlugins: [remarkPublishDate, remarkUpdatedDate],
+      hastPlugins: [mermaidHast(), rehypeTableAlign, satteriHeadingIdsPlugin],
+      mdastPlugins: [mermaidMdast(), remarkPublishDate, remarkUpdatedDate, mdastTocPlugin()],
     }),
   },
   security: { checkOrigin: false },
