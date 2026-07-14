@@ -8,7 +8,7 @@ import Header from "../components/Header.astro";
 const { title, description, pagefind, publishDate, updatedDate, authors, tags, section, image, url, canonical } = Astro.props;
 ---
 
-<html lang="zh-CN" xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" prefix="og: https://ogp.me/ns# article: https://ogp.me/ns/article#">
+<html lang="zh-CN" prefix="og: https://ogp.me/ns# article: https://ogp.me/ns/article#">
   <head>
     <meta charset="utf-8" />
     <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
@@ -21,18 +21,18 @@ const { title, description, pagefind, publishDate, updatedDate, authors, tags, s
       })();
     </script>
     <meta content="width=device-width,initial-scale=1" name="viewport" />
-    <meta content={title ?? "未命名"} property="og:title" />
+    <meta content={title ?? "未命名"} data-pagefind-meta="title[content]" data-pagefind-filter="title[content]" property="og:title" />
     <meta content="article" property="og:type" />
     {description ? (<meta content={String(description)} property="og:description" />) : null}
     <meta content="zh_CN" property="og:locale" />
     <meta content="未命名" property="og:site_name" />
     {url ? (<meta content={String(url)} property="og:url" />) : null}
-    {image ? (<meta content={String(image)} property="og:image" />) : null}
-    {publishDate ? (<meta content={String(publishDate)} property="article:published_time" />) : null}
-    {updatedDate ? (<meta content={String(updatedDate)} property="article:modified_time" />) : null}
+    {image ? (<meta content={String(image)} data-pagefind-meta="image[content]" property="og:image" />) : null}
+    {publishDate ? (<meta content={String(publishDate)} data-pagefind-sort="date[content]" data-weight="5" property="article:published_time" />) : null}
+    {updatedDate ? (<meta content={String(updatedDate)} data-pagefind-sort="date[content]" data-weight="10" property="article:modified_time" />) : null}
     {section ? (<meta content={String(section)} property="article:section" />) : null}
-    {tags ? (Array.isArray(tags) ? tags.map(t => <meta property="article:tag" content={t} />) : <meta property="article:tag" content={String(tags)} />) : null}
-    {authors ? (Array.isArray(authors) ? authors.map(a => <meta property="article:author" content={a} />) : <meta property="article:author" content={String(authors)} />) : null}
+    {tags ? (Array.isArray(tags) ? tags.map(t => <meta property="article:tag" data-pagefind-filter="tag[content]" content={t} />) : <meta property="article:tag" data-pagefind-filter="tag[content]" content={String(tags)} />) : null}
+    {authors ? (Array.isArray(authors) ? authors.map(a => <meta property="article:author" data-pagefind-filter="author[content]" content={a} />) : <meta property="article:author" data-pagefind-filter="author[content]" content={String(authors)} />) : null}
     <meta content="summary" name="twitter:card" />
     {canonical ? (<link rel="canonical" href={String(canonical)} />) : null}
     <meta content={Astro.generator} name="generator" />
@@ -48,13 +48,14 @@ const { title, description, pagefind, publishDate, updatedDate, authors, tags, s
     <script is:inline src="/pagefind/pagefind-component-ui.js" type="module"></script>
     <ClientRouter />
   </head>
-  <body class="flex flex-col min-h-screen bg-base-100 text-base-content" {...(pagefind ? {"data-pagefind-body": ""} : {})}>
+  <body class="flex flex-col min-h-screen bg-base-100 text-base-content">
     <div id="reading-progress" class="fixed top-0 left-0 h-0.5 bg-primary z-[60] transition-[width] duration-150 ease-out" />
     <Header />
-    <main class="flex-grow">
+    <main class="flex-grow" {...(pagefind ? {"data-pagefind-body": ""} : {})}>
       <CodeCopy />
       <slot />
     </main>
     <Footer />
+    <pagefind-modal></pagefind-modal>
   </body>
 </html>

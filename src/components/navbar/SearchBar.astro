@@ -70,5 +70,9 @@ export let placeholder: Props["placeholder"] = "搜索（⌘K）";
     });
   };
 
+  // 等待 pagefind-modal 自定义元素定义完成后再初始化，避免模块脚本延迟导致 open() 方法不可用
+  if (!customElements.get('pagefind-modal')) {
+    await customElements.whenDefined('pagefind-modal');
+  }
   initSearch();
 </script>
