@@ -91,6 +91,21 @@
       }
     },
     {
+      "files": ["src/integrations/**/*.ts"],
+      "rules": {
+        "no-rest-spread-properties": "off",
+        "no-async-await": "off",
+        "no-ternary": "off",
+        "no-magic-numbers": "off",
+        "no-null": "off",
+        "no-undefined": "off",
+        "no-optional-chaining": "off",
+        "no-non-null-assertion": "off",
+        "sort-imports": "off",
+        "explicit-function-return-type": "off"
+      }
+    },
+    {
       "files": [".husky/*.ts"],
       "rules": {
         "no-async-await": "off",
