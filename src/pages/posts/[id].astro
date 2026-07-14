@@ -26,13 +26,33 @@ if (!post) {
 
 const { Content, headings } = await render(post);
 
-const { title, description, publishDate, tags: rawTags } = post.data;
+const { title, description, publishDate, tags: rawTags, updatedDate, authors: fmAuthors, image: fmImage } = post.data;
 const tags = rawTags ?? [];
+// 自动填充：作者优先使用 frontmatter 的 authors，否则回退到站点所有者
+const authors: string[] = (() => {
+  if (Array.isArray(fmAuthors)) { return fmAuthors.map(String); }
+  if (fmAuthors) { return [String(fmAuthors)]; }
+  return ["Li Hua"];
+})();
+// 图片优先使用 frontmatter 的 image 字段，否则回退到站点 favicon
+const image: string = (() => {
+  if (fmImage) { return String(fmImage); }
+  if (Astro.site) { return `${Astro.site}favicon.svg`; }
+  return "/favicon.svg";
+})();
+// 构建文章的完整 url 与 canonical
+const url = Astro.site ? `${Astro.site}posts/${post.id}/` : `/posts/${post.id}/`;
+const canonical = url;
 const hasTags = tags.length > 0;
-const hasToc = headings.length > 0;
+// 优先使用插件注入的 toc（post.data.toc），回退到 render 返回的 headings
+const tocFromPlugin = (post.data as unknown as { toc?: unknown })?.toc;
+const toc = Array.isArray(tocFromPlugin)
+  ? (tocFromPlugin as { depth: number; slug: string; text: string }[])
+  : headings.map(({ depth, slug, text }) => ({ depth, slug, text }));
+const hasToc = toc.length > 0;
 ---
 
-<BaseLayout {title} {description} pagefind=true>
+<BaseLayout {title} {description} pagefind={true} publishDate={publishDate} updatedDate={updatedDate} authors={authors} tags={tags} image={image} url={url} canonical={canonical}>
   <div class="relative max-w-6xl mx-auto px-4 lg:grid lg:grid-cols-[1fr_14rem] lg:gap-12">
     <article class="py-16 sm:py-24 min-w-0">
       <div class="mb-12 reveal">
@@ -64,7 +84,7 @@ const hasToc = headings.length > 0;
           <h3 class="text-xs font-mono tracking-widest opacity-40 mb-4 uppercase">目录</h3>
           <nav class="space-y-1.5 text-sm">
             {
-              headings.map(({ depth, slug, text }) => (
+            toc.map(({ depth, slug, text }) => (
                 <a
                   href={`#${slug}`}
                   class="block transition-all duration-200 opacity-50 hover:opacity-100 hover:text-primary"
@@ -97,7 +117,7 @@ const hasToc = headings.length > 0;
         <h3 class="text-xs font-mono tracking-widest opacity-40 mb-3 uppercase">目录</h3>
         <nav class="space-y-1.5 text-sm">
           {
-            headings.map(({ depth, slug, text }) => (
+            toc.map(({ depth, slug, text }) => (
               <a
                 href={`#${slug}`}
                 class="block transition-all duration-200 opacity-50 hover:opacity-100 hover:text-primary"
