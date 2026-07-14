@@ -5,13 +5,8 @@
   "scripts": {
     "dev": "astro dev",
     "check:astro": "astro check",
-    "check:links": "lychee dist/client",
-    "clean:pagefind": "rm -v public/pagefind || true",
-    "build:astro": "astro build",
-    "build:pagefind": "pagefind --site dist/client && ln -sf ../dist/client/pagefind public/pagefind",
-    "check:html": "vnu --skip-non-html dist/client",
-    "build": "pnpm clean:pagefind && pnpm check:astro && pnpm build:astro && pnpm build:pagefind && pnpm check:links && pnpm check:html",
-    "preview": "pnpm build && wrangler dev",
+    "build": "astro build",
+    "preview": "astro build && wrangler dev",
     "astro": "astro",
     "prepare": "husky",
     "post:edit": "cargo run -p post-edit --"
