@@ -104,13 +104,11 @@ const hasToc = toc.length > 0;
     <>
       <button
         id="toc-toggle"
-        class="btn btn-circle btn-sm fixed z-40 shadow-lg bg-base-100 border-base-300 lg:hidden"
+        class="btn btn-sm fixed z-40 shadow-lg bg-base-100 border-base-300 lg:hidden px-3 text-base font-medium"
         aria-label="打开目录"
         style="right: 1.5rem; bottom: 1.5rem;"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
-        </svg>
+        目录
       </button>
 
       <div id="toc-panel" class="hidden lg:hidden fixed z-50 bottom-20 right-4 w-64 max-h-80 overflow-y-auto rounded-box bg-base-100 border border-base-300 shadow-xl p-4">
