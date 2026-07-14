@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "check:astro": "astro check",
+    "check": "astro check",
     "build": "astro build",
     "preview": "astro build && wrangler dev",
     "astro": "astro",

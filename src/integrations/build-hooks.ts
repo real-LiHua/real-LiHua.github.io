@@ -15,7 +15,7 @@ export const buildHooksIntegration = (): AstroIntegration => ({
     "astro:build:done": ({ logger }): void => {
       // Run pagefind indexing
       logger.info("Running Pagefind indexing...");
-      run("pagefind --site dist/client", root);
+      run("pagefind", root);
       run("ln -sf ../dist/client/pagefind public/pagefind", root);
       logger.info("Pagefind indexing complete");
 

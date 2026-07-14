@@ -1,7 +1,6 @@
 import favicons from "astro-favicons";
 import { buildHooksIntegration } from "./src/integrations/build-hooks";
 import { satteriConfigIntegration } from "./src/integrations/satteri-config";
-import { xhtmlOutputIntegration } from "./src/integrations/xhtml-output";
 import { defineConfig } from "astro/config";
 import mdx from "@astrojs/mdx";
 import node from "@astrojs/node";
@@ -12,14 +11,7 @@ export default defineConfig({
   adapter: node({
     mode: "standalone",
   }),
-  integrations: [
-    favicons(),
-    mdx(),
-    sitemap(),
-    satteriConfigIntegration(),
-    buildHooksIntegration(),
-    xhtmlOutputIntegration(),
-  ],
+  integrations: [favicons(), mdx(), sitemap(), satteriConfigIntegration(), buildHooksIntegration()],
   security: { checkOrigin: false },
   site: process.env.SITE_URL ?? "http://localhost:4321",
   trailingSlash: "ignore",
