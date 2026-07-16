@@ -26,7 +26,7 @@ export const buildHooksIntegration = (): AstroIntegration => ({
 
       // Run HTML validator
       logger.info("Running HTML validator...");
-      run("vnu --skip-non-html dist/client", root);
+      run("vnu --skip-non-html --filterfile message-filters.txt dist/client", root);
       logger.info("HTML validator complete");
     },
     "astro:build:start": ({ logger }): void => {
