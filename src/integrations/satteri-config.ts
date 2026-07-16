@@ -7,7 +7,6 @@ import {
   type HastVisitorContext,
   type HastNode,
 } from "satteri";
-import { mermaidHast, mermaidMdast } from "@xingwangzhe/satteri-mermaid";
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
@@ -81,18 +80,46 @@ const satteriTableAlign = (): ReturnType<typeof defineHastPlugin> =>
     name: "satteri-table-align",
   });
 
+const satteriMermaidInject = (): AstroIntegration => ({
+  hooks: {
+    "astro:config:setup": ({ injectScript }) => {
+      injectScript(
+        "page",
+        `
+        if (document.querySelector(".mermaid")) {
+          import("mermaid").then(m => {
+            m.default.initialize({ startOnLoad: false, theme: "default", securityLevel: "loose" });
+            m.default.run({ querySelector: ".mermaid" });
+          });
+        }
+      `,
+      );
+    },
+  },
+  name: "satteri-mermaid-inject",
+});
+
 export const satteriConfigIntegration = (): AstroIntegration => ({
   hooks: {
     "astro:config:setup": ({ updateConfig }): void => {
       updateConfig({
         markdown: {
           processor: satteri({
-            hastPlugins: [mermaidHast(), satteriTableAlign(), satteriHeadingIdsPlugin],
-            mdastPlugins: [mermaidMdast(), satteriPublishDate(), satteriUpdatedDate()],
+            hastPlugins: [satteriTableAlign(), satteriHeadingIdsPlugin],
+            mdastPlugins: [satteriPublishDate(), satteriUpdatedDate()],
           }),
+          shikiConfig: {
+            defaultColor: false,
+            themes: {
+              dark: "github-dark",
+              light: "github-light",
+            },
+          },
         },
       });
     },
   },
   name: "satteri-config",
 });
+
+export const satteriMermaidInjectIntegration = satteriMermaidInject;
