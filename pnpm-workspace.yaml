@@ -17,6 +17,7 @@ allowBuilds:
   esbuild: true
   javascript-obfuscator: true
   node-datachannel: true
+  puppeteer: true
   sharp: true
   vnu-jar: false
   workerd: true

@@ -8,6 +8,8 @@ import node from "@astrojs/node";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 
+const isDev = process.env.NODE_ENV === "development";
+
 export default defineConfig({
   adapter: node({
     mode: "standalone",
@@ -17,7 +19,7 @@ export default defineConfig({
     mdx(),
     sitemap(),
     satteriConfigIntegration(),
-    minify(),
+    ...(isDev ? [] : [minify()]),
     buildHooksIntegration(),
   ],
   security: { checkOrigin: false },
