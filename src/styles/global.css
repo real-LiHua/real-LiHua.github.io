@@ -118,6 +118,28 @@ html {
   overflow-x: auto;
   font-size: 0.875rem;
   line-height: 1.7;
+  counter-reset: line;
+}
+
+.prose pre code {
+  counter-reset: line;
+}
+
+.prose pre .line::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 2rem;
+  margin-right: 1.5rem;
+  text-align: right;
+  color: var(--tw-prose-counters);
+  opacity: 0.5;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.prose pre .line {
+  display: flex;
 }
 
 .prose code {
