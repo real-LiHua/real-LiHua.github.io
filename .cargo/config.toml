@@ -1,0 +1,6 @@
+[unstable]
+min-publish-age = true
+
+[registry]
+global-min-publish-age = "60 days"
+min-publish-age = "60 days"
