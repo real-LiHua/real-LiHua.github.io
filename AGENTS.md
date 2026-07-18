@@ -10,23 +10,18 @@ Astro 7 + MDX 静态博客，部署到 **Cloudflare Workers + Codeberg Pages + G
 
 ```bash
 pnpm dev              # 启动开发服务器
-pnpm build            # 完整构建：clean → astro check/build → pagefind → check:links → vnu
-pnpm build:clean      # 清理 public/pagefind
-pnpm build:astro      # astro check + astro build
-pnpm build:pagefind   # pagefind 索引 + symlink
-pnpm check:links      # lychee 死链检查
-pnpm build:vnu        # vnu HTML 验证
+pnpm build            # 构建
 pnpm preview          # build + wrangler dev
 pnpm post:edit        # cargo run -p post-edit -- (Rust CLI 工具)
-pnpm exec oxlint      # 静态检查
-pnpm exec oxfmt       # 格式化代码
-pnpm exec tsc -b      # 修改代码后必须做 TypeScript 构建校验
+pnpm oxlint --fix     # 静态检查并自动修复部分异常
+pnpm oxfmt            # 格式化代码
+pnpm tsc -b           # 修改代码后必须做 TypeScript 构建校验
 cargo clippy -p post-edit  # Rust 代码检查
 cargo test -p post-edit    # Rust 测试
-cargo audit               # Rust 依赖安全审计
+cargo audit                # Rust 依赖安全审计
 ```
 
-**任务完成后必须执行**：`pnpm exec tsc -b` 验证，然后检查 oxlint 不新增错误。
+**任务完成后必须执行**：`pnpm tsc -b` 验证，然后检查 oxlint 不新增错误。
 
 ## 技术约束
 
@@ -34,7 +29,6 @@ cargo audit               # Rust 依赖安全审计
 - **错误提示使用 daisyUI toast 组件**，禁止 `alert()` / `console.error()`
 - **异常处理**：禁止 try/catch 吞异常，禁止随意默认值兜底
 - **依赖管理**：`pnpm add -D <package>`（不手动改 package.json）
-- **不要运行 `dev`/`build` 等启动命令**（除非用户明确要求），允许静态分析操作
 - **未经允许禁止任何 Git 操作**
 
 ## 代码规范
@@ -45,7 +39,7 @@ cargo audit               # Rust 依赖安全审计
 
 ### pre-commit hook
 
-1. `bunx oxfmt .husky/pre-commit.ts && node .husky/pre-commit.ts || wrangler types` —— 每日更新 wrangler.jsonc 的 `compatibility_date` 为昨天，失败时生成运行时类型
+1. `pnpm oxfmt .husky/pre-commit.ts && node .husky/pre-commit.ts || wrangler types` —— 每日更新 wrangler.jsonc 的 `compatibility_date` 为昨天，失败时生成运行时类型
 2. `lint-staged` —— 格式化和检查暂存文件
 
 ### oxlint 注意事项
