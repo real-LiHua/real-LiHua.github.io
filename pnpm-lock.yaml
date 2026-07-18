@@ -73,9 +73,6 @@ importers:
       astro:
         specifier: ^7.0.7
         version: 7.0.7(@astrojs/markdown-remark@7.2.1)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.2)(@types/node@26.1.1)(jiti@2.7.0)(rollup@2.80.0)(terser@5.49.0)(yaml@2.9.0)
-      astro-mermaid:
-        specifier: ^2.1.0
-        version: 2.1.0(@mermaid-js/layout-elk@0.2.2(mermaid@11.16.0))(astro@7.0.7(@astrojs/markdown-remark@7.2.1)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.2)(@types/node@26.1.1)(jiti@2.7.0)(rollup@2.80.0)(terser@5.49.0)(yaml@2.9.0))(mermaid@11.16.0)
       daisyui:
         specifier: ^5.6.17
         version: 5.6.17
@@ -131,9 +128,6 @@ importers:
       '@types/mdast':
         specifier: ^4.0.4
         version: 4.0.4
-      '@xingwangzhe/satteri-mermaid':
-        specifier: ^0.2.8
-        version: 0.2.8(mermaid@11.16.0)(satteri@0.9.5)
       astro-favicons:
         specifier: ^3.1.6
         version: 3.1.6(astro@7.0.7(@astrojs/markdown-remark@7.2.1)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.2)(@types/node@26.1.1)(jiti@2.7.0)(rollup@2.80.0)(terser@5.49.0)(yaml@2.9.0))
@@ -173,12 +167,6 @@ importers:
       playwright:
         specifier: ^1.61.1
         version: 1.61.1
-      rehype-mermaid:
-        specifier: ^3.0.0
-        version: 3.0.0(playwright@1.61.1)
-      unist-util-visit:
-        specifier: ^5.1.0
-        version: 5.1.0
       vite-plugin-pwa:
         specifier: ^1.3.0
         version: 1.3.0(vite@8.1.4(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.49.0)(yaml@2.9.0))(workbox-build@7.4.1)(workbox-window@7.4.1)
@@ -1291,10 +1279,6 @@ packages:
 
   '@fontsource/twinkle-star@5.2.8':
     resolution: {integrity: sha512-zaurm+x4T/Bl3yO6dZz9hySbH6OUPdDyl9QbP3XYHUj7eZr2ZG64wFyOIhIqdJwc8umUZkWeBa+Q8+A1WIAIGw==, tarball: https://registry.npmmirror.com/@fontsource/twinkle-star/-/twinkle-star-5.2.8.tgz}
-
-  '@fortawesome/fontawesome-free@6.0.0':
-    resolution: {integrity: sha512-6LB4PYBST1Rx40klypw1SmSDArjFOcfBf2LeX9Zg5EKJT2eXiyiJq+CyBYKeXyK0sXS2FsCJWSPr/luyhuvh0Q==, tarball: https://registry.npmmirror.com/@fortawesome/fontawesome-free/-/fontawesome-free-6.0.0.tgz}
-    engines: {node: '>=6'}
 
   '@fortawesome/fontawesome-free@7.3.0':
     resolution: {integrity: sha512-Yw4Qa43P6e4Xwh0TwEUkHQNRJInWaqIBo73VJmns3j2AIlZPAvUcR4yGIxCPqPRCgyJ5KIVIalF/I1GxhZ/Kgw==, tarball: https://registry.npmmirror.com/@fortawesome/fontawesome-free/-/fontawesome-free-7.3.0.tgz}
@@ -3442,12 +3426,6 @@ packages:
   '@vscode/l10n@0.0.18':
     resolution: {integrity: sha512-KYSIHVmslkaCDyw013pphY+d7x1qV8IZupYfeIfzNA+nsaWHbn5uPuQRvdRFsa9zFzGeudPuoGoZ1Op4jrJXIQ==, tarball: https://registry.npmmirror.com/@vscode/l10n/-/l10n-0.0.18.tgz}
 
-  '@xingwangzhe/satteri-mermaid@0.2.8':
-    resolution: {integrity: sha512-auuGr2x9+m0B0yh9+xD+UccPagxgQUBYR0nuEJPMlUEUKKRxEmkhGB8khHS32skT79R8oh8SEgYZi9yoLcAWTQ==, tarball: https://registry.npmmirror.com/@xingwangzhe/satteri-mermaid/-/satteri-mermaid-0.2.8.tgz}
-    peerDependencies:
-      mermaid: '>=11.0.0'
-      satteri: '>=0.8.0'
-
   '@zenuml/core@3.50.1':
     resolution: {integrity: sha512-Q18BXvIfhRuGw0JfO4e+pltG04Phhv2E7n35EWTNSZKKH/HEkyE4Sh7KERb9dqaOfjOdRdKvLG0YekjK3fcDXw==, tarball: https://registry.npmmirror.com/@zenuml/core/-/core-3.50.1.tgz}
     engines: {node: '>=20'}
@@ -3612,16 +3590,6 @@ packages:
     resolution: {integrity: sha512-9YfNWaBEFz1nCHy4P1l4wfPRvuLe4qHuHovIcqD5HYfZeW82wyVG1+CZUVGhcjwbRCVkGRJ3G+CKTyX9BcoI5w==, tarball: https://registry.npmmirror.com/astro-favicons/-/astro-favicons-3.1.6.tgz}
     peerDependencies:
       astro: '>= 4.0.0'
-
-  astro-mermaid@2.1.0:
-    resolution: {integrity: sha512-fFRUN0BTZh+DZhDiLyblXoO26XqJ1Rr+qK3JGgSu7OBspKHDm59jkztg/aHsrdo1vO/tIq/+xhP/vgT8Mp92XA==, tarball: https://registry.npmmirror.com/astro-mermaid/-/astro-mermaid-2.1.0.tgz}
-    peerDependencies:
-      '@mermaid-js/layout-elk': ^0.2.0
-      astro: '>=4'
-      mermaid: ^10.0.0 || ^11.0.0
-    peerDependenciesMeta:
-      '@mermaid-js/layout-elk':
-        optional: true
 
   astro-minify-html-swc@0.1.12:
     resolution: {integrity: sha512-gPwMuOTE9hLjhTb4HwDnVllgwrwi01YNUmvZ8pe+Foi5DoNb6n64KXOLCX5TIisG/BvqCt4uBRe9crJQJfj98Q==, tarball: https://registry.npmmirror.com/astro-minify-html-swc/-/astro-minify-html-swc-0.1.12.tgz}
@@ -4973,12 +4941,6 @@ packages:
   hast-util-format@1.1.0:
     resolution: {integrity: sha512-yY1UDz6bC9rDvCWHpx12aIBGRG7krurX0p0Fm6pT547LwDIZZiNr8a+IHDogorAdreULSEzP82Nlv5SZkHZcjA==, tarball: https://registry.npmmirror.com/hast-util-format/-/hast-util-format-1.1.0.tgz}
 
-  hast-util-from-dom@5.0.1:
-    resolution: {integrity: sha512-N+LqofjR2zuzTjCPzyDUdSshy4Ma6li7p/c3pA78uTwzFgENbgbUrm2ugwsOdcjI1muO+o6Dgzp9p8WHtn/39Q==, tarball: https://registry.npmmirror.com/hast-util-from-dom/-/hast-util-from-dom-5.0.1.tgz}
-
-  hast-util-from-html-isomorphic@2.0.0:
-    resolution: {integrity: sha512-zJfpXq44yff2hmE0XmwEOzdWin5xwH+QIhMLOScpX91e/NSGPsAzNCvLQDIEPyO2TXi+lBmU6hjLIhV8MwP2kw==, tarball: https://registry.npmmirror.com/hast-util-from-html-isomorphic/-/hast-util-from-html-isomorphic-2.0.0.tgz}
-
   hast-util-from-html@2.0.3:
     resolution: {integrity: sha512-CUSRHXyKjzHov8yKsQjGOElXy/3EKpyX56ELnkHH34vDVw1N1XSQ1ZcAvTyAPtGqLTuKP/uxM+aLkSPqF/EtMw==, tarball: https://registry.npmmirror.com/hast-util-from-html/-/hast-util-from-html-2.0.3.tgz}
 
@@ -5906,14 +5868,6 @@ packages:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==, tarball: https://registry.npmmirror.com/merge2/-/merge2-1.4.1.tgz}
     engines: {node: '>= 8'}
 
-  mermaid-isomorphic@3.1.0:
-    resolution: {integrity: sha512-mzrvfEVjnJIkJlEqxp3eMuR1wS0TeLCH1VK5E/T5yzWaBwI3JqjJuw70yUIThSCDJ5bRs6O3rgfp00oBAbvSeQ==, tarball: https://registry.npmmirror.com/mermaid-isomorphic/-/mermaid-isomorphic-3.1.0.tgz}
-    peerDependencies:
-      playwright: '1'
-    peerDependenciesMeta:
-      playwright:
-        optional: true
-
   mermaid-wasm-renderer@0.3.1:
     resolution: {integrity: sha512-2TG/jrQCb3sD9UO5L5VZX+dVHDOV39fAKdMdEDL2qaY6M+SzryJRnGv8AQgCnZ2TgzAY1Mtj6dY9EgVpN4A0vw==, tarball: https://registry.npmmirror.com/mermaid-wasm-renderer/-/mermaid-wasm-renderer-0.3.1.tgz}
 
@@ -6122,10 +6076,6 @@ packages:
   mimic-response@3.1.0:
     resolution: {integrity: sha512-z0yWI+4FDrrweS8Zmt4Ej5HdJmky15+L2e6Wgn3+iK5fWzb6T3fhNFq2+MeTRb064c6Wr4N/wv0DzQTjNzHNGQ==, tarball: https://registry.npmmirror.com/mimic-response/-/mimic-response-3.1.0.tgz}
     engines: {node: '>=10'}
-
-  mini-svg-data-uri@1.4.4:
-    resolution: {integrity: sha512-r9deDe9p5FJUPZAk3A59wGH7Ii9YrjjWw0jmw/liSbHl2CHiyXj6FcDXDu2K3TjVAXqiJdaw3xxwlZZr9E6nHg==, tarball: https://registry.npmmirror.com/mini-svg-data-uri/-/mini-svg-data-uri-1.4.4.tgz}
-    hasBin: true
 
   miniflare@4.20260708.1:
     resolution: {integrity: sha512-c94O9zRDISdqO18EHt6l0iF/fWgWt8p18PJvRsA/L/NJZ9Cfke3s/F5Blg1XXF7WDutVRzWVWy8Vy4LaT5ifsA==, tarball: https://registry.npmmirror.com/miniflare/-/miniflare-4.20260708.1.tgz}
@@ -7060,14 +7010,6 @@ packages:
 
   rehype-format@5.0.1:
     resolution: {integrity: sha512-zvmVru9uB0josBVpr946OR8ui7nJEdzZobwLOOqHb/OOD88W0Vk2SqLwoVOj0fM6IPCCO6TaV9CvQvJMWwukFQ==, tarball: https://registry.npmmirror.com/rehype-format/-/rehype-format-5.0.1.tgz}
-
-  rehype-mermaid@3.0.0:
-    resolution: {integrity: sha512-fxrD5E4Fa1WXUjmjNDvLOMT4XB1WaxcfycFIWiYU0yEMQhcTDElc9aDFnbDFRLxG1Cfo1I3mfD5kg4sjlWaB+Q==, tarball: https://registry.npmmirror.com/rehype-mermaid/-/rehype-mermaid-3.0.0.tgz}
-    peerDependencies:
-      playwright: '1'
-    peerDependenciesMeta:
-      playwright:
-        optional: true
 
   rehype-parse@9.0.1:
     resolution: {integrity: sha512-ksCzCD0Fgfh7trPDxr2rSylbwq9iYDkSn8TCDmEJ49ljEUBxDVCzCHv7QNzZOfODanX4+bWQ4WZqLCRWYLfhag==, tarball: https://registry.npmmirror.com/rehype-parse/-/rehype-parse-9.0.1.tgz}
@@ -9761,8 +9703,6 @@ snapshots:
 
   '@fontsource/twinkle-star@5.2.8': {}
 
-  '@fortawesome/fontawesome-free@6.0.0': {}
-
   '@fortawesome/fontawesome-free@7.3.0': {}
 
   '@grammyjs/auto-retry@2.0.2(grammy@1.44.0)':
@@ -12136,11 +12076,6 @@ snapshots:
 
   '@vscode/l10n@0.0.18': {}
 
-  '@xingwangzhe/satteri-mermaid@0.2.8(mermaid@11.16.0)(satteri@0.9.5)':
-    dependencies:
-      mermaid: 11.16.0
-      satteri: 0.9.5
-
   '@zenuml/core@3.50.1(@babel/core@7.29.7)(@babel/template@7.29.7)(tailwindcss@4.3.2)':
     dependencies:
       '@floating-ui/react': 0.27.20(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -12309,16 +12244,6 @@ snapshots:
       astro: 7.0.7(@astrojs/markdown-remark@7.2.1)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.2)(@types/node@26.1.1)(jiti@2.7.0)(rollup@2.80.0)(terser@5.49.0)(yaml@2.9.0)
       favilib: 1.0.5
       ultrahtml: 1.7.0
-
-  astro-mermaid@2.1.0(@mermaid-js/layout-elk@0.2.2(mermaid@11.16.0))(astro@7.0.7(@astrojs/markdown-remark@7.2.1)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.2)(@types/node@26.1.1)(jiti@2.7.0)(rollup@2.80.0)(terser@5.49.0)(yaml@2.9.0))(mermaid@11.16.0):
-    dependencies:
-      astro: 7.0.7(@astrojs/markdown-remark@7.2.1)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.2)(@types/node@26.1.1)(jiti@2.7.0)(rollup@2.80.0)(terser@5.49.0)(yaml@2.9.0)
-      import-meta-resolve: 4.2.0
-      mdast-util-to-string: 4.0.0
-      mermaid: 11.16.0
-      unist-util-visit: 5.1.0
-    optionalDependencies:
-      '@mermaid-js/layout-elk': 0.2.2(mermaid@11.16.0)
 
   astro-minify-html-swc@0.1.12:
     dependencies:
@@ -13930,19 +13855,6 @@ snapshots:
       html-whitespace-sensitive-tag-names: 3.0.1
       unist-util-visit-parents: 6.0.2
 
-  hast-util-from-dom@5.0.1:
-    dependencies:
-      '@types/hast': 3.0.5
-      hastscript: 9.0.1
-      web-namespaces: 2.0.1
-
-  hast-util-from-html-isomorphic@2.0.0:
-    dependencies:
-      '@types/hast': 3.0.5
-      hast-util-from-dom: 5.0.1
-      hast-util-from-html: 2.0.3
-      unist-util-remove-position: 5.0.0
-
   hast-util-from-html@2.0.3:
     dependencies:
       '@types/hast': 3.0.5
@@ -15162,14 +15074,6 @@ snapshots:
 
   merge2@1.4.1: {}
 
-  mermaid-isomorphic@3.1.0(playwright@1.61.1):
-    dependencies:
-      '@fortawesome/fontawesome-free': 6.0.0
-      katex: 0.16.47
-      mermaid: 11.16.0
-    optionalDependencies:
-      playwright: 1.61.1
-
   mermaid-wasm-renderer@0.3.1: {}
 
   mermaid@11.16.0:
@@ -15714,8 +15618,6 @@ snapshots:
   mimic-function@5.0.1: {}
 
   mimic-response@3.1.0: {}
-
-  mini-svg-data-uri@1.4.4: {}
 
   miniflare@4.20260708.1:
     dependencies:
@@ -16707,20 +16609,6 @@ snapshots:
     dependencies:
       '@types/hast': 3.0.5
       hast-util-format: 1.1.0
-
-  rehype-mermaid@3.0.0(playwright@1.61.1):
-    dependencies:
-      '@types/hast': 3.0.5
-      hast-util-from-html-isomorphic: 2.0.0
-      hast-util-to-text: 4.0.2
-      mermaid-isomorphic: 3.1.0(playwright@1.61.1)
-      mini-svg-data-uri: 1.4.4
-      space-separated-tokens: 2.0.2
-      unified: 11.0.0
-      unist-util-visit-parents: 6.0.2
-      vfile: 6.0.3
-    optionalDependencies:
-      playwright: 1.61.1
 
   rehype-parse@9.0.1:
     dependencies:
