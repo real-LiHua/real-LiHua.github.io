@@ -1,5 +1,6 @@
 import type { AstroIntegration } from "astro";
 import { satteri, satteriHeadingIdsPlugin } from "@astrojs/markdown-satteri";
+import { transformerColorizedBrackets } from "@shikijs/colorized-brackets";
 import {
   defineMdastPlugin,
   defineHastPlugin,
@@ -9,6 +10,10 @@ import {
 } from "satteri";
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { fromHtml } from "hast-util-from-html";
+import { renderSvg } from "mermaid-wasm-renderer";
+import { toText } from "hast-util-to-text";
+import type { Root, Element } from "hast";
 
 const getGitDate = (fileUrl: URL | undefined, args: string[]): string | undefined => {
   if (!fileUrl) {
@@ -80,24 +85,36 @@ const satteriTableAlign = (): ReturnType<typeof defineHastPlugin> =>
     name: "satteri-table-align",
   });
 
-const satteriMermaidInject = (): AstroIntegration => ({
-  hooks: {
-    "astro:config:setup": ({ injectScript }) => {
-      injectScript(
-        "page",
-        `
-        if (document.querySelector(".mermaid")) {
-          import("mermaid").then(m => {
-            m.default.initialize({ startOnLoad: false, theme: "default", securityLevel: "loose" });
-            m.default.run({ querySelector: ".mermaid" });
-          });
-        }
-      `,
-      );
-    },
+const getFirstGrandChild = (tree: Root | undefined): Element | undefined => {
+  const [child] = tree?.children ?? [];
+  if (!child || !("children" in child)) {
+    return undefined;
+  }
+  const [, grandChild] = child.children;
+  if (!grandChild || !("children" in grandChild)) {
+    return undefined;
+  }
+  return grandChild.children[0] as Element | undefined;
+};
+
+const transformMermaidNode = (node: Element): void => {
+  const graphDefinition = toText(node as unknown as Root);
+  const svg = renderSvg(graphDefinition);
+  const tree = fromHtml(svg) as Root | undefined;
+  const firstGrandChild = getFirstGrandChild(tree);
+  if (firstGrandChild) {
+    node.children[0] = firstGrandChild;
+  }
+};
+
+const transformers = {
+  pre(node: Element): void {
+    if (node?.properties?.dataLanguage !== "mermaid") {
+      return;
+    }
+    transformMermaidNode(node);
   },
-  name: "satteri-mermaid-inject",
-});
+};
 
 export const satteriConfigIntegration = (): AstroIntegration => ({
   hooks: {
@@ -114,6 +131,7 @@ export const satteriConfigIntegration = (): AstroIntegration => ({
               dark: "github-dark",
               light: "github-light",
             },
+            transformers: [transformers, transformerColorizedBrackets()],
           },
         },
       });
@@ -121,5 +139,3 @@ export const satteriConfigIntegration = (): AstroIntegration => ({
   },
   name: "satteri-config",
 });
-
-export const satteriMermaidInjectIntegration = satteriMermaidInject;
