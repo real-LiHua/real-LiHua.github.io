@@ -22,13 +22,13 @@ multiple_crate_versions = "allow"
 
 [dependencies]
 bat = "0.26.1"
-chrono = "0.4.44"
-clap = { version = "4.6.0", features = ["derive"] }
+chrono = "0.4.45"
+clap = { version = "4.6.2", features = ["derive"] }
 gray_matter = { version = "0.3.2", features = ["yaml"] }
-itertools = "0.14.0"
+itertools = "0.15.0"
 pinyin = "0.11.0"
 serde = "1.0.228"
-skim = "0.14"
+skim = "5.2"
 slug = "0.1.6"
 
 [[bin]]
