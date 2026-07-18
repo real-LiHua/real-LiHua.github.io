@@ -295,24 +295,26 @@ fn skim_select(choices: &[(String, String)], _posts_dir: Option<&str>) -> String
 
     let item_reader = SkimItemReader::default();
     let receiver = item_reader.of_bufread(Cursor::new(input));
-    let selected = Skim::run_with(&options, Some(receiver));
+    let selected = Skim::run_with(options, Some(receiver));
 
-    selected
-        .and_then(|sk| {
-            sk.selected_items.first().map(|item| {
+    match selected {
+        Ok(sk) => sk
+            .selected_items
+            .first()
+            .map(|item| {
                 let binding = item.text();
                 let selected_text = binding.as_ref();
-                extract_filename_from_choice(selected_text)
-                    .or_else(|| {
-                        choices
-                            .iter()
-                            .find(|(title, _)| title.as_str() == selected_text)
-                            .map(|(_, filename)| filename.clone())
-                    })
-                    .unwrap_or_default()
+                extract_filename_from_choice(selected_text).or_else(|| {
+                    choices
+                        .iter()
+                        .find(|(title, _)| title.as_str() == selected_text)
+                        .map(|(_, filename)| filename.clone())
+                })
             })
-        })
-        .unwrap_or_default()
+            .flatten()
+            .unwrap_or_default(),
+        _ => String::new(),
+    }
 }
 
 fn search_posts(posts_dir: &str, query: Option<&str>) {
@@ -452,42 +454,6 @@ fn toggle_draft(posts_dir: &str, filename: &str, is_draft: bool) {
         }
         println!("已发布: {}", dst.to_string_lossy());
     }
-}
-
-fn update_frontmatter_bool(content: &str, key: &str, value: bool) -> String {
-    let mut result = String::new();
-    let mut in_frontmatter = false;
-    let mut modified = false;
-
-    for line in content.lines() {
-        let trimmed = line.trim();
-        if trimmed == "---" {
-            if !in_frontmatter {
-                in_frontmatter = true;
-                result.push_str(line);
-                result.push('\n');
-                continue;
-            }
-            if !modified {
-                result.push_str(&format!("{key}: {value}"));
-                result.push('\n');
-            }
-            result.push_str(line);
-            result.push('\n');
-            continue;
-        }
-
-        if in_frontmatter && trimmed.starts_with(&format!("{key}:")) {
-            result.push_str(&format!("{key}: {value}"));
-            result.push('\n');
-            modified = true;
-        } else {
-            result.push_str(line);
-            result.push('\n');
-        }
-    }
-
-    result
 }
 
 fn delete_post(posts_dir: &str, filename: &str) {

@@ -78,9 +78,6 @@
       "oxlint",
       "oxfmt"
     ],
-    "*.rs": [
-      "cargo clippy"
-    ],
     "!(*.css|*.js|*.mjs|*.jsx|*.ts|*.tsx|*.astro|*.rs)": [
       "oxfmt"
     ]
