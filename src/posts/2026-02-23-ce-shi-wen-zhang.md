@@ -61,6 +61,8 @@ _这是斜体文本_
 ```mermaid
 flowchart TD
   a --> b
+  a --> c
+  b --> c
 ```
 
 ### JavaScript

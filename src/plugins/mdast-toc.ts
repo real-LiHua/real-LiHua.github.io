@@ -10,18 +10,18 @@ interface TocItem {
 }
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
+  typeof value === "object" && value !== null,
 
-const getType = (node: unknown): string | undefined =>
-  isObject(node) && typeof node.type === "string" ? node.type : undefined;
+ getType = (node: unknown): string | undefined =>
+  isObject(node) && typeof node.type === "string" ? node.type : undefined,
 
-const getChildren = (node: unknown): unknown[] =>
-  isObject(node) && Array.isArray(node.children) ? (node.children as unknown[]) : [];
+ getChildren = (node: unknown): unknown[] =>
+  isObject(node) && Array.isArray(node.children) ? (node.children as unknown[]) : [],
 
-const getPropString = (obj: unknown, key: string): string | undefined =>
-  isObject(obj) && typeof obj[key] === "string" ? (obj[key] as string) : undefined;
+ getPropString = (obj: unknown, key: string): string | undefined =>
+  isObject(obj) && typeof obj[key] === "string" ? (obj[key] as string) : undefined,
 
-const extractText = (node: unknown): string => {
+ extractText = (node: unknown): string => {
   if (!isObject(node)) {
     return "";
   }
@@ -37,23 +37,23 @@ const extractText = (node: unknown): string => {
   }
 
   return children.map((child) => extractText(child)).join("");
-};
+},
 
-const extractSlugAndText = (paragraphNode: unknown): { slug: string; text: string } => {
+ extractSlugAndText = (paragraphNode: unknown): { slug: string; text: string } => {
   if (!isObject(paragraphNode)) {
     return { slug: "", text: "" };
   }
 
-  const linkNode = getChildren(paragraphNode).find((child) => getType(child) === "link");
-  const linkUrl = linkNode ? getPropString(linkNode, "url") : undefined;
+  const linkNode = getChildren(paragraphNode).find((child) => getType(child) === "link"),
+   linkUrl = linkNode ? getPropString(linkNode, "url") : undefined;
   if (linkUrl) {
     return { slug: linkUrl.replace(/^#/u, ""), text: extractText(linkNode) };
   }
 
   return { slug: "", text: extractText(paragraphNode) };
-};
+},
 
-const handleListItem = (itemNode: unknown, out: TocItem[], depth: number): void => {
+ handleListItem = (itemNode: unknown, out: TocItem[], depth: number): void => {
   if (!isObject(itemNode)) {
     return;
   }
@@ -64,15 +64,15 @@ const handleListItem = (itemNode: unknown, out: TocItem[], depth: number): void 
   }
 
   // 找到段落节点
-  const paragraphNode = itemChildren.find((child) => getType(child) === "paragraph");
-  const { slug, text } = extractSlugAndText(paragraphNode ?? null);
+  const paragraphNode = itemChildren.find((child) => getType(child) === "paragraph"),
+   { slug, text } = extractSlugAndText(paragraphNode ?? null);
 
   if (text || slug) {
     out.push({ depth, slug, text });
   }
-};
+},
 
-const processList = (list: unknown, out: TocItem[], depth = 1): void => {
+ processList = (list: unknown, out: TocItem[], depth = 1): void => {
   if (!isObject(list)) {
     return;
   }
@@ -98,11 +98,11 @@ const processList = (list: unknown, out: TocItem[], depth = 1): void => {
   for (const child of children) {
     handleChild(child);
   }
-};
+},
 
-const injectToc = (existing: Record<string, unknown>, tocArray: TocItem[]): void => {
-  const astro = (existing["astro"] as Record<string, unknown>) ?? {};
-  const frontmatter = (astro["frontmatter"] as Record<string, unknown>) ?? {};
+ injectToc = (existing: Record<string, unknown>, tocArray: TocItem[]): void => {
+  const astro = (existing["astro"] as Record<string, unknown>) ?? {},
+   frontmatter = (astro["frontmatter"] as Record<string, unknown>) ?? {};
   frontmatter["toc"] = tocArray;
   astro["frontmatter"] = frontmatter;
   existing["astro"] = astro;

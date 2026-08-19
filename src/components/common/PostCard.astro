@@ -8,11 +8,11 @@ interface Props {
   variant?: "grid" | "list";
 }
 
-const { post, variant = "grid" } = Astro.props;
+const { post, variant = "grid" } = Astro.props,
 
-const formattedDate = formatDate(post.publishDate);
-const dateISO = formatDate(post.publishDate, "full");
-const hasTags = post.tags && post.tags.length > 0;
+ formattedDate = formatDate(post.publishDate),
+ dateISO = formatDate(post.publishDate, "full"),
+ hasTags = post.tags && post.tags.length > 0;
 ---
 
 {

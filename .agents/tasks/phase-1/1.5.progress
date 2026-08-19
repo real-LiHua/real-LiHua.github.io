@@ -1,0 +1,10 @@
+{
+  "taskId": "1.5",
+  "assignee": "content-engineer",
+  "percent": 100,
+  "status": "done",
+  "updatedAt": "2026-08-19T14:04:52.845Z",
+  "message": "Task completed, quality gate passed",
+  "blocker": null,
+  "helpFrom": null
+}

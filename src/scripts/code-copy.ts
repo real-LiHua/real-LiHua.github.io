@@ -1,18 +1,18 @@
-const COPY_SUCCESS_TIMEOUT = 2000;
-const HOVER_HIGHLIGHT_TIMEOUT = 500;
-const TOAST_DURATION = 3000;
+const COPY_SUCCESS_TIMEOUT = 2000,
+ HOVER_HIGHLIGHT_TIMEOUT = 500,
+ TOAST_DURATION = 3000,
 
-const SVG_COPY = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ SVG_COPY = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-</svg>`;
-const SVG_CHECK = `<svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+</svg>`,
+ SVG_CHECK = `<svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-</svg>`;
-const SVG_ERROR = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+</svg>`,
+ SVG_ERROR = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-</svg>`;
+</svg>`,
 
-const showToast = (message: string): void => {
+ showToast = (message: string): void => {
   const toast = document.createElement("div");
   toast.className = "toast toast-center toast-middle z-50";
   toast.innerHTML = `
@@ -26,18 +26,18 @@ const showToast = (message: string): void => {
   setTimeout(() => {
     toast.remove();
   }, TOAST_DURATION);
-};
+},
 
-const createCopyButton = (): HTMLButtonElement => {
+ createCopyButton = (): HTMLButtonElement => {
   const btn = document.createElement("button");
   btn.className =
     "copy-code-btn absolute top-2 right-2 btn btn-circle btn-ghost btn-xs opacity-0 group-hover:opacity-100 transition-opacity z-10";
   btn.setAttribute("aria-label", "复制代码");
   btn.innerHTML = SVG_COPY;
   return btn;
-};
+},
 
-const initWrapper = (pre: HTMLPreElement, parent: Element): HTMLDivElement | undefined => {
+ initWrapper = (pre: HTMLPreElement, parent: Element): HTMLDivElement | undefined => {
   if (parent.classList.contains("code-copy-wrapper")) {
     return undefined;
   }
@@ -47,11 +47,11 @@ const initWrapper = (pre: HTMLPreElement, parent: Element): HTMLDivElement | und
   // oxlint-disable-next-line unicorn/prefer-dom-node-append
   wrapper.appendChild(pre);
   return wrapper;
-};
+},
 
-const handleCopyClick = (btn: HTMLButtonElement, pre: HTMLPreElement): void => {
-  const code = pre.querySelector("code");
-  const text = code ? code.textContent || "" : "";
+ handleCopyClick = (btn: HTMLButtonElement, pre: HTMLPreElement): void => {
+  const code = pre.querySelector("code"),
+   text = code ? code.textContent || "" : "";
   navigator.clipboard
     .writeText(text)
     .then(() => {
@@ -63,9 +63,9 @@ const handleCopyClick = (btn: HTMLButtonElement, pre: HTMLPreElement): void => {
     .catch(() => {
       showToast("复制失败");
     });
-};
+},
 
-const wrapPreWithCopyButton = (pre: HTMLPreElement): void => {
+ wrapPreWithCopyButton = (pre: HTMLPreElement): void => {
   const parent = pre.parentElement;
   if (!parent) {
     return;
@@ -80,11 +80,11 @@ const wrapPreWithCopyButton = (pre: HTMLPreElement): void => {
   btn.addEventListener("click", () => {
     handleCopyClick(btn, pre);
   });
-};
+},
 
-const handleInlineCopy = (code: HTMLSpanElement): void => {
-  const text = code.textContent;
-  const originalBg = getComputedStyle(code).backgroundColor;
+ handleInlineCopy = (code: HTMLSpanElement): void => {
+  const text = code.textContent,
+   originalBg = getComputedStyle(code).backgroundColor;
   navigator.clipboard
     .writeText(text)
     .then(() => {
@@ -96,9 +96,9 @@ const handleInlineCopy = (code: HTMLSpanElement): void => {
     .catch(() => {
       showToast("复制失败");
     });
-};
+},
 
-const setupInlineCodeCopy = (code: HTMLSpanElement): void => {
+ setupInlineCodeCopy = (code: HTMLSpanElement): void => {
   if (code.dataset.copyEnabled) {
     return;
   }
@@ -108,9 +108,9 @@ const setupInlineCodeCopy = (code: HTMLSpanElement): void => {
   code.addEventListener("click", () => {
     handleInlineCopy(code);
   });
-};
+},
 
-const initCodeCopy = (): void => {
+ initCodeCopy = (): void => {
   for (const pre of document.querySelectorAll("pre")) {
     wrapPreWithCopyButton(pre as HTMLPreElement);
   }

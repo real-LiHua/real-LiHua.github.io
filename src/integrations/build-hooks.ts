@@ -3,10 +3,10 @@ import { execSync } from "node:child_process";
 import { existsSync, rmSync } from "node:fs";
 import path from "node:path";
 
-const root = path.resolve(import.meta.dirname, "../..");
-const pagefindPublic = path.resolve(root, "public/pagefind");
+const root = path.resolve(import.meta.dirname, "../.."),
+ pagefindPublic = path.resolve(root, "public/pagefind"),
 
-const run = (cmd: string, cwd = root): void => {
+ run = (cmd: string, cwd = root): void => {
   execSync(cmd, { cwd, stdio: "inherit" });
 };
 

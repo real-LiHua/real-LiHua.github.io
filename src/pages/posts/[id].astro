@@ -16,41 +16,41 @@ export const getStaticPaths = async (): Promise<GetStaticPathsResult> => {
   }));
 };
 
-const { id } = Astro.params;
-const isDev = import.meta.env.DEV;
-const posts = isDev ? await getAllPosts() : await getPublishedPosts();
-const post = posts.find((entry) => entry.id === id);
+const { id } = Astro.params,
+ isDev = import.meta.env.DEV,
+ posts = isDev ? await getAllPosts() : await getPublishedPosts(),
+ post = posts.find((entry) => entry.id === id);
 
 if (!post) {
   return Astro.redirect("/404");
 }
 
-const { Content, headings } = await render(post);
+const { Content, headings } = await render(post),
 
-const { title, description, publishDate, tags: rawTags, updatedDate, authors: fmAuthors, image: fmImage } = post.data;
-const tags = rawTags ?? [];
+ { title, description, publishDate, tags: rawTags, updatedDate, authors: fmAuthors, image: fmImage } = post.data,
+ tags = rawTags ?? [],
 // 自动填充：作者优先使用 frontmatter 的 authors，否则回退到站点所有者
-const authors: string[] = (() => {
+ authors: string[] = (() => {
   if (Array.isArray(fmAuthors)) { return fmAuthors.map(String); }
   if (fmAuthors) { return [String(fmAuthors)]; }
   return ["Li Hua"];
-})();
+})(),
 // 图片优先使用 frontmatter 的 image 字段，否则回退到站点 favicon
-const image: string = (() => {
+ image: string = (() => {
   if (fmImage) { return String(fmImage); }
   if (Astro.site) { return `${Astro.site}favicon.svg`; }
   return "/favicon.svg";
-})();
+})(),
 // 构建文章的完整 url 与 canonical
-const url = Astro.site ? `${Astro.site}posts/${post.id}/` : `/posts/${post.id}/`;
-const canonical = url;
-const hasTags = tags.length > 0;
+ url = Astro.site ? `${Astro.site}posts/${post.id}/` : `/posts/${post.id}/`,
+ canonical = url,
+ hasTags = tags.length > 0,
 // 优先使用插件注入的 toc（post.data.toc），回退到 render 返回的 headings
-const tocFromPlugin = (post.data as unknown as { toc?: unknown })?.toc;
-const toc = Array.isArray(tocFromPlugin)
+ tocFromPlugin = (post.data as unknown as { toc?: unknown })?.toc,
+ toc = Array.isArray(tocFromPlugin)
   ? (tocFromPlugin as { depth: number; slug: string; text: string }[])
-  : headings.map(({ depth, slug, text }) => ({ depth, slug, text }));
-const hasToc = toc.length > 0;
+  : headings.map(({ depth, slug, text }) => ({ depth, slug, text })),
+ hasToc = toc.length > 0;
 ---
 
 <BaseLayout {title} {description} pagefind={true} publishDate={publishDate} updatedDate={updatedDate} authors={authors} tags={tags} image={image} url={url} canonical={canonical}>

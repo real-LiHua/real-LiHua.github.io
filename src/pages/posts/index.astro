@@ -5,16 +5,16 @@ import { sortByDate } from "../../utils/date";
 import { type CollectionEntry, render } from "astro:content";
 import { getPublishedPosts } from "../../utils/content";
 
-const blogPosts = await getPublishedPosts();
-const posts: (CollectionEntry<"blog">["data"] & { id: string })[] =
+const blogPosts = await getPublishedPosts(),
+ posts: (CollectionEntry<"blog">["data"] & { id: string })[] =
   await Promise.all(
     blogPosts.map(async (post) => {
       const { remarkPluginFrontmatter } = await render(post);
       return { ...remarkPluginFrontmatter, ...post.data, id: post.id };
     }),
-  );
-const sortedPosts = sortByDate(posts);
-const pageTitle = `全部文章 (${sortedPosts.length})`;
+  ),
+ sortedPosts = sortByDate(posts),
+ pageTitle = `全部文章 (${sortedPosts.length})`;
 ---
 
 <BaseLayout title={pageTitle}>

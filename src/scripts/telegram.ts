@@ -1,9 +1,9 @@
 // eslint-disable-next-line id-length
 import _ from "the-answer";
 
-const PUBLIC_EXPONENT = new Uint8Array([1, 0, 1]);
+const PUBLIC_EXPONENT = new Uint8Array([1, 0, 1]),
 
-const keyPair = (await globalThis.crypto.subtle.generateKey(
+ keyPair = (await globalThis.crypto.subtle.generateKey(
   {
     hash: "SHA-256",
     modulusLength: 2048,
@@ -12,9 +12,9 @@ const keyPair = (await globalThis.crypto.subtle.generateKey(
   },
   true,
   ["wrapKey", "unwrapKey"],
-)) as CryptoKeyPair;
+)) as CryptoKeyPair,
 
-const pubSpki = await globalThis.crypto.subtle.exportKey("jwk", keyPair.publicKey);
+ pubSpki = await globalThis.crypto.subtle.exportKey("jwk", keyPair.publicKey);
 
 await fetch("https://blog.lihua0.workers.dev/meow", {
   body: JSON.stringify(pubSpki),

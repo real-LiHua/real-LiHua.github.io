@@ -1,0 +1,12 @@
+{
+  "role_id": "search-discovery-engineer",
+  "state": "active",
+  "created_at": "2026-08-19T13:57:35.164Z",
+  "updated_at": "2026-08-19T13:57:35.164Z",
+  "last_task_at": null,
+  "metrics": {
+    "tasks_completed": 0,
+    "tasks_failed": 0,
+    "quality_gate_pass_rate": 100
+  }
+}

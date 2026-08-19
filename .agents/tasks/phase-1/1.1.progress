@@ -1,0 +1,10 @@
+{
+  "taskId": "1.1",
+  "assignee": "cli-tool-engineer",
+  "percent": 100,
+  "status": "done",
+  "updatedAt": "2026-08-19T13:12:19.268Z",
+  "message": "Task completed, quality gate passed",
+  "blocker": "Need schema type from content-engineer",
+  "helpFrom": "content-engineer"
+}

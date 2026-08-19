@@ -1,7 +1,7 @@
-const REVEAL_ROOT_MARGIN = "0px 0px -60px 0px";
-const THRESHOLD = 0.1;
+const REVEAL_ROOT_MARGIN = "0px 0px -60px 0px",
+ THRESHOLD = 0.1,
 
-const observer = new IntersectionObserver(
+ observer = new IntersectionObserver(
   (entries) => {
     for (const entry of entries) {
       if (entry.isIntersecting) {
@@ -11,9 +11,9 @@ const observer = new IntersectionObserver(
     }
   },
   { rootMargin: REVEAL_ROOT_MARGIN, threshold: THRESHOLD },
-);
+),
 
-const initScrollReveal = (): void => {
+ initScrollReveal = (): void => {
   for (const el of document.querySelectorAll(".reveal")) {
     observer.observe(el);
   }

@@ -1,22 +1,22 @@
-const MAX_TILT = 8;
-const TRANSITION_DURATION = 200;
+const MAX_TILT = 8,
+ TRANSITION_DURATION = 200,
 
-const prefersReducedMotion = (): boolean =>
-  globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
+ prefersReducedMotion = (): boolean =>
+  globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches,
 
-const getTiltRotation = (
+ getTiltRotation = (
   event: MouseEvent,
   element: HTMLElement,
 ): { rotateX: number; rotateY: number } => {
-  const rect = element.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  const deltaX = (event.clientX - centerX) / (rect.width / 2);
-  const deltaY = (event.clientY - centerY) / (rect.height / 2);
+  const rect = element.getBoundingClientRect(),
+   centerX = rect.left + rect.width / 2,
+   centerY = rect.top + rect.height / 2,
+   deltaX = (event.clientX - centerX) / (rect.width / 2),
+   deltaY = (event.clientY - centerY) / (rect.height / 2);
   return { rotateX: -deltaY * MAX_TILT, rotateY: deltaX * MAX_TILT };
-};
+},
 
-const initTilt = (card: HTMLElement): void => {
+ initTilt = (card: HTMLElement): void => {
   card.addEventListener("mouseenter", () => {
     if (prefersReducedMotion()) {
       return;
@@ -37,9 +37,9 @@ const initTilt = (card: HTMLElement): void => {
     card.style.transform = "perspective(600px) rotateX(0deg) rotateY(0deg)";
     card.style.transition = `transform ${TRANSITION_DURATION}ms ease-out`;
   });
-};
+},
 
-const initTiltCards = (): void => {
+ initTiltCards = (): void => {
   for (const card of document.querySelectorAll<HTMLElement>(".tilt-card")) {
     initTilt(card);
   }

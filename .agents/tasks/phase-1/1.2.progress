@@ -1,0 +1,10 @@
+{
+  "taskId": "1.2",
+  "assignee": "cli-tool-engineer",
+  "percent": 100,
+  "status": "done",
+  "updatedAt": "2026-08-19T13:15:25.108Z",
+  "message": "Task completed, quality gate passed",
+  "blocker": null,
+  "helpFrom": null
+}

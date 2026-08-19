@@ -1,9 +1,9 @@
 ---
 import Copyright from "./Copyright.astro";
 
-const site = Astro.site ?? new URL("http://localhost:4321");
-const rssUrl = new URL("/rss.xml", site);
-const validatorUrl = `https://validator.w3.org/feed/check.cgi?url=${encodeURIComponent(rssUrl.href)}`;
+const site = Astro.site ?? new URL("http://localhost:4321"),
+ rssUrl = new URL("/rss.xml", site),
+ validatorUrl = `https://validator.w3.org/feed/check.cgi?url=${encodeURIComponent(rssUrl.href)}`;
 ---
 
 <footer class="border-t border-base-200 mt-24">

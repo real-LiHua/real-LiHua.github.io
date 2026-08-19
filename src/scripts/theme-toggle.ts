@@ -1,17 +1,17 @@
-const THEME_KEY = "theme";
-const THEME_DARK = "dark";
-const THEME_LIGHT = "light";
+const THEME_KEY = "theme",
+ THEME_DARK = "dark",
+ THEME_LIGHT = "light",
 
-const setTheme = (theme: string, persist = true): void => {
+ setTheme = (theme: string, persist = true): void => {
   document.documentElement.dataset.theme = theme;
   if (persist) {
     localStorage.setItem(THEME_KEY, theme);
   }
-};
+},
 
-const EXT_PREFIX = "data-darkreader";
+ EXT_PREFIX = "data-darkreader",
 
-const isExtensionActive = (): boolean => {
+ isExtensionActive = (): boolean => {
   const { attributes } = document.documentElement;
   for (const attr of attributes) {
     if (attr.name.startsWith(EXT_PREFIX)) {
@@ -19,9 +19,9 @@ const isExtensionActive = (): boolean => {
     }
   }
   return false;
-};
+},
 
-const observeExtension = (toggle: HTMLElement): void => {
+ observeExtension = (toggle: HTMLElement): void => {
   const update = (): void => {
     toggle.style.visibility = isExtensionActive() ? "hidden" : "";
   };

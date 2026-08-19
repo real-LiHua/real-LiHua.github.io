@@ -2,27 +2,27 @@ let ticking = false;
 
 const setProgressWidth = (bar: HTMLDivElement, percent: number): void => {
   bar.style.width = `${percent}%`;
-};
+},
 
-const getProgress = (): number => {
-  const { documentElement } = document;
-  const { scrollTop, scrollHeight, clientHeight } = documentElement;
-  const maxScroll = scrollHeight - clientHeight;
+ getProgress = (): number => {
+  const { documentElement } = document,
+   { scrollTop, scrollHeight, clientHeight } = documentElement,
+   maxScroll = scrollHeight - clientHeight;
   if (maxScroll <= 0) {
     return 0;
   }
   return Math.min((scrollTop / maxScroll) * 100, 100);
-};
+},
 
-const updateProgress = (): void => {
+ updateProgress = (): void => {
   const bar = document.querySelector<HTMLDivElement>("#reading-progress");
   if (!bar) {
     return;
   }
   setProgressWidth(bar, getProgress());
-};
+},
 
-const onScroll = (): void => {
+ onScroll = (): void => {
   if (!ticking) {
     ticking = true;
     requestAnimationFrame(() => {

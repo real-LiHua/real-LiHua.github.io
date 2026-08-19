@@ -5,17 +5,17 @@ import { sortByDate } from "../utils/date";
 import { type CollectionEntry, render } from "astro:content";
 import { getPublishedPosts } from "../utils/content";
 
-const blogPosts = await getPublishedPosts();
-const posts: (CollectionEntry<"blog">["data"] & { id: string })[] =
+const blogPosts = await getPublishedPosts(),
+ posts: (CollectionEntry<"blog">["data"] & { id: string })[] =
   await Promise.all(
     blogPosts.map(async (post) => {
       const { remarkPluginFrontmatter } = await render(post);
       return { ...remarkPluginFrontmatter, ...post.data, id: post.id };
     }),
-  );
-const sortedPosts = sortByDate(posts);
-const recentPosts = sortedPosts.slice(0, 6);
-const hasMore = sortedPosts.length > 6;
+  ),
+ sortedPosts = sortByDate(posts),
+ recentPosts = sortedPosts.slice(0, 6),
+ hasMore = sortedPosts.length > 6;
 ---
 
 <BaseLayout title="李华的博客">

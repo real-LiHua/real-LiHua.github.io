@@ -48,12 +48,12 @@ export let placeholder: Props["placeholder"] = "搜索（⌘K）";
     } catch {
       // 静默失败以避免污染控制台或打断用户体验
     }
-  };
+  },
 
-  const initSearch = (): void => {
-    const input = document.querySelector('#navbar-search') as HTMLInputElement | null;
-    const openBtn = document.querySelector('#navbar-search-open') as HTMLButtonElement | null;
-    const openMobile = document.querySelector('#navbar-search-open-mobile') as HTMLButtonElement | null;
+   initSearch = (): void => {
+    const input = document.querySelector('#navbar-search') as HTMLInputElement | null,
+     openBtn = document.querySelector('#navbar-search-open') as HTMLButtonElement | null,
+     openMobile = document.querySelector('#navbar-search-open-mobile') as HTMLButtonElement | null;
 
     // 点击或聚焦均打开 modal（保持输入框为只读，便于 UX 与键盘快捷键一致）
     input?.addEventListener('click', openPagefind);

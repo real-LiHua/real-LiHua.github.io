@@ -4,9 +4,9 @@ const corsOrigin = new Set([
   "https://lihua.codeberg.page",
   "https://real-lihua.github.io",
   ...(import.meta.env.DEV ? ["http://localhost:4321"] : []),
-]);
+]),
 
-const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+ SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 export const onRequest = defineMiddleware((context, next) => {
   const { request } = context;

@@ -13,15 +13,15 @@ if (!devEnv) {
   });
 }
 
-const blogPosts = await getDraftPosts();
-const posts: (CollectionEntry<"blog">["data"] & { id: string })[] =
+const blogPosts = await getDraftPosts(),
+ posts: (CollectionEntry<"blog">["data"] & { id: string })[] =
   await Promise.all(
     blogPosts.map(async (post) => {
       const { remarkPluginFrontmatter } = await render(post);
       return { ...remarkPluginFrontmatter, ...post.data, id: post.id };
     }),
-  );
-const sortedPosts = sortByDate(posts);
+  ),
+ sortedPosts = sortByDate(posts);
 ---
 
 <BaseLayout title="草稿">

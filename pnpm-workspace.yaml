@@ -21,3 +21,6 @@ allowBuilds:
   sharp: true
   vnu-jar: false
   workerd: true
+
+minimumReleaseAgeExclude:
+  - '@xingwangzhe/satteri-mermaid@0.7.0'

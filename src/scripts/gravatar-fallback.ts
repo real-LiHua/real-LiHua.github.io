@@ -7,9 +7,9 @@ const handleImg = (img: HTMLImageElement, fallbackSrc: string): void => {
     });
   };
   img.addEventListener("error", onFirstError);
-};
+},
 
-const initGravatarFallback = (): void => {
+ initGravatarFallback = (): void => {
   for (const img of document.querySelectorAll<HTMLImageElement>("img[data-gravatar-fallback]")) {
     const fallbackSrc = img.dataset.gravatarFallback;
     if (fallbackSrc) {

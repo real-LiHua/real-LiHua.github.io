@@ -3,8 +3,8 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 
 dayjs.extend(localizedFormat);
 
-const ZERO_DATE_MS = 0;
-const ZERO_DATE = dayjs(ZERO_DATE_MS);
+const ZERO_DATE_MS = 0,
+ ZERO_DATE = dayjs(ZERO_DATE_MS);
 
 export const formatDate = (
   date: Date | string | undefined,
@@ -25,10 +25,10 @@ export const sortByDate = <Post extends { publishDate?: Date | string }>(
   order: "asc" | "desc" = "desc",
 ): Post[] => {
   const getDate = (post: Post): dayjs.Dayjs =>
-    post.publishDate ? dayjs(post.publishDate) : ZERO_DATE;
-  const sorted = [...items].toSorted((itemA, itemB) => {
-    const dateA = getDate(itemA);
-    const dateB = getDate(itemB);
+    post.publishDate ? dayjs(post.publishDate) : ZERO_DATE,
+   sorted = [...items].toSorted((itemA, itemB) => {
+    const dateA = getDate(itemA),
+     dateB = getDate(itemB);
     if (order === "desc") {
       return dateB.diff(dateA);
     }
