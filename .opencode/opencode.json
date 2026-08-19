@@ -1,0 +1,42 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "frontend-architect": {
+      "description": "前端架构师 - 组件体系、设计系统、性能优化、可访问性、daisyUI 集成",
+      "mode": "subagent"
+    },
+    "content-engineer": {
+      "description": "内容工程师 - Content Collections、Markdown/MDX 管线、RSS、SEO、satteri 插件",
+      "mode": "subagent"
+    },
+    "build-deploy-engineer": {
+      "description": "构建部署工程师 - Astro 集成、Pagefind、lychee、vnu、CI/CD、多平台部署",
+      "mode": "subagent"
+    },
+    "cli-tool-engineer": {
+      "description": "CLI 工具工程师 - post-edit (Rust)、交互菜单、测试、发布流程",
+      "mode": "subagent"
+    },
+    "search-discovery-engineer": {
+      "description": "搜索发现工程师 - Pagefind 索引、搜索 UI、标签系统、推荐算法",
+      "mode": "subagent"
+    },
+    "quality-dx-guardian": {
+      "description": "质量与 DX 守护者 - oxlint/oxfmt、TypeScript、Playwright、pre-commit、技术债",
+      "mode": "subagent"
+    }
+  },
+  "skills": {
+    "subagent-communication": ".opencode/skills/subagent-communication",
+    "subagent-handoff": ".opencode/skills/subagent-handoff",
+    "subagent-shared-context": ".opencode/skills/subagent-shared-context",
+    "subagent-quality-gate": ".opencode/skills/subagent-quality-gate",
+    "subagent-planning": ".opencode/skills/subagent-planning",
+    "subagent-recruitment": ".opencode/skills/subagent-recruitment",
+    "subagent-onboarding": ".opencode/skills/subagent-onboarding",
+    "subagent-lifecycle": ".opencode/skills/subagent-lifecycle",
+    "subagent-performance": ".opencode/skills/subagent-performance",
+    "subagent-team-composition": ".opencode/skills/subagent-team-composition",
+    "role-architect": ".opencode/skills/role-architect"
+  }
+}
