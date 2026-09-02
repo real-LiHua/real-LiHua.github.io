@@ -2,7 +2,11 @@
 
 ## Status
 
-Accepted
+Updated (was Accepted)
+
+## Last Updated
+
+2026-09-02
 
 ## Context
 
@@ -59,9 +63,14 @@ Markdown/MDX 博客文章需要：
 
 ### 后续工作
 
-- 增量 Mermaid 缓存（基于文件 hash，Task 2.2）
-- 中文分词优化 Pagefind
-- Schema 版本化迁移工具
+- 增量 Mermaid 缓存（基于文件 hash，Task 2.2） - 待实现
+- 中文分词优化 Pagefind - **待定**，需集成 `nodejieba` 或类似分词器
+- Schema 版本化迁移工具 - **Contracts 已落地**，`src/content.config.ts` schema 现由 `.agents/contracts/content-schema.json` 驱动
+
+### 新增后果
+
+- **Mermaid 预渲染已验证**：构建时渲染正常工作，`vnu` HTML 验证误报已通过 `.vnu-filterfile` 过滤（文档见 `docs/mermaid-vnu-fix.md`）
+- **Schema 迁移有合约保障**：Content Collections schema 变更通过 contracts 文件版本化，支持向后兼容检查
 
 ## References
 

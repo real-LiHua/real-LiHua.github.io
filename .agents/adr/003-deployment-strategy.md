@@ -2,7 +2,11 @@
 
 ## Status
 
-Accepted
+Updated (was Accepted)
+
+## Last Updated
+
+2026-09-02
 
 ## Context
 
@@ -57,9 +61,16 @@ Accepted
 
 ### 后续工作
 
-- 部署状态聚合仪表盘
-- 渐进式迁移动态功能到 Cloudflare Workers
-- 探索 Cloudflare D1 存储评论/访问统计
+- 部署状态聚合仪表盘 - 待定
+- 渐进式迁移动态功能到 Cloudflare Workers - 进行中
+- 探索 Cloudflare D1 存储评论/访问统计 - 待定
+- **验证 `compatibility_date` 自动更新**：pre-commit hook 当前已 15 天未更新（需排查 `wrangler.jsonc` 更新逻辑）
+
+### 新增后果
+
+- **IPFS 部署仍禁用**：`.github/workflows/deploy.yml` 中 IPFS job 保持 `if: false`，等待 Pinata 配置与成本评估
+- **第 4 部署目标已文档化**：IPFS via Pinata 作为第 4 个部署目标已在架构文档与 ADR 中记录，启用条件为：Pinata JWT 配置完成 + 成本可控验证
+- **兼容性日期风险**：`wrangler.jsonc` 的 `compatibility_date` 自动更新机制疑似失效，当前日期滞后 15 天，可能影响新 Workers API 可用性
 
 ## References
 

@@ -2,7 +2,11 @@
 
 ## Status
 
-Accepted
+Updated (was Accepted)
+
+## Last Updated
+
+2026-09-02
 
 ## Context
 
@@ -54,9 +58,14 @@ Astro 静态博客需要：
 
 ### 后续工作
 
-- Task 1.3: 清理空占位组件
-- Task 1.4: 统一脚本注册机制
-- 建立组件库文档（Storybook）
+- Task 1.3: 清理空占位组件 ✅ **Done** (2026-08-28)
+- Task 1.4: 统一脚本注册机制 ✅ **Done** (2026-08-29) - `script-registry.ts` 统一管理所有客户端脚本加载
+- 建立组件库文档（Storybook） - 待定
+
+### 新增后果
+
+- **Contracts 已落地**：组件 Props 与脚本配置现通过 `.agents/contracts/` 统一定义，类型安全跨文件验证
+- **脚本注册统一**：`src/scripts/script-registry.ts` 统一管理脚本的 `astro:page-load` 监听、初始化顺序与错误处理
 
 ## References
 
