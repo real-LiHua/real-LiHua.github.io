@@ -1,0 +1,61 @@
+{
+  "version": "1.0.0",
+  "roles": [
+    "build-deploy-engineer",
+    "cli-tool-engineer",
+    "content-engineer",
+    "frontend-architect",
+    "quality-dx-guardian",
+    "search-discovery-engineer"
+  ],
+  "routes": [
+    {
+      "id": "route-build-to-frontend-content",
+      "from": "build-deploy-engineer",
+      "to": ["frontend-architect", "content-engineer"],
+      "events": ["build.completed", "build.failed", "deploy.started", "deploy.completed"],
+      "description": "Notify frontend and content teams of build/deploy status changes",
+      "priority_filter": ["normal", "high", "critical"]
+    },
+    {
+      "id": "route-quality-to-all",
+      "from": "quality-dx-guardian",
+      "to": "broadcast",
+      "events": ["lint.failed", "typecheck.failed", "test.failed", "security.alert"],
+      "description": "Broadcast quality alerts to all roles",
+      "priority_filter": ["high", "critical"]
+    },
+    {
+      "id": "route-cli-to-build",
+      "from": "cli-tool-engineer",
+      "to": ["build-deploy-engineer"],
+      "events": ["cli.release.requested", "cli.version.bump", "cli.changelog.generated"],
+      "description": "CLI tool requests builds for releases",
+      "priority_filter": ["normal", "high"]
+    },
+    {
+      "id": "route-content-to-search",
+      "from": "content-engineer",
+      "to": ["search-discovery-engineer"],
+      "events": ["content.published", "content.updated", "content.deleted", "tag.added"],
+      "description": "Notify search engine of content changes for index updates",
+      "priority_filter": ["normal", "high"]
+    },
+    {
+      "id": "route-frontend-to-quality",
+      "from": "frontend-architect",
+      "to": ["quality-dx-guardian"],
+      "events": ["component.added", "design-system.updated", "accessibility.audit.requested"],
+      "description": "Request quality reviews for frontend changes",
+      "priority_filter": ["normal", "high"]
+    },
+    {
+      "id": "route-search-to-content",
+      "from": "search-discovery-engineer",
+      "to": ["content-engineer"],
+      "events": ["search.index.updated", "search.query.failed", "recommendation.generated"],
+      "description": "Search engine notifies content team of index status and recommendations",
+      "priority_filter": ["low", "normal"]
+    }
+  ]
+}

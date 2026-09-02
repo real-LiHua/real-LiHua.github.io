@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://real-lihua.github.io/schemas/message-schema.json",
+  "title": "Message Bus Message",
+  "description": "JSON Schema for inter-role message format in the agent message bus",
+  "type": "object",
+  "required": ["id", "timestamp", "from", "to", "type", "payload", "priority"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique message identifier (UUID v4)"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of message creation"
+    },
+    "from": {
+      "type": "string",
+      "pattern": "^[a-z-]+$",
+      "description": "Source role identifier (e.g., 'build-deploy-engineer')"
+    },
+    "to": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": ["broadcast"],
+          "description": "Broadcast to all roles"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z-]+$"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Array of target role identifiers"
+        }
+      ],
+      "description": "Target role(s) or 'broadcast'"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["event", "request", "response", "alert", "proposal"],
+      "description": "Message type classification"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Message payload - structure varies by message type",
+      "additionalProperties": true
+    },
+    "correlation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Optional correlation ID for request/response tracking"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["low", "normal", "high", "critical"],
+      "description": "Message priority level"
+    },
+    "ttl": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 86400,
+      "description": "Optional time-to-live in seconds (default: 3600)"
+    }
+  },
+  "examples": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "timestamp": "2026-09-02T10:30:00Z",
+      "from": "build-deploy-engineer",
+      "to": ["frontend-architect", "content-engineer"],
+      "type": "event",
+      "payload": {
+        "event": "build.completed",
+        "buildId": "build-123",
+        "status": "success"
+      },
+      "priority": "normal"
+    },
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440001",
+      "timestamp": "2026-09-02T10:31:00Z",
+      "from": "quality-dx-guardian",
+      "to": "cli-tool-engineer",
+      "type": "request",
+      "payload": {
+        "action": "run-lint",
+        "target": "src/**/*.ts"
+      },
+      "correlation_id": "770e8400-e29b-41d4-a716-446655440002",
+      "priority": "high"
+    }
+  ]
+}
