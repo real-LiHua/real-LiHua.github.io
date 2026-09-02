@@ -1,0 +1,300 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://real-lihua.github.io/.agents/contracts/script-api.json",
+  "title": "Client-Side Script API Contracts",
+  "description": "Exported functions and initialization patterns from src/scripts/ (auto-initialized on astro:page-load)",
+  "type": "object",
+  "properties": {
+    "code-copy": {
+      "file": "src/scripts/code-copy.ts",
+      "description": "Code block and inline code copy functionality with toast notifications",
+      "exports": {
+        "initCodeCopy": {
+          "type": "function",
+          "description": "Initialize copy buttons for all <pre> blocks and inline <code> elements. Called automatically on astro:page-load.",
+          "parameters": [],
+          "returns": "void"
+        },
+        "wrapPreWithCopyButton": {
+          "type": "function",
+          "description": "Wrap a single <pre> element with a copy button",
+          "parameters": [
+            {
+              "name": "pre",
+              "type": "HTMLPreElement"
+            }
+          ],
+          "returns": "void"
+        },
+        "setupInlineCodeCopy": {
+          "type": "function",
+          "description": "Enable click-to-copy on an inline <code> element",
+          "parameters": [
+            {
+              "name": "code",
+              "type": "HTMLSpanElement"
+            }
+          ],
+          "returns": "void"
+        },
+        "handleInlineCopy": {
+          "type": "function",
+          "description": "Handle copy action for inline code with visual feedback",
+          "parameters": [
+            {
+              "name": "code",
+              "type": "HTMLSpanElement"
+            }
+          ],
+          "returns": "void"
+        }
+      },
+      "constants": {
+        "COPY_SUCCESS_TIMEOUT": 2000,
+        "HOVER_HIGHLIGHT_TIMEOUT": 500,
+        "TOAST_DURATION": 3000
+      },
+      "selectors": {
+        "pre": "All <pre> elements get copy buttons",
+        "inlineCode": "code:not(pre code) - inline code elements get click-to-copy"
+      }
+    },
+    "theme-toggle": {
+      "file": "src/scripts/theme-toggle.ts",
+      "description": "Dark/light theme toggle with localStorage persistence and dark reader extension detection",
+      "exports": {
+        "setTheme": {
+          "type": "function",
+          "description": "Set document theme and optionally persist to localStorage",
+          "parameters": [
+            {
+              "name": "theme",
+              "type": "string",
+              "enum": ["light", "dark"]
+            },
+            {
+              "name": "persist",
+              "type": "boolean",
+              "default": true
+            }
+          ],
+          "returns": "void"
+        },
+        "isExtensionActive": {
+          "type": "function",
+          "description": "Detect if dark reader browser extension is active",
+          "parameters": [],
+          "returns": "boolean"
+        },
+        "observeExtension": {
+          "type": "function",
+          "description": "Observe DOM for dark reader extension activation to hide toggle",
+          "parameters": [
+            {
+              "name": "toggle",
+              "type": "HTMLElement"
+            }
+          ],
+          "returns": "void"
+        }
+      },
+      "constants": {
+        "THEME_KEY": "theme",
+        "THEME_LIGHT": "light",
+        "THEME_DARK": "dark",
+        "EXT_PREFIX": "data-darkreader"
+      },
+      "autoInit": "Runs on astro:page-load; binds to .theme-controller checkbox"
+    },
+    "tilt-card": {
+      "file": "src/scripts/tilt-card.ts",
+      "description": "3D tilt effect on hover for .tilt-card elements (respects prefers-reduced-motion)",
+      "exports": {
+        "initTiltCards": {
+          "type": "function",
+          "description": "Initialize tilt effect on all .tilt-card elements. Called automatically on astro:page-load.",
+          "parameters": [],
+          "returns": "void"
+        },
+        "initTilt": {
+          "type": "function",
+          "description": "Initialize tilt effect on a single card element",
+          "parameters": [
+            {
+              "name": "card",
+              "type": "HTMLElement"
+            }
+          ],
+          "returns": "void"
+        },
+        "getTiltRotation": {
+          "type": "function",
+          "description": "Calculate rotation angles based on mouse position",
+          "parameters": [
+            {
+              "name": "event",
+              "type": "MouseEvent"
+            },
+            {
+              "name": "element",
+              "type": "HTMLElement"
+            }
+          ],
+          "returns": {
+            "rotateX": "number",
+            "rotateY": "number"
+          }
+        }
+      },
+      "constants": {
+        "MAX_TILT": 8,
+        "TRANSITION_DURATION": 200
+      },
+      "selector": ".tilt-card"
+    },
+    "scroll-reveal": {
+      "file": "src/scripts/scroll-reveal.ts",
+      "description": "IntersectionObserver-based scroll reveal animation for .reveal elements",
+      "exports": {
+        "initScrollReveal": {
+          "type": "function",
+          "description": "Initialize scroll reveal on all .reveal elements. Called automatically on astro:page-load.",
+          "parameters": [],
+          "returns": "void"
+        }
+      },
+      "constants": {
+        "REVEAL_ROOT_MARGIN": "0px 0px -60px 0px",
+        "THRESHOLD": 0.1
+      },
+      "selector": ".reveal",
+      "behavior": "Adds 'revealed' class when element enters viewport (60px before bottom), then unobserves"
+    },
+    "reading-progress": {
+      "file": "src/scripts/reading-progress.ts",
+      "description": "Reading progress bar at top of page (#reading-progress element)",
+      "exports": {
+        "getProgress": {
+          "type": "function",
+          "description": "Calculate scroll progress percentage (0-100)",
+          "parameters": [],
+          "returns": "number"
+        },
+        "setProgressWidth": {
+          "type": "function",
+          "description": "Set progress bar width",
+          "parameters": [
+            {
+              "name": "bar",
+              "type": "HTMLDivElement"
+            },
+            {
+              "name": "percent",
+              "type": "number"
+            }
+          ],
+          "returns": "void"
+        },
+        "updateProgress": {
+          "type": "function",
+          "description": "Update progress bar based on current scroll position",
+          "parameters": [],
+          "returns": "void"
+        }
+      },
+      "autoInit": "Runs on astro:page-load; adds scroll listener with requestAnimationFrame throttling",
+      "selector": "#reading-progress"
+    },
+    "gravatar-fallback": {
+      "file": "src/scripts/gravatar-fallback.ts",
+      "description": "Fallback image for gravatar/profile images that fail to load",
+      "exports": {
+        "initGravatarFallback": {
+          "type": "function",
+          "description": "Initialize fallback handling for all img[data-gravatar-fallback]. Called automatically on astro:page-load.",
+          "parameters": [],
+          "returns": "void"
+        },
+        "handleImg": {
+          "type": "function",
+          "description": "Set up error handler for a single image with fallback",
+          "parameters": [
+            {
+              "name": "img",
+              "type": "HTMLImageElement"
+            },
+            {
+              "name": "fallbackSrc",
+              "type": "string"
+            }
+          ],
+          "returns": "void"
+        }
+      },
+      "selector": "img[data-gravatar-fallback]",
+      "attribute": "data-gravatar-fallback (fallback image URL)"
+    },
+    "telegram": {
+      "file": "src/scripts/telegram.ts",
+      "description": "Generates RSA key pair and sends public key to /meow endpoint (runs once on load)",
+      "exports": {},
+      "autoInit": "Runs immediately as IIFE on module load (not on astro:page-load)",
+      "behavior": "Generates RSA-OAEP 2048-bit key pair, exports public key as JWK, POSTs to https://blog.lihua0.workers.dev/meow"
+    },
+    "toc": {
+      "file": "src/scripts/toc.ts",
+      "description": "Table of contents with draggable toggle, panel, and active heading highlight",
+      "exports": {
+        "setupDragListeners": {
+          "type": "function",
+          "description": "Make TOC toggle button draggable (mouse + touch)",
+          "parameters": [
+            {
+              "name": "toggle",
+              "type": "HTMLButtonElement"
+            }
+          ],
+          "returns": "void"
+        },
+        "setupPanelToggle": {
+          "type": "function",
+          "description": "Toggle TOC panel visibility on button click, close on outside click",
+          "parameters": [
+            {
+              "name": "toggle",
+              "type": "HTMLButtonElement"
+            },
+            {
+              "name": "panel",
+              "type": "HTMLElement"
+            }
+          ],
+          "returns": "void"
+        },
+        "setupTocObserver": {
+          "type": "function",
+          "description": "Highlight active TOC link based on scroll position using IntersectionObserver",
+          "parameters": [
+            {
+              "name": "tocLinks",
+              "type": "NodeListOf<HTMLAnchorElement>"
+            }
+          ],
+          "returns": "void"
+        }
+      },
+      "constants": {
+        "PADDING": 8,
+        "ROOT_MARGIN": "-80px 0px -80% 0px"
+      },
+      "selectors": {
+        "toggle": "#toc-toggle",
+        "panel": "#toc-panel",
+        "links": "#toc-sidebar a, #toc-panel a"
+      },
+      "autoInit": "Runs on astro:page-load; initializes drag, toggle, and observer"
+    }
+  },
+  "initializationPattern": "All scripts (except telegram.ts) auto-initialize via document.addEventListener('astro:page-load', initFn). telegram.ts runs as IIFE on module load.",
+  "additionalProperties": false
+}

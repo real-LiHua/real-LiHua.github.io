@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://real-lihua.github.io/.agents/contracts/content-schema.json",
+  "title": "BlogPost Content Schema",
+  "description": "Content Collections schema for blog posts (from src/content.config.ts)",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Required post title",
+      "minLength": 1
+    },
+    "publishDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Optional publication date (ISO 8601). Auto-populated from git history if not provided."
+    },
+    "updatedDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Optional last updated date (ISO 8601). Auto-populated from git history if not provided."
+    },
+    "description": {
+      "type": ["string", "null"],
+      "description": "Optional post description for SEO and listings"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Optional array of tag strings"
+    },
+    "authors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Optional array of author identifiers"
+    },
+    "image": {
+      "type": "string",
+      "format": "uri-reference",
+      "description": "Optional Open Graph / social preview image path"
+    }
+  },
+  "required": ["title"],
+  "additionalProperties": false
+}

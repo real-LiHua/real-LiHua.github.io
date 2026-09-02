@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://real-lihua.github.io/.agents/contracts/component-props.json",
+  "title": "Astro Component Props Contracts",
+  "description": "Component props interfaces extracted from src/components/",
+  "type": "object",
+  "properties": {
+    "PostCard": {
+      "type": "object",
+      "description": "Props for PostCard.astro (src/components/common/PostCard.astro)",
+      "properties": {
+        "post": {
+          "type": "object",
+          "description": "Blog post data with id from content collection",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Unique post identifier (slug)"
+            },
+            "title": {
+              "type": "string"
+            },
+            "publishDate": {
+              "type": ["string", "null"],
+              "format": "date-time"
+            },
+            "description": {
+              "type": ["string", "null"]
+            },
+            "tags": {
+              "type": ["array", "null"],
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": ["id", "title"]
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["grid", "list"],
+          "default": "grid",
+          "description": "Display variant: grid (card) or list (compact)"
+        }
+      },
+      "required": ["post"]
+    },
+    "Tag": {
+      "type": "object",
+      "description": "Props for Tag.astro (src/components/common/Tag.astro)",
+      "properties": {
+        "tag": {
+          "type": "string",
+          "description": "Tag name to display"
+        },
+        "size": {
+          "type": "string",
+          "enum": ["sm", "md"],
+          "default": "sm",
+          "description": "Tag size variant"
+        },
+        "removable": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether tag shows as removable (filter) vs clickable link"
+        }
+      },
+      "required": ["tag"]
+    },
+    "SearchBar": {
+      "type": "object",
+      "description": "Props for SearchBar.astro (src/components/navbar/SearchBar.astro)",
+      "properties": {
+        "placeholder": {
+          "type": "string",
+          "default": "搜索（⌘K）",
+          "description": "Input placeholder text"
+        }
+      }
+    },
+    "Header": {
+      "type": "object",
+      "description": "Props for Header.astro (src/components/Header.astro) - no props"
+    },
+    "Footer": {
+      "type": "object",
+      "description": "Props for Footer.astro (src/components/Footer.astro) - no props"
+    },
+    "Navigation": {
+      "type": "object",
+      "description": "Props for Navigation.astro (src/components/Navigation.astro) - no props"
+    },
+    "CodeCopy": {
+      "type": "object",
+      "description": "Props for CodeCopy.astro (src/components/CodeCopy.astro) - no props"
+    },
+    "Copyright": {
+      "type": "object",
+      "description": "Props for Copyright.astro (src/components/Copyright.astro) - no props"
+    },
+    "NavbarStart": {
+      "type": "object",
+      "description": "Props for Start.astro (src/components/navbar/Start.astro) - unused, merged into Navigation"
+    },
+    "NavbarCenter": {
+      "type": "object",
+      "description": "Props for Center.astro (src/components/navbar/Center.astro) - unused, merged into Navigation"
+    },
+    "NavbarEnd": {
+      "type": "object",
+      "description": "Props for End.astro (src/components/navbar/End.astro) - no props, contains SearchBar + theme toggle"
+    }
+  },
+  "additionalProperties": false
+}

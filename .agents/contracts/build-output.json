@@ -1,0 +1,296 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://real-lihua.github.io/.agents/contracts/build-output.json",
+  "title": "Build Output & Pipeline Contracts",
+  "description": "Build process, output structure, and post-build hooks from astro.config.ts and integrations",
+  "type": "object",
+  "properties": {
+    "buildCommand": {
+      "type": "string",
+      "description": "Primary build command",
+      "const": "pnpm build"
+    },
+    "buildSteps": {
+      "type": "array",
+      "description": "Sequential build steps executed by 'astro build'",
+      "items": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "string",
+            "enum": ["typecheck", "generate", "pagefind", "link-check", "html-validate"]
+          },
+          "description": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          }
+        },
+        "required": ["step", "description", "tool"]
+      }
+    },
+    "typecheck": {
+      "type": "object",
+      "description": "TypeScript type checking via astro check",
+      "properties": {
+        "command": "astro check",
+        "includes": [
+          "TypeScript compilation",
+          "Astro component types",
+          "Content collection types (BlogPost)",
+          "Script module types"
+        ]
+      }
+    },
+    "generate": {
+      "type": "object",
+      "description": "Static site generation",
+      "properties": {
+        "command": "astro build",
+        "adapter": {
+          "type": "object",
+          "properties": {
+            "name": "@astrojs/node",
+            "mode": "standalone"
+          }
+        },
+        "output": {
+          "type": "object",
+          "properties": {
+            "client": {
+              "type": "object",
+              "description": "Static assets for Pages deployments (Cloudflare, Codeberg, GitHub, IPFS)",
+              "properties": {
+                "_astro": {
+                  "type": "string",
+                  "description": "Hashed JS/CSS assets"
+                },
+                "pagefind": {
+                  "type": "string",
+                  "description": "Pagefind search index files"
+                },
+                "posts": {
+                  "type": "string",
+                  "description": "Generated post HTML pages"
+                },
+                "tags": {
+                  "type": "string",
+                  "description": "Generated tag index pages"
+                },
+                "index.html": {
+                  "type": "string",
+                  "description": "Homepage"
+                },
+                "rss.xml": {
+                  "type": "string",
+                  "description": "RSS feed (via @astrojs/rss)"
+                },
+                "sitemap-index.xml": {
+                  "type": "string",
+                  "description": "Sitemap index (via @astrojs/sitemap)"
+                }
+              }
+            },
+            "server": {
+              "type": "object",
+              "description": "Server bundle for Cloudflare Workers",
+              "properties": {
+                "entry.mjs": {
+                  "type": "string",
+                  "description": "Worker entry point"
+                }
+              }
+            },
+            "_worker.js": {
+              "type": "string",
+              "description": "Worker entry (if applicable)"
+            }
+          }
+        }
+      }
+    },
+    "postBuildHooks": {
+      "type": "object",
+      "description": "Hooks from build-hooks integration (src/integrations/build-hooks.ts)",
+      "properties": {
+        "astro:build:start": {
+          "type": "object",
+          "properties": {
+            "description": "Clean public/pagefind symlink before build",
+            "actions": ["Remove public/pagefind symlink if exists"]
+          }
+        },
+        "astro:build:done": {
+          "type": "object",
+          "properties": {
+            "description": "Post-build validation pipeline (runs sequentially)",
+            "steps": [
+              {
+                "name": "pagefind-index",
+                "command": "pagefind",
+                "cwd": "project root",
+                "description": "Generate search index from dist/client"
+              },
+              {
+                "name": "pagefind-symlink",
+                "command": "ln -sf ../dist/client/pagefind public/pagefind",
+                "description": "Create symlink for dev server access"
+              },
+              {
+                "name": "link-check",
+                "command": "lychee dist/client",
+                "description": "Validate all links in generated HTML"
+              },
+              {
+                "name": "html-validate",
+                "command": "vnu --skip-non-html --filterfile message-filters.txt dist/client",
+                "description": "Validate HTML with vnu (nu HTML validator)"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "integrations": {
+      "type": "array",
+      "description": "Custom Astro integrations that modify build behavior",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "hooks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "file", "hooks", "description"]
+      }
+    },
+    "mermaidCompileTime": {
+      "type": "object",
+      "description": "Mermaid compile-time rendering (src/integrations/mermaid-compile-time.ts)",
+      "properties": {
+        "hook": "astro:build:done",
+        "description": "Renders mermaid diagrams to SVG at build time",
+        "process": [
+          "Find all HTML files in dist/client",
+          "Extract <pre class=\"mermaid\"> code blocks",
+          "Render each to SVG using mermaid CLI",
+          "Replace mermaid blocks with SVG in HTML files"
+        ],
+        "output": "Modified HTML files in dist/client with inline SVG"
+      }
+    },
+    "satteriConfig": {
+      "type": "object",
+      "description": "Markdown processing configuration (src/integrations/satteri-config.ts)",
+      "properties": {
+        "hook": "astro:config:setup",
+        "processor": "satteri (via @astrojs/markdown-satteri)",
+        "mdastPlugins": [
+          "mermaidMdast",
+          "satteriPublishDate (auto-fills publishDate from git log --diff-filter=A)",
+          "satteriUpdatedDate (auto-fills updatedDate from git log -1)"
+        ],
+        "hastPlugins": [
+          "mermaidHast",
+          "satteriTableAlign (converts align attr to style)",
+          "satteriHeadingIdsPlugin (adds ids to headings)",
+          "satteriExternalLinks (adds rel=noopener noreferrer to external links)"
+        ],
+        "shikiConfig": {
+          "themes": {
+            "dark": "github-dark",
+            "light": "github-light"
+          },
+          "transformers": ["transformerColorizedBrackets"],
+          "defaultColor": false
+        }
+      }
+    },
+    "deploymentTargets": {
+      "type": "array",
+      "description": "Deployment targets from .github/workflows/deploy.yml",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "artifacts": {
+            "type": "string",
+            "description": "Uses dist/client for static, dist/server for worker"
+          }
+        },
+        "required": ["name", "url", "method", "artifacts"]
+      }
+    },
+    "environmentVariables": {
+      "type": "object",
+      "description": "Required/optional environment variables for build and deploy",
+      "properties": {
+        "SITE_URL": {
+          "type": "string",
+          "required": true,
+          "description": "Base URL for sitemap, RSS, OGP (used at build time)"
+        },
+        "CF_PAGES_URL": {
+          "type": "string",
+          "required": false,
+          "description": "Cloudflare Pages URL fallback"
+        },
+        "CLOUDFLARE_ACCOUNT_ID": {
+          "type": "string",
+          "required": "deploy only",
+          "description": "CF account ID for wrangler deploy"
+        },
+        "CLOUDFLARE_API_TOKEN": {
+          "type": "string",
+          "required": "deploy only",
+          "description": "CF API token for wrangler deploy"
+        },
+        "CODEBERG_PAGES": {
+          "type": "string",
+          "required": "deploy only",
+          "description": "SSH private key for Codeberg Pages push"
+        },
+        "PINATA_JWT_TOKEN": {
+          "type": "string",
+          "required": "deploy only",
+          "description": "Pinata API JWT for IPFS pinning"
+        }
+      }
+    },
+    "previewCommands": {
+      "type": "object",
+      "properties": {
+        "cloudflare": {
+          "command": "pnpm preview",
+          "description": "astro build && wrangler dev (simulates CF Workers)"
+        },
+        "static": {
+          "command": "npx serve dist/client",
+          "description": "Static file server for Pages preview"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
