@@ -1,3 +1,0 @@
-- [ ] 外部链接可访问性提示
-- [ ] pre commit 集成 markdown (gfm) 格式检测
-- [x] 支持 mermaid
