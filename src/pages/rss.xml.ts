@@ -3,11 +3,11 @@ import rss from "@astrojs/rss";
 
 export const GET = async (context: { site: string }): Promise<Response> => {
   const posts = await getPublishedPosts(),
-   sorted = posts.toSorted(
-    (prev, next) =>
-      new Date(next.data.publishDate ?? 0).getTime() -
-      new Date(prev.data.publishDate ?? 0).getTime(),
-  );
+    sorted = posts.toSorted(
+      (prev, next) =>
+        new Date(next.data.publishDate ?? 0).getTime() -
+        new Date(prev.data.publishDate ?? 0).getTime(),
+    );
 
   return rss({
     customData: `<language>zh-cn</language>\n<atom:link rel="self" href="${context.site}rss.xml"/>`,

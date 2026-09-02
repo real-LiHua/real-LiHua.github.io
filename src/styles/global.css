@@ -210,3 +210,15 @@ html {
     scroll-behavior: auto;
   }
 }
+
+a[data-external="true"] {
+  position: relative;
+}
+
+a[data-external="true"]::after {
+  content: "↗";
+  margin-left: 0.25rem;
+  opacity: 0.7;
+  font-size: 0.75em;
+  vertical-align: super;
+}

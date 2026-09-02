@@ -15,29 +15,26 @@ const gaxios = new Gaxios();
 gaxios.defaults = { retry: true };
 
 const pinataGateway = getSecret("PINATA_GATEWAY") ?? "",
- pinataJwt = getSecret("PINATA_JWT") ?? "",
- pinata = new PinataSDK({ pinataGateway, pinataJwt });
+  pinataJwt = getSecret("PINATA_JWT") ?? "",
+  pinata = new PinataSDK({ pinataGateway, pinataJwt });
 
 export const POST = (async ({ request }): Promise<Response> => {
   const aesKey = await crypto.subtle.generateKey({ length: 256, name: "AES-GCM" }, true, [
-    "encrypt",
-    "decrypt",
-    "wrapKey",
-  ]),
-
-   rsaKey = await crypto.subtle.importKey(
-    "jwk",
-    (await request.json()) as JsonWebKey,
-    { hash: "SHA-256", name: "RSA-OAEP" },
-    false,
-    ["wrapKey"],
-  ),
-
-   wrappedKey = await crypto.subtle.wrapKey("jwk", aesKey, rsaKey, {
-    name: "RSA-OAEP",
-  }),
-
-   upload = await pinata.upload.public.base64(Buffer.from(wrappedKey).toString("base64"));
+      "encrypt",
+      "decrypt",
+      "wrapKey",
+    ]),
+    rsaKey = await crypto.subtle.importKey(
+      "jwk",
+      (await request.json()) as JsonWebKey,
+      { hash: "SHA-256", name: "RSA-OAEP" },
+      false,
+      ["wrapKey"],
+    ),
+    wrappedKey = await crypto.subtle.wrapKey("jwk", aesKey, rsaKey, {
+      name: "RSA-OAEP",
+    }),
+    upload = await pinata.upload.public.base64(Buffer.from(wrappedKey).toString("base64"));
 
   await gaxios.request({ url: `https://ipfs.io/ipfs/${upload.cid}` });
 

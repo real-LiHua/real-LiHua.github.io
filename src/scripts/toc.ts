@@ -1,5 +1,5 @@
 const PADDING = 8,
- ROOT_MARGIN = "-80px 0px -80% 0px";
+  ROOT_MARGIN = "-80px 0px -80% 0px";
 
 interface DragState {
   initialLeft: number;
@@ -10,148 +10,134 @@ interface DragState {
 }
 
 const clamp = (value: number, min: number, max: number): number =>
-  Math.max(min, Math.min(value, max)),
+    Math.max(min, Math.min(value, max)),
+  createDragState = (): DragState => ({
+    initialLeft: 0,
+    initialTop: 0,
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+  }),
+  initMouseDrag = (
+    state: DragState,
+    toggle: HTMLButtonElement,
+  ): {
+    onMouseDown: (event: MouseEvent) => void;
+    onMouseMove: (event: MouseEvent) => void;
+    onMouseUp: () => void;
+  } => ({
+    onMouseDown: (event: MouseEvent): void => {
+      state.isDragging = true;
+      state.startX = event.clientX;
+      state.startY = event.clientY;
+      const rect = toggle.getBoundingClientRect();
+      state.initialLeft = rect.left;
+      state.initialTop = rect.top;
+      toggle.style.transition = "none";
+    },
+    onMouseMove: (event: MouseEvent): void => {
+      if (!state.isDragging) {
+        return;
+      }
+      const dx = event.clientX - state.startX,
+        dy = event.clientY - state.startY,
+        rect = toggle.getBoundingClientRect(),
+        newLeft = clamp(state.initialLeft + dx, PADDING, window.innerWidth - rect.width - PADDING),
+        newTop = clamp(state.initialTop + dy, PADDING, window.innerHeight - rect.height - PADDING);
+      toggle.style.left = `${newLeft}px`;
+      toggle.style.top = `${newTop}px`;
+      toggle.style.right = "auto";
+    },
+    onMouseUp: (): void => {
+      state.isDragging = false;
+    },
+  }),
+  initTouchDrag = (
+    _state: DragState,
+    toggle: HTMLButtonElement,
+    handlers: ReturnType<typeof initMouseDrag>,
+  ): void => {
+    toggle.addEventListener(
+      "touchstart",
+      (evt: TouchEvent) => {
+        const [touchPoint] = evt.touches;
+        handlers.onMouseDown({
+          clientX: touchPoint.clientX,
+          clientY: touchPoint.clientY,
+        } as MouseEvent);
+      },
+      { passive: false },
+    );
 
- createDragState = (): DragState => ({
-  initialLeft: 0,
-  initialTop: 0,
-  isDragging: false,
-  startX: 0,
-  startY: 0,
-}),
+    toggle.addEventListener(
+      "touchmove",
+      (evt: TouchEvent) => {
+        evt.preventDefault();
+        const [touchPoint] = evt.touches;
+        handlers.onMouseMove({
+          clientX: touchPoint.clientX,
+          clientY: touchPoint.clientY,
+        } as MouseEvent);
+      },
+      { passive: false },
+    );
 
- initMouseDrag = (
-  state: DragState,
-  toggle: HTMLButtonElement,
-): {
-  onMouseDown: (event: MouseEvent) => void;
-  onMouseMove: (event: MouseEvent) => void;
-  onMouseUp: () => void;
-} => ({
-  onMouseDown: (event: MouseEvent): void => {
-    state.isDragging = true;
-    state.startX = event.clientX;
-    state.startY = event.clientY;
-    const rect = toggle.getBoundingClientRect();
-    state.initialLeft = rect.left;
-    state.initialTop = rect.top;
-    toggle.style.transition = "none";
+    toggle.addEventListener("touchend", handlers.onMouseUp);
   },
-  onMouseMove: (event: MouseEvent): void => {
-    if (!state.isDragging) {
+  setupDragListeners = (toggle: HTMLButtonElement): void => {
+    const state = createDragState(),
+      handlers = initMouseDrag(state, toggle);
+    toggle.addEventListener("mousedown", handlers.onMouseDown);
+    document.addEventListener("mousemove", handlers.onMouseMove);
+    document.addEventListener("mouseup", handlers.onMouseUp);
+    initTouchDrag(state, toggle, handlers);
+  },
+  setupPanelToggle = (toggle: HTMLButtonElement, panel: HTMLElement): void => {
+    toggle.addEventListener("click", () => {
+      panel.classList.toggle("hidden");
+    });
+    document.addEventListener("click", (evt: MouseEvent) => {
+      if (!toggle.contains(evt.target as Node) && !panel.contains(evt.target as Node)) {
+        panel.classList.add("hidden");
+      }
+    });
+  },
+  setupTocObserver = (tocLinks: NodeListOf<HTMLAnchorElement>): void => {
+    const tocHeadings = [...tocLinks]
+      .map((link) => link.getAttribute("href")?.slice(1))
+      .filter((id): id is string => Boolean(id))
+      .map((id) => document.querySelector(`#${id}`))
+      .filter((el): el is HTMLElement => el !== null);
+
+    if (tocHeadings.length === 0) {
       return;
     }
-    const dx = event.clientX - state.startX,
-     dy = event.clientY - state.startY,
-     rect = toggle.getBoundingClientRect(),
-     newLeft = clamp(
-      state.initialLeft + dx,
-      PADDING,
-      window.innerWidth - rect.width - PADDING,
-    ),
-     newTop = clamp(
-      state.initialTop + dy,
-      PADDING,
-      window.innerHeight - rect.height - PADDING,
-    );
-    toggle.style.left = `${newLeft}px`;
-    toggle.style.top = `${newTop}px`;
-    toggle.style.right = "auto";
-  },
-  onMouseUp: (): void => {
-    state.isDragging = false;
-  },
-}),
 
- initTouchDrag = (
-  _state: DragState,
-  toggle: HTMLButtonElement,
-  handlers: ReturnType<typeof initMouseDrag>,
-): void => {
-  toggle.addEventListener(
-    "touchstart",
-    (evt: TouchEvent) => {
-      const [touchPoint] = evt.touches;
-      handlers.onMouseDown({
-        clientX: touchPoint.clientX,
-        clientY: touchPoint.clientY,
-      } as MouseEvent);
-    },
-    { passive: false },
-  );
-
-  toggle.addEventListener(
-    "touchmove",
-    (evt: TouchEvent) => {
-      evt.preventDefault();
-      const [touchPoint] = evt.touches;
-      handlers.onMouseMove({
-        clientX: touchPoint.clientX,
-        clientY: touchPoint.clientY,
-      } as MouseEvent);
-    },
-    { passive: false },
-  );
-
-  toggle.addEventListener("touchend", handlers.onMouseUp);
-},
-
- setupDragListeners = (toggle: HTMLButtonElement): void => {
-  const state = createDragState(),
-   handlers = initMouseDrag(state, toggle);
-  toggle.addEventListener("mousedown", handlers.onMouseDown);
-  document.addEventListener("mousemove", handlers.onMouseMove);
-  document.addEventListener("mouseup", handlers.onMouseUp);
-  initTouchDrag(state, toggle, handlers);
-},
-
- setupPanelToggle = (toggle: HTMLButtonElement, panel: HTMLElement): void => {
-  toggle.addEventListener("click", () => {
-    panel.classList.toggle("hidden");
-  });
-  document.addEventListener("click", (evt: MouseEvent) => {
-    if (!toggle.contains(evt.target as Node) && !panel.contains(evt.target as Node)) {
-      panel.classList.add("hidden");
-    }
-  });
-},
-
- setupTocObserver = (tocLinks: NodeListOf<HTMLAnchorElement>): void => {
-  const tocHeadings = [...tocLinks]
-    .map((link) => link.getAttribute("href")?.slice(1))
-    .filter((id): id is string => Boolean(id))
-    .map((id) => document.querySelector(`#${id}`))
-    .filter((el): el is HTMLElement => el !== null);
-
-  if (tocHeadings.length === 0) {
-    return;
-  }
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          const { id } = entry.target;
-          for (const link of tocLinks) {
-            const isActive = link.getAttribute("href") === `#${id}`;
-            link.classList.toggle("text-pink-500", isActive);
-            link.classList.toggle("opacity-100", isActive);
-            link.classList.toggle("opacity-50", !isActive);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const { id } = entry.target;
+            for (const link of tocLinks) {
+              const isActive = link.getAttribute("href") === `#${id}`;
+              link.classList.toggle("text-pink-500", isActive);
+              link.classList.toggle("opacity-100", isActive);
+              link.classList.toggle("opacity-50", !isActive);
+            }
           }
         }
-      }
-    },
-    { rootMargin: ROOT_MARGIN },
-  );
+      },
+      { rootMargin: ROOT_MARGIN },
+    );
 
-  for (const heading of tocHeadings) {
-    observer.observe(heading);
-  }
-};
+    for (const heading of tocHeadings) {
+      observer.observe(heading);
+    }
+  };
 
 document.addEventListener("astro:page-load", () => {
   const toggle = document.querySelector<HTMLButtonElement>("#toc-toggle"),
-   panel = document.querySelector<HTMLElement>("#toc-panel");
+    panel = document.querySelector<HTMLElement>("#toc-panel");
 
   if (toggle) {
     setupDragListeners(toggle);

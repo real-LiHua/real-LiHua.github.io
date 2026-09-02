@@ -1,12 +1,11 @@
 import { defineMiddleware } from "astro:middleware";
 
 const corsOrigin = new Set([
-  "https://lihua.codeberg.page",
-  "https://real-lihua.github.io",
-  ...(import.meta.env.DEV ? ["http://localhost:4321"] : []),
-]),
-
- SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+    "https://lihua.codeberg.page",
+    "https://real-lihua.github.io",
+    ...(import.meta.env.DEV ? ["http://localhost:4321"] : []),
+  ]),
+  SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 export const onRequest = defineMiddleware((context, next) => {
   const { request } = context;

@@ -8,75 +8,70 @@ const root = path.join(import.meta.dirname, "..");
 mermaid.initialize({ securityLevel: "loose", startOnLoad: false, theme: "default" });
 
 const findHtmlFiles = (dir: string): string[] => {
-  const files: string[] = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...findHtmlFiles(fullPath));
-    } else if (entry.isFile() && entry.name.endsWith(".html")) {
-      files.push(fullPath);
+    const files: string[] = [];
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        files.push(...findHtmlFiles(fullPath));
+      } else if (entry.isFile() && entry.name.endsWith(".html")) {
+        files.push(fullPath);
+      }
     }
-  }
-  return files;
-},
-
- extractMermaidCode = (html: string): string[] => {
-  const regex = /<pre class="mermaid">\s*(?<code>[\s\S]*?)\s*<\/pre>/gu,
-   codes: string[] = [],
-   matches = html.matchAll(regex);
-  for (const match of matches) {
-    if (match.groups?.code) {
-      codes.push(match.groups.code);
+    return files;
+  },
+  extractMermaidCode = (html: string): string[] => {
+    const regex = /<pre class="mermaid">\s*(?<code>[\s\S]*?)\s*<\/pre>/gu,
+      codes: string[] = [],
+      matches = html.matchAll(regex);
+    for (const match of matches) {
+      if (match.groups?.code) {
+        codes.push(match.groups.code);
+      }
     }
-  }
-  return codes;
-},
-
- replaceMermaidBlocks = async (html: string, codes: string[]): Promise<string> => {
-  let result = html;
-  const replacements: { from: string; to: string }[] = [],
-
-   promises = codes.map(async (code) => {
-    const id = `mermaid-${Math.random().toString(36).slice(2)}`;
-    try {
-      const { svg } = await mermaid.render(id, code);
-      return {
-        from: `<pre class="mermaid">${code}</pre>`,
-        to: `<div class="mermaid">${svg}</div>`,
-      };
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn(`Mermaid render failed:`, error);
-      return null;
+    return codes;
+  },
+  replaceMermaidBlocks = async (html: string, codes: string[]): Promise<string> => {
+    let result = html;
+    const replacements: { from: string; to: string }[] = [],
+      promises = codes.map(async (code) => {
+        const id = `mermaid-${Math.random().toString(36).slice(2)}`;
+        try {
+          const { svg } = await mermaid.render(id, code);
+          return {
+            from: `<pre class="mermaid">${code}</pre>`,
+            to: `<div class="mermaid">${svg}</div>`,
+          };
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.warn(`Mermaid render failed:`, error);
+          return null;
+        }
+      }),
+      results = await Promise.all(promises);
+    for (const replacement of results) {
+      if (replacement) {
+        replacements.push(replacement);
+      }
     }
-  }),
 
-   results = await Promise.all(promises);
-  for (const replacement of results) {
-    if (replacement) {
-      replacements.push(replacement);
+    for (const { from, to } of replacements) {
+      result = result.replace(from, to);
     }
-  }
-
-  for (const { from, to } of replacements) {
-    result = result.replace(from, to);
-  }
-  return result;
-},
-
- processFile = async (file: string): Promise<number> => {
-  const html = readFileSync(file, "utf8"),
-   codes = extractMermaidCode(html);
-  if (codes.length === 0) {
-    return 0;
-  }
-  const result = await replaceMermaidBlocks(html, codes),
-   count = codes.length;
-  if (count > 0) {
-    writeFileSync(file, result);
-  }
-  return count;
-};
+    return result;
+  },
+  processFile = async (file: string): Promise<number> => {
+    const html = readFileSync(file, "utf8"),
+      codes = extractMermaidCode(html);
+    if (codes.length === 0) {
+      return 0;
+    }
+    const result = await replaceMermaidBlocks(html, codes),
+      count = codes.length;
+    if (count > 0) {
+      writeFileSync(file, result);
+    }
+    return count;
+  };
 
 export const mermaidCompileTimeIntegration = (): AstroIntegration => ({
   hooks: {
@@ -84,10 +79,9 @@ export const mermaidCompileTimeIntegration = (): AstroIntegration => ({
       logger.info("Rendering Mermaid diagrams at build time...");
 
       const distDir = path.join(root, "dist/client"),
-       htmlFiles = findHtmlFiles(distDir),
-
-       counts = await Promise.all(htmlFiles.map((file) => processFile(file))),
-       total = counts.reduce((sum, count) => sum + count, 0);
+        htmlFiles = findHtmlFiles(distDir),
+        counts = await Promise.all(htmlFiles.map((file) => processFile(file))),
+        total = counts.reduce((sum, count) => sum + count, 0);
 
       for (let index = 0; index < htmlFiles.length; index += 1) {
         if (counts[index] > 0) {

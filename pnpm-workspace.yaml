@@ -23,4 +23,4 @@ allowBuilds:
   workerd: true
 
 minimumReleaseAgeExclude:
-  - '@xingwangzhe/satteri-mermaid@0.7.0'
+  - "@xingwangzhe/satteri-mermaid@0.7.0"

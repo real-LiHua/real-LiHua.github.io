@@ -1,248 +1,505 @@
-# AGENTS.md — Astro 静态博客
+# AGENTS.md
 
-你将在本项目中完成前端开发/重构任务，输出最终代码。使用中文沟通与注释。
+## Project Overview
 
-## 项目概要
+A personal blog built with **Astro 7** using **MDX** for content, **Tailwind CSS 4** + **daisyUI 5** for styling, and **Pagefind** for client-side search. The blog is deployed to **Cloudflare Workers**, **Codeberg Pages**, **GitHub Pages**, and **IPFS** via Pinata.
 
-Astro 7 + MDX 静态博客，部署到 **Cloudflare Workers + Codeberg Pages + GitHub Pages**。样式栈：Tailwind CSS 4 + daisyUI 5（通过 `@plugin` 指令加载）。CSS 变量定义在 `src/styles/global.css`，双主题（light/dark）完整适配。
+### Key Technologies
 
-## 关键命令
+- **Framework:** Astro 7 (Node adapter, standalone mode)
+- **Content:** MDX with Astro Content Collections (glob loader)
+- **Styling:** Tailwind CSS 4 + daisyUI 5 + @tailwindcss/typography
+- **Search:** Pagefind (zero-config static search)
+- **Lint/Format:** oxlint + oxfmt (via lint-staged + Husky)
+- **CLI Tool:** Rust (post-edit) for interactive post management
+- **CI/CD:** GitHub Actions with 4 parallel deployment jobs
 
-```bash
-pnpm dev              # 启动开发服务器
-pnpm build            # 构建
-pnpm preview          # build + wrangler dev
-pnpm post:edit        # cargo run -p post-edit -- (Rust CLI 工具)
-pnpm oxlint --fix     # 静态检查并自动修复部分异常
-pnpm oxfmt            # 格式化代码
-pnpm tsc -b           # 修改代码后必须做 TypeScript 构建校验
-cargo clippy -p post-edit  # Rust 代码检查
-cargo test -p post-edit    # Rust 测试
-cargo audit                # Rust 依赖安全审计
-```
-
-**任务完成后必须执行**：`pnpm tsc -b` 验证，然后检查 oxlint 不新增错误。
-
-## 技术约束
-
-- **禁止使用 `any`**（项目虽未开启 `strict: true`，但有 `strictNullChecks: true`，且手动约束禁止 any）
-- **错误提示使用 daisyUI toast 组件**，禁止 `alert()` / `console.error()`
-- **异常处理**：禁止 try/catch 吞异常，禁止随意默认值兜底
-- **依赖管理**：`pnpm add -D <package>`（不手动改 package.json）
-- **未经允许禁止任何 Git 操作**
-
-## 代码规范
-
-- Lint: **oxlint** 为主（`no-console`: warn, `no-alert`/`no-debugger`: error），`eslint.config.js` 为辅
-- Format: **oxfmt**（取代 prettier），配置见 `oxfmt.config.ts`
-- lint-staged：Stage 文件的 `*.{astro,ts,tsx,js,jsx,css}` 自动执行 oxlint + oxfmt
-
-### pre-commit hook
-
-1. `pnpm oxfmt .husky/pre-commit.ts && node .husky/pre-commit.ts || wrangler types` —— 每日更新 wrangler.jsonc 的 `compatibility_date` 为昨天，失败时生成运行时类型
-2. `lint-staged` —— 格式化和检查暂存文件
-
-### oxlint 注意事项
-
-- `.oxlintrc.json` 优先级高于 `eslint.config.js`
-- **必须为 `*.astro` 文件添加 overrides**（已在 `.oxlintrc.json` 配置：关闭 `unicorn/filename-case`、`sort-imports`、`prefer-dom-node-append` 等 Astro 不兼容规则）
-- 常见违规处理：`max-statements` -> 拆分函数、`no-array-for-each` -> `for...of`、`id-length` -> 用完整变量名
-- `sort-keys` 在 `oxfmt.config.ts` 等配置文件中启用，注意键名须字母序
-
-## 项目结构（关键部分）
+### Architecture
 
 ```
 src/
-├── components/           # Astro 组件（静态 UI）
-│   ├── common/           # PostCard.astro, Tag.astro
-│   ├── navbar/           # Start.astro, Center.astro, End.astro, SearchBar.astro (含 pagefind 搜索按钮)
-│   ├── CodeCopy.astro
-│   ├── Copyright.astro
-│   ├── Footer.astro
-│   ├── Header.astro
-│   └── Navigation.astro
-├── integrations/         # Astro 集成（构建时钩子）
-│   ├── build-hooks.ts    # Pagefind 索引、lychee 链接检查、vnu HTML 验证
-│   ├── mermaid-compile-time.ts  # 构建时渲染 Mermaid 图表
-│   └── satteri-config.ts # Markdown 处理器配置（satteri + shiki + 日期注入）
-├── layouts/BaseLayout.astro  # 唯一布局组件（含主题切换、OGP meta、ClientRouter、CodeCopy、Pagefind modal）
-├── pages/
-│   ├── posts/[id].astro  # 文章详情页（含 data-pagefind-body）
-│   ├── posts/index.astro # 文章列表页
-│   ├── tags/             # 标签索引页
-│   │   ├── index.astro   # 标签列表
-│   │   └── [tag].astro   # 单标签文章列表
-│   ├── meow.ts           # API 路由（非 GET 请求受限：仅特定 origin + User-Agent "catgirl" 可访问）
-│   ├── drafts.astro      # 草稿列表（含 Telegram 入口）
-│   ├── telegram.astro    # Telegram 集成页面
-│   ├── about.astro       # 关于页面
-│   ├── 404.astro         # 404 页面
-│   └── rss.xml.ts        # RSS 订阅生成
-├── plugins/
-│   └── mdast-toc.ts      # MDast TOC 插件（生成目录）
-├── posts/                # .md / .mdx 博客文章（通过 astro:content 加载）
-│   └── drafts/           # 草稿文章（路径决定 draft 状态，无需 frontmatter 标记）
-├── scripts/              # 客户端交互脚本（通过 <script> 导入）
-│   ├── code-copy.ts      # 代码块复制
-│   ├── gravatar-fallback.ts  # 图片加载失败时切换 fallback URL
-│   ├── reading-progress.ts   # 阅读进度条
-│   ├── scroll-reveal.ts      # 滚动渐入动画
-│   ├── telegram.ts           # Telegram 交互
-│   ├── theme-toggle.ts
-│   ├── tilt-card.ts          # 3D 倾斜卡片
-│   └── toc.ts                # 目录高亮
-├── styles/global.css     # 全局样式：Tailwind + daisyUI 主题配置
-├── utils/
-│   ├── content.ts        # 内容获取工具函数
-│   └── date.ts           # 日期工具函数（基于 dayjs）
-├── middleware.ts         # Astro 中间件
-├── content.config.ts     # Content collections 定义与 Zod schema
-├── post-edit/main.rs     # Rust CLI 入口
-└── env.d.ts              # 环境类型声明
+├── components/       # Astro components (Header, Footer, CodeCopy, etc.)
+├── layouts/          # BaseLayout (theme, OGP, ClientRouter, Pagefind)
+├── pages/            # Routes: index, about, posts/[id], tags/, meow.ts, etc.
+├── posts/            # .md / .mdx blog articles (content collections)
+│   └── drafts/       # Drafts determined by path (no frontmatter `draft` field)
+├── scripts/          # Client-side JS (theme-toggle, scroll-reveal, tilt-card, etc.)
+├── styles/           # global.css — Tailwind + daisyUI theme vars
+├── utils/            # Date helpers (dayjs), content utilities
+├── integrations/     # Custom Astro integrations (build-hooks, satteri-config, mermaid)
+├── plugins/          # Remark/Rehype plugins (mdast-toc)
+└── post-edit/        # Rust CLI source (post-edit binary)
 ```
 
-**注意**：
+---
 
-- `src/rust/` 目录不存在；Rust 项目入口在 `src/post-edit/main.rs`
-- 图片 fallback 方案：用 `data-gravatar-fallback` 属性 + `src/scripts/gravatar-fallback.ts`，避免内联 `onerror` 触发 ts(6133)
-- Pagefind 搜索：构建时自动生成索引到 `dist/client/pagefind/`，开发模式通过 `ln -sf` 链接到 `public/pagefind`
-- Mermaid 图表：构建时由 `mermaid-compile-time.ts` 预渲染为 SVG
-- 日期注入：通过 `satteri-config.ts` 中的 `satteriPublishDate` / `satteriUpdatedDate` 从 git 历史自动注入
-
-## 文章内容规范
-
-### Frontmatter 字段（由 `src/content.config.ts` 定义）
-
-```yaml
-title: string # required
-authors: string[] # optional
-description: string # optional
-image: string # optional
-publishDate: date # derived from git history by satteriPublishDate (can be set manually)
-updatedDate: date # derived from git history by satteriUpdatedDate
-tags: string[] # optional
-```
-
-**Note**: The field is `publishDate` not `date`. Draft files should be placed under `src/posts/drafts/` — draft status is determined by path; do not use a frontmatter `draft` flag.
-
-### Astro config 特殊行为（`astro.config.ts`）
-
-- `adapter: node({ mode: "standalone" })` —— Node 独立模式
-- `site: process.env.SITE_URL ?? "http://localhost:4321"`（默认值被 `SITE_URL` 环境变量覆盖）
-- `trailingSlash: "ignore"`
-- `security: { checkOrigin: false }` —— 关闭 CSRF 检查
-- `vite.build.cssMinify: "lightningcss"` —— CSS 压缩用 lightningcss
-- Markdown 处理器：`satteri`（替代 remark），含 shiki 语法高亮、mermaid 渲染、表格对齐、heading IDs、git 日期注入
-- 集成：`favicons`、`mdx`、`sitemap`、`satteri-config`、`astro-minify-html-swc`（仅生产）、`build-hooks`
-
-## Rust CLI 工具（post-edit）
-
-Cargo.toml 使用 **edition = "2024"**。入口：`src/post-edit/main.rs`
-
-依赖速查：
-
-| 用途        | 库                 |
-| ----------- | ------------------ |
-| CLI 解析    | clap (derive)      |
-| 日期        | chrono             |
-| 交互选择    | skim               |
-| 文件预览    | bat                |
-| Frontmatter | gray_matter (yaml) |
-| Slug 生成   | slug + pinyin      |
-
-**Cargo clippy 配置**：
-
-- `correctness`/`suspicious`/`perf`/`complexity` → `deny`
-- `cargo`/`nursery` → `warn`
-- `multiple_crate_versions` → `allow`
-- `restriction`/`pedantic`/`style` → `allow`
-
-功能：交互式菜单（新建/搜索/编辑/发布/设为草稿/删除文章）、预览、搜索、草稿与正式文章移动管理
-
-## 部署流水线（`.github/workflows/deploy.yml`）
-
-触发条件：push 到 `main` 分支，排除 `.agents/**` / `*.md` / `LICENSE.txt` / `src/post-edit/**` / `Cargo.toml`
-
-1. **Cloudflare Workers**：`pnpm build` + `wrangler deploy`
-2. **Codeberg Pages**：`pnpm build` + SSH 推 `dist/client` 到 `ssh://git@codeberg.org/lihua/pages`
-3. **GitHub Pages**：`withastro/action` 构建 + `actions/deploy-pages` 部署 `dist/client`
-4. **IPFS**：`pnpm build` + `ipfs` 将 CID pin 到 Pinata（已禁用 `if: false`）
-
-## 组件规范
-
-- Astro 组件（`.astro`）：用于静态布局，**Props 必须显式声明类型**
-- 客户端交互：使用 `.ts`/`.tsx` 文件（**仅在需要客户端交互时使用**）
-- 禁止把通用逻辑塞进页面组件里
-- 相同布局/样式/逻辑必须抽象复用（CSS 变量、Layout 组件、工具函数），禁止复制粘贴
-- draggable 悬浮按钮：使用**原生 JS** 实现（`touchstart/touchmove` 必须 `{ passive: false }` + `e.preventDefault()`）
-
-## 测试
-
-- Playwright E2E 测试：`pnpm exec playwright test`
-- 测试文件：`*.test.ts` 或 `tests/*.spec.ts`
-- 覆盖重点：页面渲染、导航链接、响应式布局、主题切换
-
-## 子智能体团队系统
-
-本项目建立 6 个专用子智能体 + 5 个协作 Skill，支持任务并行执行与质量门禁。
-
-### 智能体注册（`.opencode/opencode.json`）
-
-| 智能体                      | 角色             | 核心职责目录                                                                                                             |
-| --------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `frontend-architect`        | 前端架构师       | `src/components/**`、`src/layouts/**`、`src/styles/**`、`src/scripts/**`                                                 |
-| `content-engineer`          | 内容工程师       | `src/content.config.ts`、`src/integrations/satteri-config.ts`、`src/plugins/**`、`src/pages/rss.xml.ts`                  |
-| `build-deploy-engineer`     | 构建部署工程师   | `astro.config.ts`、`src/integrations/build-hooks.ts`、`src/integrations/mermaid-compile-time.ts`、`.github/workflows/**` |
-| `cli-tool-engineer`         | CLI 工具工程师   | `src/post-edit/**`、`Cargo.toml`                                                                                         |
-| `search-discovery-engineer` | 搜索发现工程师   | `src/components/navbar/SearchBar.astro`、`src/layouts/BaseLayout.astro` (Pagefind)                                       |
-| `quality-dx-guardian`       | 质量与 DX 守护者 | `.oxlintrc.json`、`oxfmt.config.ts`、`.husky/**`、`tests/**`、`package.json`                                             |
-
-### 协作 Skill（`.opencode/skills/`）
-
-| Skill                     | 用途                         | 核心命令                             |
-| ------------------------- | ---------------------------- | ------------------------------------ |
-| `subagent-communication`  | 任务领取、进度汇报、阻塞上报 | `task-claim`、`task-progress`        |
-| `subagent-handoff`        | 任务交接规范                 | 交接清单模板、验收检查项             |
-| `subagent-shared-context` | 共享上下文管理               | ADR 读写、接口契约                   |
-| `subagent-quality-gate`   | 质量门禁自动化               | `run-gate`、`check-regression`       |
-| `subagent-planning`       | 协作规划辅助                 | `split-tasks`、`compute-parallelism` |
-
-### 任务执行流程
-
-1. **领取任务**：`node .agents/scripts/task-claim.ts <task-id> --assignee <agent>`
-2. **执行中**：每 30min 更新进度 `node .agents/scripts/task-progress.ts <task-id> <percent> --msg "..."`
-3. **阻塞时**：`node .agents/scripts/task-progress.ts <task-id> --blocked "reason" --help-from <agent>`
-4. **完成**：`node .agents/scripts/task-complete.ts <task-id>`（自动跑质量门禁）
-5. **交接**：按 `subagent-handoff` 规范提供产出物清单、验收证据
-
-### Phase 1 任务卡（`.agents/tasks/phase-1/`）
-
-| ID  | 标题                                        | 负责智能体         | 依赖 | 验收命令                    |
-| --- | ------------------------------------------- | ------------------ | ---- | --------------------------- |
-| 1.1 | 修复 CLI 缺失函数 `update_frontmatter_bool` | cli-tool-engineer  | -    | `cargo test`                |
-| 1.2 | 补全 CLI 集成测试                           | cli-tool-engineer  | 1.1  | `cargo test` 覆盖率 > 80%   |
-| 1.3 | 删除空占位组件 Start/Center/End             | frontend-architect | -    | `pnpm build && pnpm oxlint` |
-| 1.4 | 统一客户端脚本注册机制                      | frontend-architect | 1.3  | `pnpm dev` 验证脚本加载     |
-| 1.5 | Content Schema 类型导出供前端复用           | content-engineer   | -    | `pnpm tsc -b`               |
-
-### 架构决策记录（`.agents/adr/`）
-
-- `001-component-architecture.md` - 单布局+模块化组件+原生脚本
-- `002-content-pipeline.md` - satteri+git日期+Mermaid预渲染
-- `003-deployment-strategy.md` - 三端同步+Cloudflare优先边缘能力
-
-### 质量门禁（每任务必跑）
+## Setup Commands
 
 ```bash
-# 通用门禁
-pnpm tsc -b
-pnpm oxlint
-pnpm oxfmt --check
+# Install dependencies (Node 24 + pnpm 11)
+pnpm install
+
+# Start development server at http://localhost:4321
+pnpm dev
+
+# Type-check + build + Pagefind index + HTML validation
 pnpm build
 
-# 角色专属
-# frontend-architect: pnpm exec playwright test --project=chromium
-# cli-tool-engineer: cargo test && cargo clippy -p post-edit && cargo audit
-# build-deploy-engineer: lychee dist/client && vnu --skip-non-html dist/client
-# quality-dx-guardian: pnpm exec playwright test
+# Preview production build with Wrangler (Cloudflare Workers simulator)
+pnpm preview
+
+# Run Astro CLI commands
+pnpm astro <command>
+
+# Run the Rust post management CLI
+pnpm post:edit
+
+# Audit dependencies
+pnpm audit
+```
+
+---
+
+## Development Workflow
+
+### Start Development Server
+
+```bash
+pnpm dev
+# Runs: astro dev
+# Available at: http://localhost:4321
+```
+
+### Build for Production
+
+```bash
+pnpm build
+# Runs: astro build
+# Includes:
+#   - TypeScript type checking (astro check)
+#   - Static site generation
+#   - Pagefind search index generation
+#   - HTML validation (vnu-jar)
+# Output: ./dist/
+```
+
+### Preview Production Build
+
+```bash
+pnpm preview
+# Runs: astro build && wrangler dev
+# Simulates Cloudflare Workers environment locally
+```
+
+### Hot Reload / Watch Mode
+
+- `pnpm dev` includes hot module replacement for components, styles, and content
+- Content changes in `src/posts/` trigger automatic rebuild
+- Rust CLI changes require rebuilding the binary: `cargo build --release -p post-edit`
+
+---
+
+## Testing Instructions
+
+### End-to-End Tests (Playwright)
+
+```bash
+# Run all E2E tests
+pnpm playwright test
+
+# Run tests with UI
+pnpm playwright test --ui
+
+# Run tests in headed mode
+pnpm playwright test --headed
+
+# Debug tests
+pnpm playwright test --debug
+```
+
+### Type Checking
+
+```bash
+# Run Astro type checking (includes content collection types)
+pnpm check
+# Runs: astro check
+```
+
+### Linting & Formatting
+
+```bash
+# Run oxlint (all files)
+pnpm oxlint
+
+# Run oxfmt (format check)
+pnpm oxfmt --check
+
+# Fix formatting
+pnpm oxfmt --write
+
+# Run both via lint-staged (used in pre-commit)
+pnpm lint-staged
+```
+
+### CI Pipeline
+
+The GitHub Actions workflow (`.github/workflows/deploy.yml`) runs on push to `main`:
+1. **cloudflare** — Build + deploy to Cloudflare Workers
+2. **codeberg** — Build + deploy to Codeberg Pages (SSH push)
+3. **github** — Build + deploy to GitHub Pages via `withastro/action`
+4. **ipfs** — Build + pin to IPFS via Pinata
+
+All jobs install lychee for link checking and run `pnpm build`.
+
+---
+
+## Code Style Guidelines
+
+### Linting (oxlint)
+
+- **Config:** `.oxlintrc.json`
+- **Rules:** All categories set to `error` (correctness, suspicious, pedantic, perf, style, restriction, nursery)
+- **Overrides:** Relaxed rules for `.astro`, `astro.config.ts`, `src/pages/**/*.ts`, `src/integrations/**/*.ts`, `.husky/*.ts`
+- **Run:** `pnpm oxlint` or via lint-staged on commit
+
+### Formatting (oxfmt)
+
+- **Config:** `oxfmt.config.ts`
+- **Options:** JSDoc enabled, Tailwind CSS class sorting enabled
+- **Run:** `pnpm oxfmt --check` (verify) or `pnpm oxfmt --write` (fix)
+
+### Pre-commit Hooks (Husky + lint-staged)
+
+- **Config:** `package.json` → `lint-staged` + `.husky/pre-commit.ts`
+- **Runs on staged files:**
+  - `*.{js,mjs,jsx,ts,tsx}` → oxlint + oxfmt
+  - `*.astro` → oxlint
+  - `*.css` → oxlint + oxfmt
+  - Other files → oxfmt only
+
+### File Organization
+
+- **Components:** PascalCase (e.g., `CodeCopy.astro`, `PostCard.astro`)
+- **Pages:** Kebab-case routes (e.g., `posts/[id].astro`, `tags/[tag].astro`)
+- **Scripts:** Kebab-case (e.g., `theme-toggle.ts`, `scroll-reveal.ts`)
+- **Styles:** `global.css` for Tailwind + daisyUI imports
+- **Utilities:** camelCase functions in `src/utils/`
+
+### Import Patterns
+
+```typescript
+// Astro built-ins
+import { defineCollection } from "astro:content";
+import { glob } from "astro/loaders";
+
+// External packages
+import { z } from "astro/zod";
+import dayjs from "dayjs";
+
+// Internal (use @ alias if configured, otherwise relative)
+import { formatDate } from "../utils/date";
+```
+
+---
+
+## Build and Deployment
+
+### Build Process
+
+```bash
+pnpm build
+```
+
+**Output structure:**
+```
+dist/
+├── client/          # Static assets for Pages deployments
+│   ├── _astro/
+│   ├── pagefind/
+│   ├── posts/
+│   ├── tags/
+│   ├── index.html
+│   └── ...
+├── server/          # Server bundle (Cloudflare Workers)
+│   └── entry.mjs
+└── _worker.js       # Worker entry (if applicable)
+```
+
+### Deployment Targets
+
+| Target | URL | Method |
+|--------|-----|--------|
+| **Cloudflare Workers** | `https://<your-worker>.pages.dev` | `wrangler deploy` |
+| **Codeberg Pages** | `https://lihua.codeberg.page` | SSH bare repo push |
+| **GitHub Pages** | `https://real-LiHua.github.io` | `actions/deploy-pages` |
+| **IPFS** | Via Pinata gateway | `ipfs add` + Pinata pin |
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `SITE_URL` | Base URL for sitemap, RSS, OGP | Yes (build) |
+| `CF_PAGES_URL` | Cloudflare Pages URL (fallback) | No |
+| `CLOUDFLARE_ACCOUNT_ID` | CF account ID | Deploy only |
+| `CLOUDFLARE_API_TOKEN` | CF API token | Deploy only |
+| `CODEBERG_PAGES` | SSH private key for Codeberg | Deploy only |
+| `PINATA_JWT_TOKEN` | Pinata API JWT | IPFS deploy only |
+
+### Local Preview of Deployed Builds
+
+```bash
+# Cloudflare Workers preview
+pnpm preview
+
+# Static preview (any static server)
+npx serve dist/client
+```
+
+---
+
+## Pull Request Guidelines
+
+### Branch & Commit
+
+- Work on feature branches off `main`
+- Conventional commit format encouraged:
+  - `feat: add search highlighting`
+  - `fix: resolve theme toggle hydration`
+  - `chore: update dependencies`
+
+### Required Checks Before Merge
+
+All must pass in CI:
+
+```bash
+# Local equivalents
+pnpm check          # TypeScript + Astro types
+pnpm build          # Full build + validation
+pnpm oxlint         # Linting
+pnpm oxfmt --check  # Formatting
+```
+
+### PR Title Format
+
+```
+[component] Brief description
+
+# Examples:
+[posts] Add reading progress indicator
+[layout] Fix OGP image generation
+[cli] Add draft filtering to post-edit
+```
+
+### Review Requirements
+
+- At least 1 approval for non-trivial changes
+- No CI failures
+- No lint/type errors
+- New features should include tests (Playwright for E2E)
+
+---
+
+## Content Management
+
+### Creating Posts
+
+Posts live in `src/posts/` as `.md` or `.mdx` files:
+
+```markdown
+---
+title: "Post Title"
+publishDate: 2026-08-26
+description: "Optional description"
+tags: ["tag1", "tag2"]
+authors: ["author"]
+image: "/path/to/image.png"
+updatedDate: 2026-08-27
+---
+
+Content here...
+```
+
+**Drafts:** Place in `src/posts/drafts/` — they are excluded from production builds automatically (no `draft: true` frontmatter needed).
+
+### Rust CLI: Post Management
+
+```bash
+# Interactive menu
+pnpm post:edit
+
+# Commands available:
+# - new: Create new post (prompts for frontmatter)
+# - edit: Edit existing post (fuzzy search via skim)
+# - list: List all posts with metadata
+# - delete: Delete a post
+# - publish: Move draft to published
+# - unpublish: Move published to drafts
+```
+
+### Content Collections Schema
+
+Defined in `src/content.config.ts`:
+- `title` (required, string)
+- `publishDate` (optional, date)
+- `updatedDate` (optional, date)
+- `description` (optional, string)
+- `tags` (optional, string[])
+- `authors` (optional, string[])
+- `image` (optional, string)
+
+---
+
+## Common Tasks
+
+### Add a New Component
+
+1. Create `src/components/MyComponent.astro`
+2. Import and use in layouts/pages
+3. Add styles in component `<style>` or `global.css`
+4. Run `pnpm check` to verify types
+
+### Add a New Page Route
+
+1. Create `src/pages/new-route.astro` or `src/pages/new-route/[param].astro`
+2. Export `getStaticPaths()` for dynamic routes
+3. Use `BaseLayout` for consistent structure
+4. Run `pnpm dev` to test
+
+### Modify Theme / Styling
+
+- **Colors/theme:** Edit `src/styles/global.css` (daisyUI theme variables)
+- **Tailwind config:** Uses Tailwind CSS 4 (no config file, uses CSS-first)
+- **Typography:** `@tailwindcss/typography` for prose content
+- **Syntax highlighting:** `src/styles/shiki.css` (Expressive Code theme)
+
+### Update Dependencies
+
+```bash
+# Check for updates
+pnpm audit
+
+# Update all (interactive)
+pnpm update --interactive
+
+# Update specific
+pnpm add -D package@latest
+```
+
+### Debugging
+
+| Issue | Solution |
+|-------|----------|
+| Build fails on types | Run `pnpm check` for detailed errors |
+| Styles not applying | Check daisyUI class names, run `pnpm build` |
+| Content not showing | Verify frontmatter matches schema in `content.config.ts` |
+| Search not working | Ensure `pnpm build` ran (generates Pagefind index) |
+| Hydration errors | Check client scripts for `isBrowser` guards |
+| Rust CLI not found | Run `cargo build --release -p post-edit` |
+
+---
+
+## Security Considerations
+
+- **Secrets:** Never commit secrets; use GitHub Actions secrets for deploy credentials
+- **Origin check:** `astro.config.ts` has `security: { checkOrigin: false }` for dev flexibility
+- **Content Security Policy:** Configured via meta tags in `BaseLayout.astro`
+- **Dependencies:** `pnpm audit` runs in CI; review advisories before merging
+- **Link checking:** lychee runs in CI to catch broken links
+
+---
+
+## Performance Notes
+
+- **Images:** Use Astro's `<Image />` component or optimize manually
+- **Fonts:** `@fontsource/twinkle-star` self-hosted; consider `preload`
+- **CSS:** `lightningcss` minification in production (`astro.config.ts`)
+- **HTML:** `astro-minify-html-swc` minifies production output
+- **Search:** Pagefind index is ~100KB gzipped; loads async
+- **JS:** Minimal client-side JS; most interactivity via small vanilla modules
+
+---
+
+## Troubleshooting
+
+### Build Errors
+
+```bash
+# Clear cache and rebuild
+rm -rf '.astro' 'dist' 'node_modules'
+pnpm install
+pnpm build
+```
+
+### Port Already in Use
+
+```bash
+# Kill process on 4321
+lsof -ti:4321 | xargs kill -9
+```
+
+### Type Errors After Dependency Update
+
+```bash
+pnpm check  # Shows exact errors
+# Fix types or add @types/ packages
+```
+
+### Husky Pre-commit Fails
+
+```bash
+# Run manually to see errors
+pnpm lint-staged
+
+# Or fix formatting
+pnpm oxfmt --write
+```
+
+### Pagefind Search Not Working
+
+- Ensure `pagefind` runs during build (included in `astro build`)
+- Check `dist/pagefind/` exists
+- Verify `BaseLayout` includes Pagefind UI script
+
+---
+
+## Additional Context
+
+### Monorepo Notes
+
+This is a single-package repository. No workspace commands needed.
+
+### Key Files for Agents
+
+| File | Purpose |
+|------|---------|
+| `astro.config.ts` | Astro configuration, integrations, adapter |
+| `src/content.config.ts` | Content collections schema |
+| `package.json` | Scripts, dependencies, lint-staged config |
+| `.oxlintrc.json` | Linting rules |
+| `oxfmt.config.ts` | Formatting config |
+| `.github/workflows/deploy.yml` | CI/CD pipeline |
+| `wrangler.jsonc` | Cloudflare Workers config |
+| `Cargo.toml` | Rust CLI project config |
+
+### Useful Commands Reference
+
+```bash
+# Development
+pnpm dev              # Start dev server
+pnpm check            # Type check
+pnpm build            # Production build
+
+# Code quality
+pnpm oxlint           # Lint
+pnpm oxfmt --check    # Check formatting
+pnpm oxfmt --write    # Fix formatting
+
+# Content
+pnpm post:edit        # Manage posts (Rust CLI)
+
+# Testing
+pnpm playwright test  # E2E tests
+
+# Deploy (local preview)
+pnpm preview          # Wrangler dev
 ```
