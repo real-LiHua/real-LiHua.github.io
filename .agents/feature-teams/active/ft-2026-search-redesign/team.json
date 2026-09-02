@@ -1,0 +1,41 @@
+{
+  "name": "ft-2026-search-redesign",
+  "lead": "search",
+  "members": [
+    {
+      "role": "search",
+      "person": "Alex Chen",
+      "type": "primary"
+    },
+    {
+      "role": "frontend",
+      "person": "Jane Smith",
+      "type": "primary"
+    },
+    {
+      "role": "content",
+      "person": "Bob Wilson",
+      "type": "primary"
+    },
+    {
+      "role": "quality",
+      "person": "Carol Lee",
+      "type": "primary"
+    },
+    {
+      "role": "build",
+      "person": "Dave Kim",
+      "type": "primary"
+    },
+    {
+      "role": "cli",
+      "person": "Dave Kim",
+      "type": "delegate"
+    }
+  ],
+  "trigger": "cross-role-dependency",
+  "formedDate": "2026-09-03",
+  "expectedEndDate": "2026-10-15",
+  "status": "active",
+  "charterPath": "active/ft-2026-search-redesign/charter.md"
+}
