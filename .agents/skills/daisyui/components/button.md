@@ -1,8 +1,8 @@
-### button
+### Button
 
-Buttons allow the user to take actions
+Use buttons to start actions.
 
-[button docs](https://daisyui.com/components/button/)
+[Button documentation](https://daisyui.com/components/button/)
 
 #### Class names
 
@@ -21,7 +21,7 @@ Buttons allow the user to take actions
 
 #### Rules
 
-- {MODIFIER} is optional and can have one of each color/style/behavior/size/modifier class names
-- btn can be used on any html tags such as `<button>`, `<a>`, `<input>`
-- btn can have an icon before or after the text
-- set `tabindex="-1" role="button" aria-disabled="true"` if you want to disable the button using a class name
+- `{MODIFIER}` is optional. It can include one class name from each color, style, behavior, size, and modifier category.
+- You can use `btn` on HTML elements such as `<button>`, `<a>`, and `<input>`.
+- A `btn` element can have an icon before or after the text.
+- If you use a class name to disable the button, set `tabindex="-1" role="button" aria-disabled="true"`.

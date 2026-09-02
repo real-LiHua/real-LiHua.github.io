@@ -1,8 +1,8 @@
-### skeleton
+### Skeleton
 
-Skeleton is a component that can be used to show a loading state
+Use a skeleton component to show a loading state.
 
-[skeleton docs](https://daisyui.com/components/skeleton/)
+[Skeleton documentation](https://daisyui.com/components/skeleton/)
 
 #### Class names
 
@@ -15,7 +15,7 @@ Skeleton is a component that can be used to show a loading state
 <div class="skeleton"></div>
 ```
 
-Example with text skeleton:
+Example with a text skeleton:
 
 ```html
 <div class="skeleton skeleton-text">Loading data...</div>
@@ -23,4 +23,4 @@ Example with text skeleton:
 
 #### Rules
 
-- Add `h-*` and `w-*` utility classes to set height and width
+- Add the `h-*` and `w-*` utility classes to set the height and width.

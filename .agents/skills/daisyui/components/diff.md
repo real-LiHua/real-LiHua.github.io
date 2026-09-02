@@ -1,8 +1,8 @@
-### diff
+### Diff
 
-Diff component shows a side-by-side comparison of two items
+Use the diff component to show a side-by-side comparison of two items.
 
-[diff docs](https://daisyui.com/components/diff/)
+[Diff documentation](https://daisyui.com/components/diff/)
 
 #### Class names
 
@@ -21,4 +21,4 @@ Diff component shows a side-by-side comparison of two items
 
 #### Rules
 
-- To maintain aspect ratio, add `aspect-16/9` or other aspect ratio classes to `<figure class="diff">` element
+- To keep the aspect ratio, add `aspect-16/9` or another aspect-ratio class to the `<figure class="diff">` element.

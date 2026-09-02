@@ -1,8 +1,8 @@
-### hero
+### Hero
 
-Hero is a component for displaying a large box or image with a title and description
+Use a hero to show a large box or image with a title and description.
 
-[hero docs](https://daisyui.com/components/hero/)
+[Hero documentation](https://daisyui.com/components/hero/)
 
 #### Class names
 
@@ -17,7 +17,7 @@ Hero is a component for displaying a large box or image with a title and descrip
 
 #### Rules
 
-- {MODIFIER} is optional
-- Use `hero-content` for the text content
-- Use `hero-overlay` inside the hero to overlay the background image with a color
-- Content can contain a figure
+- `{MODIFIER}` is optional.
+- Use `hero-content` for the text content.
+- Put `hero-overlay` in the hero. It adds a color layer above the background image.
+- The content can contain a figure.

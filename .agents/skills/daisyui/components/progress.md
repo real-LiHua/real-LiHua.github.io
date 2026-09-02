@@ -1,8 +1,8 @@
-### progress
+### Progress
 
-Progress bar can be used to show the progress of a task or to show the passing of time
+Use a progress bar to show task progress or the passage of time.
 
-[progress docs](https://daisyui.com/components/progress/)
+[Progress documentation](https://daisyui.com/components/progress/)
 
 #### Class names
 
@@ -17,5 +17,5 @@ Progress bar can be used to show the progress of a task or to show the passing o
 
 #### Rules
 
-- {MODIFIER} is optional and can have one of the color class names
-- You must specify value and max attributes
+- `{MODIFIER}` is optional. It can be one of the color class names.
+- You must specify the `value` and `max` attributes.

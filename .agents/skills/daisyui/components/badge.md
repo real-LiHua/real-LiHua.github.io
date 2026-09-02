@@ -1,8 +1,8 @@
-### badge
+### Badge
 
-Badges are used to inform the user of the status of specific data
+Use a badge to show the status of data.
 
-[badge docs](https://daisyui.com/components/badge/)
+[Badge documentation](https://daisyui.com/components/badge/)
 
 #### Class names
 
@@ -19,6 +19,6 @@ Badges are used to inform the user of the status of specific data
 
 #### Rules
 
-- {MODIFIER} is optional and can have one of each style/color/size class names
-- Can be used inside text or buttons
-- To create an empty badge, just remove the text between the span tags
+- `{MODIFIER}` is optional. It can include one class name from each style, color, and size category.
+- You can use a badge in text or buttons.
+- To make an empty badge, remove the text between the span tags.

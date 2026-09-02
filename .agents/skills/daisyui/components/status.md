@@ -1,14 +1,14 @@
-### status
+### Status
 
-Status is a really small icon to visually show the current status of an element, like online, offline, error, etc
+A status is a small icon that shows the current state of an element. Example states are online, offline, and error.
 
-[status docs](https://daisyui.com/components/status/)
+[Status documentation](https://daisyui.com/components/status/)
 
-#### Class Names:
+#### Class names
 
-- Component: `status`
-- Color: `status-neutral`, `status-primary`, `status-secondary`, `status-accent`, `status-info`, `status-success`, `status-warning`, `status-error`
-- Size: `status-xs`, `status-sm`, `status-md`, `status-lg`, `status-xl`
+- component: `status`
+- color: `status-neutral`, `status-primary`, `status-secondary`, `status-accent`, `status-info`, `status-success`, `status-warning`, `status-error`
+- size: `status-xs`, `status-sm`, `status-md`, `status-lg`, `status-xl`
 
 #### Syntax
 
@@ -18,5 +18,5 @@ Status is a really small icon to visually show the current status of an element,
 
 #### Rules
 
-- {MODIFIER} is optional and can have one of the color/size class names
-- This component does not render anything visible
+- `{MODIFIER}` is optional. It can include one color class name and one size class name.
+- The user can easily see this small visual indicator.

@@ -1,8 +1,8 @@
-### carousel
+### Carousel
 
-Carousel show images or content in a scrollable area
+Use a carousel to show images or content in a scrollable area.
 
-[carousel docs](https://daisyui.com/components/carousel/)
+[Carousel documentation](https://daisyui.com/components/carousel/)
 
 #### Class names
 
@@ -19,6 +19,6 @@ Carousel show images or content in a scrollable area
 
 #### Rules
 
-- {MODIFIER} is optional and can have one of the modifier/direction class names
-- Content is a list of `carousel-item` divs: `<div class="carousel-item"></div>`
-- To create a full-width carousel, add `w-full` to each carousel item
+- `{MODIFIER}` is optional. It can include one modifier class name and one direction class name.
+- The content is a list of `carousel-item` divs: `<div class="carousel-item"></div>`.
+- To make a full-width carousel, add `w-full` to each carousel item.

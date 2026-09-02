@@ -1,8 +1,8 @@
-### pagination
+### Pagination
 
-Pagination is a group of buttons
+Pagination is a group of buttons.
 
-[pagination docs](https://daisyui.com/components/pagination/)
+[Pagination documentation](https://daisyui.com/components/pagination/)
 
 #### Class names
 
@@ -18,5 +18,5 @@ Pagination is a group of buttons
 
 #### Rules
 
-- Use `join-item` for each button or link inside the pagination
-- Use `btn` class for styling pagination items
+- Use `join-item` for each button or link in the pagination.
+- Use the `btn` class to style pagination items.

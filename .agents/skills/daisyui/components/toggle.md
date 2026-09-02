@@ -1,14 +1,14 @@
-### toggle
+### Toggle
 
-Toggle is a checkbox that is styled to look like a switch button
+A toggle is a checkbox with the style of a switch button.
 
-[toggle docs](https://daisyui.com/components/toggle/)
+[Toggle documentation](https://daisyui.com/components/toggle/)
 
-#### Class Names:
+#### Class names
 
-- Component: `toggle`
-- Color: `toggle-primary`, `toggle-secondary`, `toggle-accent`, `toggle-neutral`, `toggle-success`, `toggle-warning`, `toggle-info`, `toggle-error`
-- Size: `toggle-xs`, `toggle-sm`, `toggle-md`, `toggle-lg`, `toggle-xl`
+- component: `toggle`
+- color: `toggle-primary`, `toggle-secondary`, `toggle-accent`, `toggle-neutral`, `toggle-success`, `toggle-warning`, `toggle-info`, `toggle-error`
+- size: `toggle-xs`, `toggle-sm`, `toggle-md`, `toggle-lg`, `toggle-xl`
 
 #### Syntax
 
@@ -18,4 +18,4 @@ Toggle is a checkbox that is styled to look like a switch button
 
 #### Rules
 
-- {MODIFIER} is optional and can have one of each color/size class names
+- `{MODIFIER}` is optional. It can include one color class name and one size class name.

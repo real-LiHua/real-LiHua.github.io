@@ -1,8 +1,8 @@
-### countdown
+### Countdown
 
-Countdown gives you a transition effect when you change a number between 0 to 999
+A countdown gives a transition effect when a number changes from 0 through 999.
 
-[countdown docs](https://daisyui.com/components/countdown/)
+[Countdown documentation](https://daisyui.com/components/countdown/)
 
 #### Class names
 
@@ -18,6 +18,6 @@ Countdown gives you a transition effect when you change a number between 0 to 99
 
 #### Rules
 
-- The `--value` CSS variable and text must be a number between 0 and 999
-- you need to change the span text and the `--value` CSS variable using JS
-- you need to add `aria-live="polite"` and `aria-label="{number}"` so screen readers can properly read changes
+- The `--value` CSS variable and the text must contain a number from 0 through 999.
+- Use JavaScript to change the span text and the `--value` CSS variable.
+- Add `aria-live="polite"` and `aria-label="{number}"`. These attributes let screen readers read changes correctly.

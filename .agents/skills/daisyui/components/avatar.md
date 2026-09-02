@@ -1,8 +1,8 @@
-### avatar
+### Avatar
 
-Avatars are used to show a thumbnail
+Use an avatar to show a thumbnail image.
 
-[avatar docs](https://daisyui.com/components/avatar/)
+[Avatar documentation](https://daisyui.com/components/avatar/)
 
 #### Class names
 
@@ -21,7 +21,7 @@ Avatars are used to show a thumbnail
 
 #### Rules
 
-- {MODIFIER} is optional and can have one of the modifier class names
-- Use `avatar-group` for containing multiple avatars
-- You can set custom sizes using `w-*` and `h-*`
-- You can use mask classes such as `mask-squircle`, `mask-hexagon`, `mask-triangle`
+- `{MODIFIER}` is optional. It can be one of the modifier class names.
+- Use `avatar-group` as a container for more than one avatar.
+- To set a custom size, use `w-*` and `h-*`.
+- To change the avatar shape, use mask classes such as `mask-squircle`, `mask-hexagon`, and `mask-triangle`.

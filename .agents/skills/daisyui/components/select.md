@@ -1,8 +1,8 @@
-### select
+### Select
 
-Select is used to pick a value from a list of options
+Use a select component to select a value from a list of options.
 
-[select docs](https://daisyui.com/components/select/)
+[Select documentation](https://daisyui.com/components/select/)
 
 #### Class names
 
@@ -21,4 +21,4 @@ Select is used to pick a value from a list of options
 
 #### Rules
 
-- {MODIFIER} is optional and can have one of each style/color/size class names
+- `{MODIFIER}` is optional. It can include one class name from each style, color, and size category.

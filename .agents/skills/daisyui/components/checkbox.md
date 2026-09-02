@@ -1,8 +1,8 @@
-### checkbox
+### Checkbox
 
-Checkboxes are used to select or deselect a value
+Use a checkbox to select or deselect a value.
 
-[checkbox docs](https://daisyui.com/components/checkbox/)
+[Checkbox documentation](https://daisyui.com/components/checkbox/)
 
 #### Class names
 
@@ -18,4 +18,4 @@ Checkboxes are used to select or deselect a value
 
 #### Rules
 
-- {MODIFIER} is optional and can have one of each color/size class names
+- `{MODIFIER}` is optional. It can include one color class name and one size class name.

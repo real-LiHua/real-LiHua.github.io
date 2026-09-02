@@ -1,28 +1,32 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "agent": {
-    "frontend-architect": {
-      "description": "前端架构师 - 组件体系、设计系统、性能优化、可访问性、daisyUI 集成",
-      "mode": "subagent"
-    },
-    "content-engineer": {
-      "description": "内容工程师 - Content Collections、Markdown/MDX 管线、RSS、SEO、satteri 插件",
-      "mode": "subagent"
+    "communication-clerk": {
+      "description": "通信协调员 - 子智能体间消息路由、上下文同步、冲突调解、协作编排",
+      "mode": "primary"
     },
     "build-deploy-engineer": {
-      "description": "构建部署工程师 - Astro 集成、Pagefind、lychee、vnu、CI/CD、多平台部署",
+      "description": "构建部署工程师 - Astro 集成、Pagefind、lychee、vnu、CI/CD、多平台部署、构建遥测、平台演进",
       "mode": "subagent"
     },
     "cli-tool-engineer": {
-      "description": "CLI 工具工程师 - post-edit (Rust)、交互菜单、测试、发布流程",
+      "description": "CLI 工具工程师 - post-edit (Rust)、交互菜单、测试、发布流程、用户体验遥测、插件架构",
+      "mode": "subagent"
+    },
+    "content-engineer": {
+      "description": "内容工程师 - Content Collections、Markdown/MDX 管线、RSS、SEO、satteri 插件、内容质量评分、多语言架构",
+      "mode": "subagent"
+    },
+    "frontend-architect": {
+      "description": "前端架构师 - 组件体系、设计系统、性能优化、可访问性、daisyUI 集成、设计令牌治理、视觉回归",
       "mode": "subagent"
     },
     "search-discovery-engineer": {
-      "description": "搜索发现工程师 - Pagefind 索引、搜索 UI、标签系统、推荐算法",
+      "description": "搜索发现工程师 - Pagefind 索引、搜索 UI、标签系统、推荐算法、搜索遥测、语义搜索原型",
       "mode": "subagent"
     },
     "quality-dx-guardian": {
-      "description": "质量与 DX 守护者 - oxlint/oxfmt、TypeScript、Playwright、pre-commit、技术债",
+      "description": "质量与 DX 守护者 - oxlint/oxfmt、TypeScript、Playwright、pre-commit、技术债、质量度量仪表盘、AI 代码审查",
       "mode": "subagent"
     }
   },

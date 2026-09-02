@@ -1,8 +1,8 @@
-### alert
+### Alert
 
-Alert informs users about important events
+Use an alert to give users information about an important event.
 
-[alert docs](https://daisyui.com/components/alert/)
+[Alert documentation](https://daisyui.com/components/alert/)
 
 #### Class names
 
@@ -19,5 +19,5 @@ Alert informs users about important events
 
 #### Rules
 
-- {MODIFIER} is optional and can have one of each style/color/direction class names
-- Add `sm:alert-horizontal` for responsive layouts
+- `{MODIFIER}` is optional. It can include one class name from each style, color, and direction category.
+- For responsive layouts, add `sm:alert-horizontal`.
