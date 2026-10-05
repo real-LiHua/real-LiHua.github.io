@@ -1,0 +1,279 @@
+name: Knowledge Base Guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  schedule:
+    # Monthly on 1st at 02:00 UTC
+    - cron: '0 2 1 * *'
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 'Run full scan including regression'
+        type: boolean
+        default: false
+
+jobs:
+  pointer-scan:
+    name: Pointer Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for git log --follow in auto-fix
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Scan pointers
+        id: pointers
+        run: |
+          pnpm exec tsx .agents/scripts/scan-pointers.ts --report
+        continue-on-error: true
+
+      - name: Upload pointer scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pointer-scan-report
+          path: .agents/reports/pointer-scan-*.json
+          retention-days: 30
+
+      - name: Comment PR on broken pointers
+        if: github.event_name == 'pull_request' && steps.pointers.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reports = fs.readdirSync('.agents/reports').filter(f => f.startsWith('pointer-scan-') && f.endsWith('.json'));
+            if (reports.length === 0) return;
+            const latest = reports.sort().pop();
+            const report = JSON.parse(fs.readFileSync(`.agents/reports/${latest}`, 'utf8'));
+            const broken = report.pointers.filter(p => !p.exists);
+            if (broken.length === 0) return;
+
+            let body = '## 🔗 Broken Pointers Detected\n\n';
+            body += `Found **${broken.length}** broken pointer(s) in documentation:\n\n`;
+            for (const p of broken.slice(0, 20)) {
+              body += `- \`${p.file}:${p.line}\` → \`${p.target}\` (resolves to \`${p.resolved}\`)\n`;
+            }
+            if (broken.length > 20) {
+              body += `\n... and ${broken.length - 20} more\n`;
+            }
+            body += '\n💡 Run `pnpm exec tsx .agents/scripts/scan-pointers.ts --fix` locally to attempt auto-repair.\n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+  term-check:
+    name: Term Consistency Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check terms
+        id: terms
+        run: |
+          pnpm exec tsx .agents/scripts/check-terms.ts --report
+        continue-on-error: true
+
+      - name: Upload term check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: term-check-report
+          path: .agents/reports/term-check-*.json
+          retention-days: 30
+
+      - name: Comment PR on term issues
+        if: github.event_name == 'pull_request' && steps.terms.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reports = fs.readdirSync('.agents/reports').filter(f => f.startsWith('term-check-') && f.endsWith('.json'));
+            if (reports.length === 0) return;
+            const latest = reports.sort().pop();
+            const report = JSON.parse(fs.readFileSync(`.agents/reports/${latest}`, 'utf8'));
+
+            const undefinedTerms = report.issues.filter(i => i.type === 'undefined');
+            const redefinedTerms = report.issues.filter(i => i.type === 'redefined');
+
+            if (undefinedTerms.length === 0 && redefinedTerms.length === 0) return;
+
+            let body = '## 📖 Term Consistency Issues\n\n';
+            if (undefinedTerms.length > 0) {
+              body += `### ❓ Potentially Undefined Terms (${undefinedTerms.length})\n\n`;
+              for (const i of undefinedTerms.slice(0, 15)) {
+                body += `- \`${i.file}:${i.line}\` → **"${i.term}"**\n  \`\`\`\n  ${i.context}\n  \`\`\`\n  💡 ${i.suggestion}\n\n`;
+              }
+              if (undefinedTerms.length > 15) body += `... and ${undefinedTerms.length - 15} more\n\n`;
+            }
+
+            if (redefinedTerms.length > 0) {
+              body += `### 🔄 Redefined Terms (${redefinedTerms.length}) - Should only be in CONTEXT.md\n\n`;
+              for (const i of redefinedTerms.slice(0, 10)) {
+                body += `- \`${i.file}:${i.line}\` → **"${i.term}"**\n  \`\`\`\n  ${i.context}\n  \`\`\`\n  💡 ${i.suggestion}\n\n`;
+              }
+            }
+
+            body += '\n💡 Update CONTEXT.md for new terms; move definitions to CONTEXT.md for redefined terms.\n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+  contract-sync:
+    name: Contract Synchronization
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check contract sync
+        id: contracts
+        run: |
+          pnpm exec tsx .agents/scripts/sync-contracts.ts --report
+        continue-on-error: true
+
+      - name: Upload contract sync report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-sync-report
+          path: .agents/reports/contract-sync-*.json
+          retention-days: 30
+
+      - name: Comment PR on contract mismatches
+        if: github.event_name == 'pull_request' && steps.contracts.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reports = fs.readdirSync('.agents/reports').filter(f => f.startsWith('contract-sync-') && f.endsWith('.json'));
+            if (reports.length === 0) return;
+            const latest = reports.sort().pop();
+            const report = JSON.parse(fs.readFileSync(`.agents/reports/${latest}`, 'utf8'));
+
+            if (report.details.length === 0) return;
+
+            let body = '## 🔗 Contract Synchronization Issues\n\n';
+            for (const d of report.details) {
+              const icon = d.type === 'missing-contract' ? '📄' : d.type === 'missing-module' ? '📦' : d.type === 'version-drift' ? '🔢' : '⚠️';
+              body += `${icon} **${d.module}**: ${d.details}\n`;
+              if (d.moduleExports) body += `  - Module exports: \`[${d.moduleExports.join(", ")}]\`\n`;
+              if (d.contractKeys) body += `  - Contract keys: \`[${d.contractKeys.join(", ")}]\`\n`;
+              body += '\n';
+            }
+            body += '💡 Fix: Update contract files to match module exports, or vice versa. Add version field to contracts.\n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+  regression-check:
+    name: Regression Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'schedule' || github.event.inputs.full == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 10
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run regression check
+        id: regression
+        run: |
+          pnpm exec tsx .agents/scripts/check-regression.ts HEAD~1
+        continue-on-error: true
+
+      - name: Upload regression report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-report
+          path: .agents/reports/regression-*.json
+          retention-days: 30
+
+  summary:
+    name: Summary
+    runs-on: ubuntu-latest
+    needs: [pointer-scan, term-check, contract-sync, regression-check]
+    if: always()
+    steps:
+      - name: Collect results
+        run: |
+          echo "## Knowledge Base Guard Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          for job in pointer-scan term-check contract-sync regression-check; do
+            if (needs.$job.result == 'success') {
+              echo "- ✅ $job" >> $GITHUB_STEP_SUMMARY
+            } else if (needs.$job.result == 'failure') {
+              echo "- ❌ $job" >> $GITHUB_STEP_SUMMARY
+            } else {
+              echo "- ⏭️ $job (skipped)" >> $GITHUB_STEP_SUMMARY
+            }
+          done
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Reports available as artifacts for 30 days." >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if any check failed
+        if: |
+          needs.pointer-scan.result == 'failure' ||
+          needs.term-check.result == 'failure' ||
+          needs.contract-sync.result == 'failure' ||
+          needs.regression-check.result == 'failure'
+        run: |
+          echo "::error::One or more knowledge base checks failed"
+          exit 1

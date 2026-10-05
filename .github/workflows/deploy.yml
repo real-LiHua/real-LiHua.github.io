@@ -38,12 +38,24 @@ jobs:
       - name: Build
         env:
           SITE_URL: ${{ vars.CF_PAGES_URL || 'https://lihua.codeberg.page' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: pnpm build
 
       - uses: cloudflare/wrangler-action@v4
         with:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Set Cloudflare Worker Secrets
+        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
+        run: |
+          echo "${{ secrets.TELEGRAM_BOT_TOKEN }}" | wrangler secret put TELEGRAM_BOT_TOKEN --env production
+          echo "${{ secrets.TELEGRAM_GROUP_ID }}" | wrangler secret put TELEGRAM_GROUP_ID --env production
+          echo "${{ secrets.TELEGRAM_BOT_USERNAME }}" | wrangler secret put TELEGRAM_BOT_USERNAME --env production
+          echo "${{ secrets.JWT_SECRET }}" | wrangler secret put JWT_SECRET --env production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
   codeberg:
     name: codeberg
@@ -67,6 +79,7 @@ jobs:
       - name: Build
         env:
           SITE_URL: https://lihua.codeberg.page
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
           pnpm build
           rm -vr "./dist/server"
@@ -114,6 +127,7 @@ jobs:
       - uses: withastro/action@v6.1.1
         env:
           SITE_URL: https://real-LiHua.github.io
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         with:
           out-dir: dist/client
 
@@ -141,6 +155,8 @@ jobs:
           sudo install lychee /usr/local/bin/
 
       - name: Build
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
           pnpm build
           rm -vr "./dist/server"

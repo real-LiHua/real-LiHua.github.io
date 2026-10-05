@@ -25,32 +25,49 @@ if (!post) {
   return Astro.redirect("/404");
 }
 
-const { Content, headings } = await render(post),
-
- { title, description, publishDate, tags: rawTags, updatedDate, authors: fmAuthors, image: fmImage } = post.data,
+const { title, description, publishDate, tags: rawTags, updatedDate, authors: fmAuthors, image: fmImage, telegramAuth } = post.data,
  tags = rawTags ?? [],
-// 自动填充：作者优先使用 frontmatter 的 authors，否则回退到站点所有者
+ // 自动填充：作者优先使用 frontmatter 的 authors，否则回退到站点所有者
  authors: string[] = (() => {
-  if (Array.isArray(fmAuthors)) { return fmAuthors.map(String); }
-  if (fmAuthors) { return [String(fmAuthors)]; }
-  return ["Li Hua"];
-})(),
-// 图片优先使用 frontmatter 的 image 字段，否则回退到站点 favicon
+   if (Array.isArray(fmAuthors)) { return fmAuthors.map(String); }
+   if (fmAuthors) { return [String(fmAuthors)]; }
+   return ["Li Hua"];
+ })(),
+ // 图片优先使用 frontmatter 的 image 字段，否则回退到站点 favicon
  image: string = (() => {
-  if (fmImage) { return String(fmImage); }
-  if (Astro.site) { return `${Astro.site}favicon.svg`; }
-  return "/favicon.svg";
-})(),
-// 构建文章的完整 url 与 canonical
+   if (fmImage) { return String(fmImage); }
+   if (Astro.site) { return `${Astro.site}favicon.svg`; }
+   return "/favicon.svg";
+ })(),
+ // 构建文章的完整 url 与 canonical
  url = Astro.site ? `${Astro.site}posts/${post.id}/` : `/posts/${post.id}/`,
  canonical = url,
  hasTags = tags.length > 0,
-// 优先使用插件注入的 toc（post.data.toc），回退到 render 返回的 headings
+ isProtected = telegramAuth?.enabled === true,
+ groupName = telegramAuth?.groupName ?? "私有群组",
+ customMessage = telegramAuth?.customMessage ?? "此文章需要验证 Telegram 群组成员身份后才能阅读",
+ // 优先使用插件注入的 toc（post.data.toc），回退到 render 返回的 headings
  tocFromPlugin = (post.data as unknown as { toc?: unknown })?.toc,
  toc = Array.isArray(tocFromPlugin)
-  ? (tocFromPlugin as { depth: number; slug: string; text: string }[])
-  : headings.map(({ depth, slug, text }) => ({ depth, slug, text })),
+   ? (tocFromPlugin as { depth: number; slug: string; text: string }[])
+   : [],
  hasToc = toc.length > 0;
+
+// Only render content for non-protected posts (or in dev mode for preview)
+let Content: any = null;
+let headings: any[] = [];
+
+if (!(isProtected && !isDev)) {
+  const rendered = await render(post);
+  Content = rendered.Content;
+  headings = rendered.headings;
+}
+
+const postData = {
+  id: post.id,
+  isProtected,
+  isDev,
+};
 ---
 
 <BaseLayout {title} {description} pagefind={true} publishDate={publishDate} updatedDate={updatedDate} authors={authors} tags={tags} image={image} url={url} canonical={canonical}>
@@ -74,35 +91,75 @@ const { Content, headings } = await render(post),
           </div>
         )}
       </div>
-      <div class="prose prose-neutral dark:prose-invert max-w-none reveal reveal-delay-1">
-        <Content />
-      </div>
-    </article>
 
-    {hasToc && (
-      <aside id="toc-sidebar" class="hidden lg:block pt-24">
-        <div class="sticky top-24">
-          <h3 class="text-xs font-mono tracking-widest opacity-40 mb-4 uppercase">目录</h3>
-          <nav class="space-y-1.5 text-sm">
-            {
-            toc.map(({ depth, slug, text }) => (
-                <a
-                  href={`#${slug}`}
-                  class="block transition-all duration-200 opacity-50 hover:opacity-100 hover:text-primary"
-                  style={`padding-left: ${Math.max(depth - 2, 0) * 0.75}rem`}
-                >
-                  {text}
-                </a>
-              ))
-            }
-          </nav>
+      {isProtected && !isDev ? (
+        <>
+          <!-- Telegram Auth Wall -->
+          <div
+          id="telegram-auth-wall"
+          class="prose prose-neutral dark:prose-invert max-w-none reveal reveal-delay-1"
+          data-post-id={post.id}
+          data-group-name={groupName}
+          data-custom-message={customMessage}
+          data-bot-username={import.meta.env.TELEGRAM_BOT_USERNAME || "your_bot"}
+        >
+          <div class="card bg-base-100 border-base-200 shadow-lg">
+            <div class="card-body text-center py-12">
+              <div class="flex justify-center mb-6">
+                <div class="badge badge-lg badge-primary gap-2">
+                  <svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+                  <span>Telegram 认证</span>
+                </div>
+              </div>
+              <h3 class="text-xl font-medium mb-2">此内容需要群组成员权限</h3>
+              <p class="opacity-70 mb-4">群组：<strong>{groupName}</strong></p>
+              <p class="opacity-60 mb-6">{customMessage}</p>
+              <a
+                id="telegram-login-link"
+                href={`https://t.me/${import.meta.env.TELEGRAM_BOT_USERNAME || "your_bot"}?start=auth_${post.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-primary btn-lg gap-2"
+              >
+                <svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+                在 Telegram 中打开
+              </a>
+              <p class="text-xs opacity-50 mt-4">点击后将在 Telegram 中打开机器人，验证群组成员身份</p>
+              <div id="auth-status" class="mt-4 min-h-[1.5rem]" aria-live="polite"></div>
+            </div>
+          </div>
         </div>
-      </aside>
-    )}
-  </div>
+        </>
+      ) : (
+        <>
+          <div class="prose prose-neutral dark:prose-invert max-w-none reveal reveal-delay-1">
+            <Content />
+          </div>
+          {hasToc && (
+            <aside id="toc-sidebar" class="hidden lg:block pt-24">
+              <div class="sticky top-24">
+                <h3 class="text-xs font-mono tracking-widest opacity-40 mb-4 uppercase">目录</h3>
+                <nav class="space-y-1.5 text-sm">
+                  {
+                  toc.map(({ depth, slug, text }) => (
+                      <a
+                        href={`#${slug}`}
+                        class="block transition-all duration-200 opacity-50 hover:opacity-100 hover:text-primary"
+                        style={`padding-left: ${Math.max(depth - 2, 0) * 0.75}rem`}
+                      >
+                        {text}
+                      </a>
+                    ))
+                  }
+                </nav>
+              </div>
+            </aside>
+          )}
+        </>
+      )}
 
-  {hasToc && (
-    <>
+    {hasToc && !isProtected && (
+      <>
       <button
         id="toc-toggle"
         class="btn btn-sm fixed z-40 shadow-lg bg-base-100 border-base-300 lg:hidden px-3 text-base font-medium"
@@ -128,8 +185,17 @@ const { Content, headings } = await render(post),
           }
         </nav>
       </div>
-    </>
-  )}
+      </>
+    )}
+    </article>
+  </div>
+
+  <script is:inline>
+    const postData = {id: post.id, isProtected, isDev};
+    if (postData.isProtected && !postData.isDev) {
+      import("../../scripts/telegram-auth");
+    }
+  </script>
   <script>
     import "../../scripts/toc";
     import "../../scripts/reading-progress";

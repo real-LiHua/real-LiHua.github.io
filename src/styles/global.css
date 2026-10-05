@@ -221,4 +221,19 @@ a[data-external="true"]::after {
   opacity: 0.7;
   font-size: 0.75em;
   vertical-align: super;
+  color: var(--color-base-content);
+}
+
+[data-theme="light"] a[data-external="true"]::after {
+  color: var(--color-base-content);
+}
+
+[data-theme="dark"] a[data-external="true"]::after {
+  color: var(--color-base-content);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a[data-external="true"]::after {
+    transition: none;
+  }
 }

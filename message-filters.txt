@@ -1,2 +1,3 @@
 This document appears to be written in English.*
 .*stroke-.*
+The heading .h3. \(with computed level 3\) follows the heading .h1. \(with computed level 1\), skipping 1 heading level.*

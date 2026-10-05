@@ -1,170 +1,141 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
+// Task Complete Script - Sub-agent Communication Protocol
+// Usage: pnpm exec tsx .agents/scripts/task-complete.ts <task-id> [--skip-gate]
+
+import { parseArgs } from "node:util";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
 import { execSync } from "node:child_process";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(__dirname, "../..");
-const TASKS_DIR = resolve(ROOT, ".agents/tasks");
+const { values, positionals } = parseArgs({
+  args: process.argv.slice(2),
+  options: {
+    "skip-gate": { type: "boolean" },
+    help: { type: "boolean", short: "h" },
+  },
+  strict: true,
+  allowPositionals: true,
+});
 
-interface GateResult {
-  taskId: string;
-  role: string;
-  timestamp: string;
-  common: Record<string, "pass" | "fail">;
-  specific: Record<string, "pass" | "fail">;
-  overall: "pass" | "fail";
+if (values.help || positionals.length === 0) {
+  console.log(`
+Usage: task-complete <task-id> [--skip-gate]
+
+Completes a task, runs quality gates, archives outputs.
+
+Example:
+  task-complete 1.1
+  task-complete 2.1 --skip-gate
+`);
+  process.exit(values.help ? 0 : 1);
 }
 
-const ROLE_GATES: Record<string, { common: string[]; specific: string[] }> = {
-  "frontend-architect": {
-    common: ["pnpm tsc -b", "pnpm oxlint", "pnpm oxfmt --check", "pnpm build"],
-    specific: ["pnpm exec playwright test --project=chromium"],
-  },
-  "content-engineer": {
-    common: ["pnpm tsc -b", "pnpm oxlint", "pnpm oxfmt --check", "pnpm build"],
-    specific: [],
-  },
-  "build-deploy-engineer": {
-    common: ["pnpm tsc -b", "pnpm oxlint", "pnpm oxfmt --check", "pnpm build"],
-    specific: [
-      "lychee dist/client",
-      "vnu --skip-non-html --filterfile message-filters.txt dist/client",
-    ],
-  },
-  "cli-tool-engineer": {
-    common: [],
-    specific: ["cargo test", "cargo clippy -p post-edit", "cargo audit"],
-  },
-  "search-discovery-engineer": {
-    common: ["pnpm tsc -b", "pnpm oxlint", "pnpm oxfmt --check", "pnpm build"],
-    specific: [],
-  },
-  "quality-dx-guardian": {
-    common: ["pnpm tsc -b", "pnpm oxlint", "pnpm oxfmt --check", "pnpm build"],
-    specific: ["pnpm exec playwright test"],
-  },
+const taskId = positionals[0];
+const skipGate = values["skip-gate"] === true;
+
+const tasksDir = join(process.cwd(), ".agents", "tasks");
+const progressFile = join(tasksDir, `${taskId}.progress`);
+const gateFile = join(tasksDir, `${taskId}.gate.json`);
+const taskFile = join(tasksDir, `${taskId}.md`);
+
+if (!existsSync(progressFile)) {
+  console.error(`Error: Progress file not found: ${progressFile}`);
+  process.exit(1);
+}
+
+const progress = JSON.parse(readFileSync(progressFile, "utf-8"));
+
+if (progress.status === "blocked" && !skipGate) {
+  console.error(`Error: Task ${taskId} is blocked: ${progress.blocker}`);
+  console.error("  Resolve blocker first or use --skip-gate (not recommended)");
+  process.exit(1);
+}
+
+console.log(`🔍 Running quality gates for task ${taskId}...`);
+
+const gateResult = {
+  taskId,
+  role: progress.assignee,
+  timestamp: new Date().toISOString(),
+  common: {} as Record<string, string>,
+  specific: {} as Record<string, string>,
+  overall: "pass" as "pass" | "fail",
 };
 
-function findTaskFile(taskId: string): string | null {
-  const phases = ["phase-1", "phase-2", "phase-3"];
-  for (const phase of phases) {
-    const phaseDir = resolve(TASKS_DIR, phase);
-    if (!existsSync(phaseDir)) continue;
-    const files = readdirSync(phaseDir);
-    for (const file of files) {
-      if ((file.startsWith(`${taskId}-`) || file === `${taskId}.md`) && file.endsWith(".md")) {
-        return resolve(phaseDir, file);
-      }
-    }
-  }
-  return null;
-}
-
-function findTaskMeta(taskId: string): { assignee: string; phase: string } | null {
-  const taskFile = findTaskFile(taskId);
-  if (!taskFile) return null;
-  const content = readFileSync(taskFile, "utf8");
-  const match = content.match(/assignee:\s*["']?(\w+)["']?/);
-  if (!match) return null;
-  const phase = taskFile.split("/").slice(-2, -1)[0];
-  return { assignee: match[1], phase };
-}
-
-function runCommand(cmd: string): { success: boolean; output: string } {
+const runCmd = (cmd: string, label: string): boolean => {
   try {
-    const output = execSync(cmd, { cwd: ROOT, encoding: "utf8", stdio: "pipe", timeout: 120000 });
-    return { success: true, output: output.trim() };
-  } catch (e: any) {
-    return { success: false, output: e.stdout?.toString() || e.message };
+    execSync(cmd, { stdio: "pipe", cwd: process.cwd() });
+    console.log(`  ✓ ${label}`);
+    return true;
+  } catch (e) {
+    console.error(`  ✗ ${label}: ${(e as Error).message}`);
+    return false;
   }
+};
+
+// Common gates
+gateResult.common.tsc = runCmd("pnpm tsc -b", "TypeScript check") ? "pass" : "fail";
+gateResult.common.oxlint = runCmd("pnpm oxlint", "Oxlint") ? "pass" : "fail";
+gateResult.common.oxfmt = runCmd("pnpm oxfmt --check", "Oxfmt check") ? "pass" : "fail";
+gateResult.common.build = runCmd("pnpm build", "Build") ? "pass" : "fail";
+
+// Role-specific gates
+const roleGates: Record<string, [string, string][]> = {
+  "frontend-architect": [
+    ["pnpm playwright test --project=chromium", "Playwright (Chromium)"],
+  ],
+  "content-engineer": [
+    ["pnpm build && node -e \"require('./dist/server/entry.mjs')\"", "Content pipeline + RSS"],
+  ],
+  "build-deploy-engineer": [
+    ["lychee dist/client", "Link check (lychee)"],
+    ["vnu --skip-non-html dist/client", "HTML validate (vnu)"],
+  ],
+  "cli-tool-engineer": [
+    ["cargo test -p post-edit", "Cargo test"],
+    ["cargo clippy -p post-edit", "Cargo clippy"],
+    ["cargo audit", "Cargo audit"],
+  ],
+  "search-discovery-engineer": [
+    ["pnpm build && ls dist/client/pagefind/*.json", "Pagefind index exists"],
+  ],
+  "quality-dx-guardian": [
+    ["pnpm playwright test", "Full Playwright suite"],
+  ],
+};
+
+const specificGates = roleGates[progress.assignee] || [];
+for (const [cmd, label] of specificGates) {
+  gateResult.specific[label.toLowerCase().replace(/\s+/g, "-")] = runCmd(cmd, label) ? "pass" : "fail";
 }
 
-function main() {
-  const args = process.argv.slice(2);
-  if (args.length < 1 || args[0] === "--help") {
-    console.log(`
-Usage: task-complete.ts <task-id> [--skip-gate]
+// Determine overall
+const allResults = [
+  ...Object.values(gateResult.common),
+  ...Object.values(gateResult.specific),
+];
+gateResult.overall = allResults.every(r => r === "pass") ? "pass" : "fail";
 
-Runs quality gates and marks task as done.
-`);
-    process.exit(1);
-  }
+writeFileSync(gateFile, JSON.stringify(gateResult, null, 2));
 
-  const taskId = args[0];
-  const skipGate = args.includes("--skip-gate");
-
-  const meta = findTaskMeta(taskId);
-  if (!meta) {
-    console.error(`✗ Task ${taskId} not found`);
-    process.exit(1);
-  }
-
-  const progressFile = resolve(TASKS_DIR, meta.phase, `${taskId}.progress`);
-  if (!existsSync(progressFile)) {
-    console.error(`✗ Progress file not found. Run 'claim' first.`);
-    process.exit(1);
-  }
-
-  const progress = JSON.parse(readFileSync(progressFile, "utf8"));
-  const role = meta.assignee;
-
-  console.log(`\n=== Quality Gate for ${taskId} (${role}) ===`);
-
-  if (!skipGate) {
-    const gates = ROLE_GATES[role] || { common: [], specific: [] };
-    const allCommands = [...gates.common, ...gates.specific];
-    const results: Record<string, "pass" | "fail"> = {};
-
-    for (const cmd of allCommands) {
-      process.stdout.write(`  Running: ${cmd} ... `);
-      const result = runCommand(cmd);
-      results[cmd] = result.success ? "pass" : "fail";
-      console.log(result.success ? "✓" : "✗");
-      if (!result.success) {
-        console.log(`    Output: ${result.output.slice(0, 200)}`);
-      }
-    }
-
-    const overall = Object.values(results).every((r) => r === "pass") ? "pass" : "fail";
-
-    const gateResult: GateResult = {
-      taskId,
-      role,
-      timestamp: new Date().toISOString(),
-      common: Object.fromEntries(gates.common.map((c) => [c, results[c]])) as any,
-      specific: Object.fromEntries(gates.specific.map((c) => [c, results[c]])) as any,
-      overall,
-    };
-
-    const gateFile = resolve(TASKS_DIR, meta.phase, `${taskId}.gate.json`);
-    writeFileSync(gateFile, JSON.stringify(gateResult, null, 2));
-    console.log(`\nGate result: ${overall.toUpperCase()}`);
-    console.log(`Saved to: ${gateFile}`);
-
-    if (overall === "fail") {
-      console.error("\n✗ Quality gate FAILED. Fix issues before completing.");
-      process.exit(1);
-    }
-  }
-
-  // Update task status to done
-  const taskFile = findTaskFile(taskId);
-  if (taskFile) {
-    let content = readFileSync(taskFile, "utf8");
-    content = content.replace(/status:\s*["']?in_progress["']?/, "status: done");
-    writeFileSync(taskFile, content);
-  }
-
-  // Update progress
-  progress.percent = 100;
-  progress.status = "done";
-  progress.updatedAt = new Date().toISOString();
-  progress.message = "Task completed, quality gate passed";
-  writeFileSync(progressFile, JSON.stringify(progress, null, 2));
-
-  console.log(`\n✓ Task ${taskId} marked as DONE`);
+if (gateResult.overall === "fail") {
+  console.error(`\n❌ Quality gate FAILED for task ${taskId}`);
+  console.error(`   Gate report: ${gateFile}`);
+  console.error(`   Fix issues and re-run task-complete`);
+  process.exit(1);
 }
 
-main();
+console.log(`\n✅ All quality gates PASSED`);
+
+// Update task file status
+if (existsSync(taskFile)) {
+  const taskContent = readFileSync(taskFile, "utf-8");
+  const updatedContent = taskContent
+    .replace(/^status:\s*\w+/m, "status: done")
+    .replace(/^completedAt:\s*.*/m, `completedAt: ${new Date().toISOString()}`)
+    .replace(/^outputs:\s*$/m, `outputs: [${progress.message}]`);
+  writeFileSync(taskFile, updatedContent);
+}
+
+console.log(`📦 Task ${taskId} completed and archived`);
+console.log(`   Gate report: ${gateFile}`);

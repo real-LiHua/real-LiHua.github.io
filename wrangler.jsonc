@@ -10,4 +10,11 @@
   },
   "send_metrics": false,
   "minify": false,
+  "kv_namespaces": [
+    {
+      "binding": "TG_AUTH_KV",
+      "id": "your-kv-namespace-id",
+      "preview_id": "your-preview-kv-namespace-id"
+    }
+  ]
 }

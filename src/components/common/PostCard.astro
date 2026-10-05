@@ -10,9 +10,10 @@ interface Props {
 
 const { post, variant = "grid" } = Astro.props,
 
- formattedDate = formatDate(post.publishDate),
- dateISO = formatDate(post.publishDate, "full"),
- hasTags = post.tags && post.tags.length > 0;
+  formattedDate = formatDate(post.publishDate),
+  dateISO = formatDate(post.publishDate, "full"),
+  hasTags = post.tags && post.tags.length > 0,
+  isTelegramProtected = post.telegramAuth?.enabled === true;
 ---
 
 {
@@ -20,7 +21,14 @@ const { post, variant = "grid" } = Astro.props,
     <article class="group tilt-card">
       <div class="card card-border bg-base-100 border-base-200 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 h-full block">
         <div class="card-body">
-          {post.publishDate ? (<time class="text-xs font-mono opacity-40" datetime={dateISO}>{formattedDate}</time>) : null}
+          <div class="flex items-center justify-between mb-2">
+            {post.publishDate ? (<time class="text-xs font-mono opacity-40" datetime={dateISO}>{formattedDate}</time>) : null}
+            {isTelegramProtected && (
+              <span class="badge badge-xs badge-ghost gap-1" title="需要 Telegram 群组成员权限">
+                <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              </span>
+            )}
+          </div>
           <h2 class="card-title text-lg mt-1">
             <a href={`/posts/${post.id}`} class="group-hover:text-primary transition-colors">{post.title}</a>
           </h2>
@@ -37,10 +45,17 @@ const { post, variant = "grid" } = Astro.props,
     <article class="group">
       <div class="flex items-baseline gap-4 p-4 -mx-4 rounded-xl hover:bg-base-200/50 transition-all duration-300">
         {post.publishDate ? (<time class="text-sm font-mono opacity-40 shrink-0 w-20 text-right" datetime={dateISO}>{formattedDate}</time>) : null}
-        <div>
-          <h2 class="text-lg font-medium">
-            <a href={`/posts/${post.id}`} class="group-hover:text-primary transition-colors">{post.title}</a>
-          </h2>
+        <div class="flex-1">
+          <div class="flex items-center gap-2">
+            <h2 class="text-lg font-medium">
+              <a href={`/posts/${post.id}`} class="group-hover:text-primary transition-colors">{post.title}</a>
+            </h2>
+            {isTelegramProtected && (
+              <span class="badge badge-xs badge-ghost gap-1" title="需要 Telegram 群组成员权限">
+                <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              </span>
+            )}
+          </div>
           {post.description && <p class="text-sm opacity-60 mt-1 line-clamp-1">{post.description}</p>}
         </div>
       </div>

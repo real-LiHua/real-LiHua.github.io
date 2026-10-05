@@ -388,8 +388,27 @@ fn create_new_post(posts_dir: &str) {
         format!("[{}]", tags.join(", "))
     };
 
+    // Telegram 认证配置
+    let enable_telegram = read_input("是否启用 Telegram 群组认证? (y/N): ");
+    let telegram_auth = if enable_telegram.trim().to_lowercase() == "y" {
+        let group_id = read_input("请输入 Telegram 群组 ID (如 -1001234567890): ");
+        let group_name = read_input("请输入群组名称 (可选): ");
+        let custom_message = read_input("请输入自定义提示信息 (可选): ");
+
+        let mut parts = vec!["enabled: true".to_string(), format!("groupId: \"{}\"", group_id.trim())];
+        if !group_name.trim().is_empty() {
+            parts.push(format!("groupName: \"{}\"", group_name.trim()));
+        }
+        if !custom_message.trim().is_empty() {
+            parts.push(format!("customMessage: \"{}\"", custom_message.trim()));
+        }
+        format!("telegramAuth:\n  {}", parts.join("\n  "))
+    } else {
+        "telegramAuth: {}".to_string()
+    };
+
     let content = format!(
-        "---\ntitle: {title}\ndescription: {description}\ntags: {tags_str}\npublishDate: {date}\n---\n\n"
+        "---\ntitle: {title}\ndescription: {description}\ntags: {tags_str}\npublishDate: {date}\n{telegram_auth}\n---\n\n"
     );
 
     let _ = fs::write(&filepath, content);

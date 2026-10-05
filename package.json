@@ -10,26 +10,27 @@
     "preview": "astro build && wrangler dev",
     "astro": "astro",
     "prepare": "husky",
-    "post:edit": "cargo run -p post-edit --"
+    "post:edit": "cargo run -p post-edit --",
+    "verify:watermark": "tsx src/scripts/verify-watermark.ts"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.10",
     "@astrojs/markdown-satteri": "^0.3.8",
     "@astrojs/mdx": "^7.0.8",
-    "@astrojs/node": "^11.1.5",
+    "@astrojs/node": "^11.1.6",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
-    "@astrojs/ts-plugin": "^1.10.11",
+    "@astrojs/ts-plugin": "^1.10.12",
     "@fontsource/twinkle-star": "^5.3.0",
     "@grammyjs/auto-retry": "^2.0.2",
     "@helia/strings": "^5.1.1",
     "@shopify/draggable": "^1.2.1",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
-    "@xingwangzhe/satteri-mermaid": "^0.7.7",
+    "@xingwangzhe/satteri-mermaid": "^0.7.9",
     "animate.css": "^4.1.1",
-    "astro": "^7.2.10",
-    "daisyui": "^5.7.24",
+    "astro": "^7.3.5",
+    "daisyui": "^5.7.47",
     "expressive-code-language-badge": "^1.1.0",
     "gaxios": "^7.3.1",
     "grammy": "^1.46.0",
@@ -43,29 +44,31 @@
     "typescript": "^6.0.3"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.54.2",
-    "@mermaid-js/mermaid-cli": "^11.16.0",
+    "@cloudflare/vite-plugin": "^1.62.5",
+    "@mermaid-js/mermaid-cli": "^11.17.0",
     "@playwright/mcp": "^0.0.77",
-    "@shikijs/colorized-brackets": "^4.4.3",
+    "@shikijs/colorized-brackets": "^4.5.0",
     "@types/hast": "^3.0.5",
     "@types/mdast": "^4.0.4",
-    "astro-favicons": "^3.1.6",
+    "astro-favicons": "^3.1.8",
     "astro-minify-html-swc": "^0.1.12",
     "dayjs": "^1.11.23",
     "hast-util-from-html": "^2.0.3",
+    "hast-util-to-html": "^9.0.5",
     "hast-util-to-text": "^4.0.2",
     "husky": "^9.1.7",
     "jsonc-parser": "^3.3.1",
-    "lint-staged": "^17.4.1",
+    "lint-staged": "^17.6.0",
     "markdownlint": "^0.41.1",
-    "markdownlint-cli2": "^0.23.2",
+    "markdownlint-cli2": "^0.23.3",
     "mermaid-wasm-renderer": "^0.3.1",
     "oxfmt": "^0.57.0",
-    "oxlint": "^1.80.0",
+    "oxlint": "^1.86.0",
     "pagefind": "^1.5.2",
-    "playwright": "^1.62.1",
-    "vnu-jar": "^26.8.30",
-    "wrangler": "^4.127.1"
+    "playwright": "^1.63.0",
+    "tsx": "^4.23.15",
+    "vnu-jar": "^26.10.2",
+    "wrangler": "^4.147.0"
   },
   "lint-staged": {
     "*.{js,mjs,jsx,ts,tsx}": [
@@ -79,7 +82,10 @@
       "oxlint",
       "oxfmt"
     ],
-    "!(*.css|*.js|*.mjs|*.jsx|*.ts|*.tsx|*.astro|*.rs)": [
+    "*.{md,mdx}": [
+      "oxfmt"
+    ],
+    "!(*.css|*.js|*.mjs|*.jsx|*.ts|*.tsx|*.astro|*.rs|*.md|*.mdx)": [
       "oxfmt"
     ]
   },

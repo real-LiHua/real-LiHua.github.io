@@ -31,7 +31,7 @@ export const buildHooksIntegration = (): AstroIntegration => ({
     "astro:build:start": ({ logger }): void => {
       // Clean pagefind public symlink before build
       if (existsSync(pagefindPublic)) {
-        rmSync(pagefindPublic);
+        rmSync(pagefindPublic, { recursive: true, force: true });
         logger.info("Cleaned public/pagefind");
       }
     },
