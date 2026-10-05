@@ -5,6 +5,7 @@
 ---
 
 ## Legend
+
 - **Nodes**: Tasks/Deliverables
 - **Edges**: Dependencies (→ means "blocks" or "must complete before")
 - **Colors**: Role ownership (Content=🟢, Frontend=🔵, Search=🟣, Quality=🟠, Build=🔴, CLI=⚫, Lead=⚪)
@@ -54,7 +55,7 @@ graph TD
     M1 --> T1
     M1 --> T3
     M1 --> T4
-    
+
     T1 --> T2
     T1 --> T5
     T2 --> T5
@@ -97,30 +98,31 @@ graph TD
 
 ## Task Table (Source of Truth)
 
-| ID | Task | Owner Role | Status | Depends On | Blocks | Est. Days | Actual Days |
-|----|------|------------|--------|------------|--------|-----------|-------------|
-| T1 | Define canonical tag list | Content | ✅ Done | — | T2, T5 | 2 | 2 |
-| T2 | Add tag validation to pipeline | Content | ✅ Done | T1 | T5 | 1 | 1 |
-| T3 | Design multi-index schema | Search | ✅ Done | — | T4 | 2 | 2 |
-| T4 | Implement index build pipeline | Build | 🔄 In Progress | T3 | T6, T7 | 3 | 2 (ongoing) |
-| T5 | Create migration script | CLI | 🔄 In Progress | T1, T2 | M3 | 2 | 1 (ongoing) |
-| T6 | Build posts index shard | Search | ⏳ Pending | T4 | M2 | 1 | |
-| T7 | Build pages index shard | Search | ⏳ Pending | T4 | M2 | 1 | |
-| T8 | Lazy index loading UI | Frontend | ⏳ Pending | M2 | T10 | 2 | |
-| T9 | Search analytics events | Search | ⏳ Pending | M2 | T13 | 1 | |
-| T10 | Redesign search results | Frontend | ⏳ Pending | T8 | T11 | 3 | |
-| T11 | Tag facet filtering | Frontend | ⏳ Pending | T10 | T12 | 2 | |
-| T12 | Keyboard nav & a11y | Frontend | ⏳ Pending | T11 | M4 | 2 | |
-| T13 | Recommendations widget | Search | ⏳ Pending | T9 | M4 | 2 | |
-| T14 | E2E search tests | Quality | ⏳ Pending | M4 | M5 | 2 | |
-| T15 | Performance budget | Quality | ⏳ Pending | M4 | M5 | 1 | |
-| T16 | Accessibility audit | Quality | ⏳ Pending | M4 | M5 | 1 | |
-| T17 | CI dual index build | Build | ⏳ Pending | M5 | T18 | 1 | |
-| T18 | Staging deploy & validate | Build | ⏳ Pending | T17 | M6 | 1 | |
+| ID  | Task                           | Owner Role | Status         | Depends On | Blocks | Est. Days | Actual Days |
+| --- | ------------------------------ | ---------- | -------------- | ---------- | ------ | --------- | ----------- |
+| T1  | Define canonical tag list      | Content    | ✅ Done        | —          | T2, T5 | 2         | 2           |
+| T2  | Add tag validation to pipeline | Content    | ✅ Done        | T1         | T5     | 1         | 1           |
+| T3  | Design multi-index schema      | Search     | ✅ Done        | —          | T4     | 2         | 2           |
+| T4  | Implement index build pipeline | Build      | 🔄 In Progress | T3         | T6, T7 | 3         | 2 (ongoing) |
+| T5  | Create migration script        | CLI        | 🔄 In Progress | T1, T2     | M3     | 2         | 1 (ongoing) |
+| T6  | Build posts index shard        | Search     | ⏳ Pending     | T4         | M2     | 1         |             |
+| T7  | Build pages index shard        | Search     | ⏳ Pending     | T4         | M2     | 1         |             |
+| T8  | Lazy index loading UI          | Frontend   | ⏳ Pending     | M2         | T10    | 2         |             |
+| T9  | Search analytics events        | Search     | ⏳ Pending     | M2         | T13    | 1         |             |
+| T10 | Redesign search results        | Frontend   | ⏳ Pending     | T8         | T11    | 3         |             |
+| T11 | Tag facet filtering            | Frontend   | ⏳ Pending     | T10        | T12    | 2         |             |
+| T12 | Keyboard nav & a11y            | Frontend   | ⏳ Pending     | T11        | M4     | 2         |             |
+| T13 | Recommendations widget         | Search     | ⏳ Pending     | T9         | M4     | 2         |             |
+| T14 | E2E search tests               | Quality    | ⏳ Pending     | M4         | M5     | 2         |             |
+| T15 | Performance budget             | Quality    | ⏳ Pending     | M4         | M5     | 1         |             |
+| T16 | Accessibility audit            | Quality    | ⏳ Pending     | M4         | M5     | 1         |             |
+| T17 | CI dual index build            | Build      | ⏳ Pending     | M5         | T18    | 1         |             |
+| T18 | Staging deploy & validate      | Build      | ⏳ Pending     | T17        | M6     | 1         |             |
 
 ---
 
 ## Critical Path
+
 `M1 → T3 → T4 → T6/T7 → M2 → T8 → T10 → T11 → T12 → M4 → T14/T15/T16 → M5 → T17 → T18 → M6`
 
 **Estimated Duration**: ~22 working days (~4.5 weeks)
@@ -128,6 +130,7 @@ graph TD
 ---
 
 ## Parallel Tracks
+
 - **Track A (Content/Cli)**: T1 → T2 → T5 → M3 (independent, can run anytime after M1)
 - **Track B (Search/Build)**: T3 → T4 → T6/T7 → M2 (critical path start)
 - **Track C (Frontend)**: M2 → T8 → T10 → T11 → T12 → M4 (depends on M2)
@@ -136,17 +139,19 @@ graph TD
 ---
 
 ## Risk Dependencies
-| Risk | Affected Tasks | Mitigation |
-|------|----------------|------------|
-| Pagefind API changes | T3, T4, T6, T7 | Pin Pagefind version, test early |
-| Migration script failures | T5, M3 | Dry-run on staging, backup frontmatter |
-| a11y regression in redesign | T10, T11, T12 | Pair with Quality on T12, axe-core in CI |
-| CI flakiness | T17 | Dedicated build agent, retry logic |
+
+| Risk                        | Affected Tasks | Mitigation                               |
+| --------------------------- | -------------- | ---------------------------------------- |
+| Pagefind API changes        | T3, T4, T6, T7 | Pin Pagefind version, test early         |
+| Migration script failures   | T5, M3         | Dry-run on staging, backup frontmatter   |
+| a11y regression in redesign | T10, T11, T12  | Pair with Quality on T12, axe-core in CI |
+| CI flakiness                | T17            | Dedicated build agent, retry logic       |
 
 ---
 
 ## Update Log
-| Date | Updated By | Changes |
-|------|------------|---------|
-| 2026-09-03 | Alex Chen | Initial graph created |
-| 2026-09-04 | Alex Chen | T1, T2, T3 completed; T4, T5 in progress |
+
+| Date       | Updated By | Changes                                  |
+| ---------- | ---------- | ---------------------------------------- |
+| 2026-09-03 | Alex Chen  | Initial graph created                    |
+| 2026-09-04 | Alex Chen  | T1, T2, T3 completed; T4, T5 in progress |

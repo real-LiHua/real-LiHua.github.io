@@ -82,12 +82,8 @@ console.log(`✓ Claimed task ${taskId} for ${assignee}`);
 console.log(`  Progress file: ${progressFile}`);
 
 // Update task file status
-const updatedContent = taskContent.replace(
-  /^status:\s*\w+/m,
-  `status: in_progress`
-).replace(
-  /^assignee:\s*.*/m,
-  `assignee: ${assignee}`
-);
+const updatedContent = taskContent
+  .replace(/^status:\s*\w+/m, `status: in_progress`)
+  .replace(/^assignee:\s*.*/m, `assignee: ${assignee}`);
 writeFileSync(taskFile, updatedContent);
 console.log(`  Updated task status: in_progress`);

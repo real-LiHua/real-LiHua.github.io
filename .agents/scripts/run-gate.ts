@@ -72,9 +72,7 @@ const commonResults = {
 
 // Role-specific gates
 const roleGates: Record<string, [string, string][]> = {
-  "frontend-architect": [
-    ["pnpm playwright test --project=chromium", "Playwright (Chromium)"],
-  ],
+  "frontend-architect": [["pnpm playwright test --project=chromium", "Playwright (Chromium)"]],
   "content-engineer": [
     ["pnpm build && node -e \"require('./dist/server/entry.mjs')\"", "Content pipeline + RSS"],
   ],
@@ -90,9 +88,7 @@ const roleGates: Record<string, [string, string][]> = {
   "search-discovery-engineer": [
     ["pnpm build && ls dist/client/pagefind/*.json", "Pagefind index exists"],
   ],
-  "quality-dx-guardian": [
-    ["pnpm playwright test", "Full Playwright suite"],
-  ],
+  "quality-dx-guardian": [["pnpm playwright test", "Full Playwright suite"]],
 };
 
 const specificResults: Record<string, boolean> = {};
@@ -100,10 +96,9 @@ for (const [cmd, label] of roleGates[role] || []) {
   specificResults[label] = runCmd(cmd, label);
 }
 
-const allPassed = [
-  ...Object.values(commonResults),
-  ...Object.values(specificResults),
-].every(r => r);
+const allPassed = [...Object.values(commonResults), ...Object.values(specificResults)].every(
+  (r) => r,
+);
 
 if (strict) {
   // In strict mode, also check for warnings

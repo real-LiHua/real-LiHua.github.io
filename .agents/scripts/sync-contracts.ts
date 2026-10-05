@@ -77,7 +77,12 @@ function getTypeScriptExports(filePath: string): string[] {
       while ((match = pattern.exec(content)) !== null) {
         if (match[1]) {
           // Handle export { a, b, c }
-          const names = match[1].split(",").map(s => s.trim().split(/\s+as\s+/)[0].trim());
+          const names = match[1].split(",").map((s) =>
+            s
+              .trim()
+              .split(/\s+as\s+/)[0]
+              .trim(),
+          );
           exports.push(...names);
         }
       }
@@ -150,11 +155,16 @@ function checkModuleContractSync(moduleName: string): ContractMismatch[] {
   }
 
   // Check if main interface matches
-  const mainInterface = moduleExports.find(e => e === moduleName || e === moduleName.replace(/-/g, "") || e.endsWith(moduleName.charAt(0).toUpperCase() + moduleName.slice(1)));
+  const mainInterface = moduleExports.find(
+    (e) =>
+      e === moduleName ||
+      e === moduleName.replace(/-/g, "") ||
+      e.endsWith(moduleName.charAt(0).toUpperCase() + moduleName.slice(1)),
+  );
 
   if (moduleExports.length > 0 && contractKeys.length > 0) {
-    const missingInContract = moduleExports.filter(e => !contractKeys.includes(e));
-    const missingInModule = contractKeys.filter(k => !moduleExports.includes(k));
+    const missingInContract = moduleExports.filter((e) => !contractKeys.includes(e));
+    const missingInModule = contractKeys.filter((k) => !moduleExports.includes(k));
 
     if (missingInContract.length > 0) {
       mismatches.push({
@@ -208,12 +218,12 @@ function main() {
 
   // Get all module files
   const moduleFiles = readdirSync(MODULES_DIR)
-    .filter(f => f.endsWith(".ts") && f !== "index.ts")
-    .map(f => f.replace(/\.ts$/, ""));
+    .filter((f) => f.endsWith(".ts") && f !== "index.ts")
+    .map((f) => f.replace(/\.ts$/, ""));
 
   const contractFiles = readdirSync(CONTRACTS_DIR)
-    .filter(f => f.endsWith(".json"))
-    .map(f => f.replace(/\.json$/, ""));
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => f.replace(/\.json$/, ""));
 
   console.log(`  Found ${moduleFiles.length} modules, ${contractFiles.length} contracts`);
 
@@ -239,10 +249,10 @@ function main() {
     timestamp: new Date().toISOString(),
     modulesChecked: moduleFiles.length,
     contractsChecked: contractFiles.length,
-    matched: moduleFiles.filter(m => !allMismatches.some(mm => mm.module === m)).length,
-    mismatched: allMismatches.filter(m => m.type === "signature-mismatch").length,
-    missingContracts: allMismatches.filter(m => m.type === "missing-contract").length,
-    missingModules: allMismatches.filter(m => m.type === "missing-module").length,
+    matched: moduleFiles.filter((m) => !allMismatches.some((mm) => mm.module === m)).length,
+    mismatched: allMismatches.filter((m) => m.type === "signature-mismatch").length,
+    missingContracts: allMismatches.filter((m) => m.type === "missing-contract").length,
+    missingModules: allMismatches.filter((m) => m.type === "missing-module").length,
     details: allMismatches,
   };
 
@@ -257,7 +267,14 @@ function main() {
   if (allMismatches.length > 0) {
     console.log("\n🔍 Details:");
     for (const m of allMismatches) {
-      const icon = m.type === "missing-contract" ? "📄" : m.type === "missing-module" ? "📦" : m.type === "version-drift" ? "🔢" : "⚠️";
+      const icon =
+        m.type === "missing-contract"
+          ? "📄"
+          : m.type === "missing-module"
+            ? "📦"
+            : m.type === "version-drift"
+              ? "🔢"
+              : "⚠️";
       console.log(`  ${icon} ${m.module}: ${m.details}`);
       if (m.moduleExports) console.log(`     Module exports: [${m.moduleExports.join(", ")}]`);
       if (m.contractKeys) console.log(`     Contract keys:  [${m.contractKeys.join(", ")}]`);
@@ -275,14 +292,16 @@ function main() {
   }
 
   if (allMismatches.length > 0) {
-    console.log("\n💡 Fix mismatches: update contract files to match module exports, or vice versa");
+    console.log(
+      "\n💡 Fix mismatches: update contract files to match module exports, or vice versa",
+    );
     process.exit(1);
   } else {
     console.log("\n✅ All contracts synchronized with modules");
   }
 }
 
-main().catch(e => {
+main().catch((e) => {
   console.error("Fatal:", e);
   process.exit(1);
 });

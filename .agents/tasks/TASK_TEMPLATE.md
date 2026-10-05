@@ -2,34 +2,39 @@
 
 Copy this to `.agents/tasks/phase-X/N.md` and fill in.
 
-```markdown
+````markdown
 # Task N: <Title>
 
 ## Metadata
+
 - **ID**: X.N (e.g., 1.1, 2.3)
 - **Phase**: <Phase name>
 - **Assignee**: <role-id>
 - **Status**: pending | in_progress | blocked | done
-- **Dependencies**: ["X.M", "Y.K"]  # Task IDs that must complete first
+- **Dependencies**: ["X.M", "Y.K"] # Task IDs that must complete first
 - **Estimated Hours**: <number>
 - **CreatedAt**: <ISO timestamp>
 - **StartedAt**: <ISO timestamp>
 - **CompletedAt**: <ISO timestamp>
 
 ## Inputs
+
 - **Files**: [list of input files]
 - **Specs**: [links to specs/ADRs]
 - **Contracts**: [interface contracts from .agents/contracts/]
 
 ## Description
+
 <What needs to be done, why, and any constraints>
 
 ## Acceptance Criteria
+
 - [ ] Criterion 1 (verifiable)
 - [ ] Criterion 2 (verifiable)
 - [ ] ...
 
 ## Verification Commands
+
 ```bash
 # Commands to verify completion
 pnpm check
@@ -37,13 +42,16 @@ pnpm build
 # Role-specific:
 pnpm playwright test --project=chromium
 ```
+````
 
 ## Outputs
+
 - **Files**: [list of output files created/modified]
 - **Tests**: [new/updated test files]
 - **Contracts**: [updated interface contracts]
 
 ## Context (for handoff)
+
 ```json
 {
   "exports": { "TypeName": "description" },
@@ -53,10 +61,12 @@ pnpm playwright test --project=chromium
 ```
 
 ## Blocker History
+
 | Date | Blocker | Resolved | Help From |
-|------|---------|----------|-----------|
+| ---- | ------- | -------- | --------- |
 |      |         |          |           |
-```
+
+````
 
 ---
 
@@ -93,14 +103,16 @@ to src/modules/types.ts for cross-module reuse. Eliminates 'as unknown as' in pa
 ```bash
 pnpm check
 grep -r "as unknown as" src/pages/posts/
-```
+````
 
 ## Outputs
+
 - **Files**: [src/modules/types.ts, src/utils/content.ts, src/pages/posts/[id].astro]
 - **Tests**: []
 - **Contracts**: [src/modules/content-pipeline.ts types updated]
 
 ## Context
+
 ```json
 {
   "exports": { "PostFrontmatter": "z.infer<typeof postFrontmatterSchema>" },
@@ -108,4 +120,7 @@ grep -r "as unknown as" src/pages/posts/
   "notes": "TelegramAuthConfig is optional in schema, handle undefined in consumers"
 }
 ```
+
+```
+
 ```

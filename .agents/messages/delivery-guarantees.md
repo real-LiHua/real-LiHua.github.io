@@ -116,13 +116,13 @@ pnpm message-bus list-pending --role frontend-architect
 
 When a message is not acknowledged within the timeout:
 
-| Attempt | Delay | Cumulative |
-|---------|-------|------------|
-| 1 (initial) | 0s | 0s |
-| 2 (retry 1) | 30s | 30s |
-| 3 (retry 2) | 60s | 90s |
-| 4 (retry 3) | 120s | 210s |
-| **Max retries: 3** | | |
+| Attempt            | Delay | Cumulative |
+| ------------------ | ----- | ---------- |
+| 1 (initial)        | 0s    | 0s         |
+| 2 (retry 1)        | 30s   | 30s        |
+| 3 (retry 2)        | 60s   | 90s        |
+| 4 (retry 3)        | 120s  | 210s       |
+| **Max retries: 3** |       |            |
 
 ### Retry Implementation
 
@@ -178,13 +178,13 @@ After 3 failed retries (max 3.5 minutes total):
 
 ## 6. Failure Scenarios & Handling
 
-| Scenario | Handling |
-|----------|----------|
-| Process crashes after outbox write, before inbox copy | On restart, router detects orphaned outbox entries and completes routing |
-| Process crashes after inbox copy, before outbox removal | Duplicate inbox entries possible; consumer deduplication handles this |
-| Consumer crashes after processing, before ACK | Message remains in inbox; retry mechanism will re-deliver after timeout |
-| Disk full during write | Write fails; send-message returns error; caller must retry |
-| Role directory missing | Router creates missing inbox directories automatically |
+| Scenario                                                | Handling                                                                 |
+| ------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Process crashes after outbox write, before inbox copy   | On restart, router detects orphaned outbox entries and completes routing |
+| Process crashes after inbox copy, before outbox removal | Duplicate inbox entries possible; consumer deduplication handles this    |
+| Consumer crashes after processing, before ACK           | Message remains in inbox; retry mechanism will re-deliver after timeout  |
+| Disk full during write                                  | Write fails; send-message returns error; caller must retry               |
+| Role directory missing                                  | Router creates missing inbox directories automatically                   |
 
 ---
 
@@ -212,24 +212,24 @@ After 3 failed retries (max 3.5 minutes total):
 
 All timeouts and limits are configurable via environment variables:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `MESSAGE_BUS_ACK_TIMEOUT_MS` | 300000 | ACK timeout in milliseconds (5 min) |
-| `MESSAGE_BUS_MAX_RETRIES` | 3 | Maximum retry attempts |
-| `MESSAGE_BUS_BASE_RETRY_DELAY_MS` | 30000 | Base delay for exponential backoff (30s) |
-| `MESSAGE_BUS_DEFAULT_TTL_S` | 3600 | Default message TTL in seconds (1 hour) |
-| `MESSAGE_BUS_MAX_TTL_S` | 86400 | Maximum allowed TTL (24 hours) |
+| Variable                          | Default | Description                              |
+| --------------------------------- | ------- | ---------------------------------------- |
+| `MESSAGE_BUS_ACK_TIMEOUT_MS`      | 300000  | ACK timeout in milliseconds (5 min)      |
+| `MESSAGE_BUS_MAX_RETRIES`         | 3       | Maximum retry attempts                   |
+| `MESSAGE_BUS_BASE_RETRY_DELAY_MS` | 30000   | Base delay for exponential backoff (30s) |
+| `MESSAGE_BUS_DEFAULT_TTL_S`       | 3600    | Default message TTL in seconds (1 hour)  |
+| `MESSAGE_BUS_MAX_TTL_S`           | 86400   | Maximum allowed TTL (24 hours)           |
 
 ---
 
 ## 9. CLI Commands Summary
 
-| Command | Purpose |
-|---------|---------|
-| `send-message` | Validate & persist message to outbox, route to inboxes |
-| `receive-messages` | Read messages from inbox, mark as processing |
-| `ack-message` | Write ACK record, remove from inbox |
-| `list-pending` | Show unacknowledged messages (with retry status) |
+| Command            | Purpose                                                |
+| ------------------ | ------------------------------------------------------ |
+| `send-message`     | Validate & persist message to outbox, route to inboxes |
+| `receive-messages` | Read messages from inbox, mark as processing           |
+| `ack-message`      | Write ACK record, remove from inbox                    |
+| `list-pending`     | Show unacknowledged messages (with retry status)       |
 
 ---
 
@@ -243,5 +243,5 @@ All timeouts and limits are configurable via environment variables:
 
 ---
 
-*Last updated: 2026-09-02*
-*Version: 1.0.0*
+_Last updated: 2026-09-02_
+_Version: 1.0.0_

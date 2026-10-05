@@ -27,49 +27,49 @@ L3: 环境/代码          ← 直接查看
 
 ## 核心术语 (CONTEXT.md)
 
-| 术语 | 含义 |
-|------|------|
-| **Post** | 博客文章，含 frontmatter + MDX 正文，id 基于文件路径生成 slug |
-| **Draft** | 位于 `src/posts/drafts/` 的 Post，仅开发环境可见，构建不生成路由 |
-| **Frontmatter** | YAML 元数据，经 ZodSchema 验证后成为类型安全的 PostFrontmatter |
-| **GlobLoader** | `astro/loaders` 的 `glob()` 加载器，支持 pattern/base/generateId/retainBody |
-| **ZodSchema** | `astro/zod` 导出的 Zod 4，`z.coerce.date()`、`z.array(z.string())` 自动生成 TS 类型 |
-| **RenderFunction** | `render(entry)` → `{ Content, headings, remarkPluginFrontmatter }`，Content 为 Astro 组件 |
-| **ContentCollections** | `defineCollection` + `getCollection/getEntry` 统一查询，支持构建时/实时两种 |
-| **BuildPipeline** | 统一构建后处理：Pagefind → lychee → vnu → Mermaid → Watermark |
-| **ThemeSystem** | CSS Token + daisyUI 主题 + prose 适配 + 运行时切换 |
-| **ClientRuntime** | 统一客户端入口 + 9 ClientModule 注册表 + 生命周期分发 |
-| **TelegramAuth** | 文章级访问控制：前端墙 + JWT 轮询 + Bot 深度链接 |
-| **Deep Module** | 小接口大实现，隐藏复杂度 (Ousterhout) |
-| **Seam** | 模块接口位置 (Feathers 术语) |
-| **AstroIntegration** | 通过 `astro:config:setup` 等钩子扩展构建，接收 `logger` |
-| **ViewTransitions** | SPA 模式转场，`<ClientRouter />` + 5 个生命周期事件 |
-| **Middleware** | `onRequest(context, next)` 拦截请求，`context.locals` 共享数据 |
-| **ImageOptimization** | Sharp 默认 / Passthrough 绕过，`image.service` / `image.endpoint` 配置 |
-| **RSSGeneration** | `@astrojs/rss` + `pagesGlobToRssItems` / `rssSchema` |
-| **SitemapGeneration** | `@astrojs/sitemap` chunks 分片、namespaces 排除、ChangeFreqEnum |
-| **TailwindCSS4** | CSS-first `@import "tailwindcss"` + `@plugin`，无配置文件 |
-| **DaisyUI5** | `@plugin "daisyui/theme"` CSS 变量驱动，prefersdark 自动适配 |
-| **TypographyPlugin** | `@tailwindcss/typography` prose 类族，`--tw-prose-*` CSS 变量 |
-| **PagefindModularUI** | `Instance/Input/ResultList` 组件化，bundlePath/ranking/mergeIndex 配置 |
-| **PagefindConfig** | `<pagefind-config>` 声明式，base-url/bundle-path/excerpt-length/highlight-param |
-| **PagefindCSSVars** | `--pagefind-ui-*` 样式变量，body.dark 自动适配深色 |
-| **Oxlint** | Oxc 高性能 linter，`.oxlintrc.json`/`.config.ts`，overrides 差异化，typeAware 类型感知 |
-| **Oxfmt** | Oxc 格式化，`embeddedLanguageFormatting: "auto"`，Tailwind class 排序 |
-| **TypeAwareLinting** | tsgolint (Go) 语义分析，typescript/ 前缀规则 |
-| **PrivateSubmodule** | 私有 Git 仓库子模块挂载 drafts/，Deploy Key 只读，物理隔离 |
-| **Satteri** | 替代 remark/rehype 的 Markdown 处理器（`@astrojs/markdown-satteri`），`MdastPlugin`/`HastPlugin` 插件系统，构建时 AST 转换：heading IDs、外链、Mermaid、日期、表格 |
+| 术语                   | 含义                                                                                                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Post**               | 博客文章，含 frontmatter + MDX 正文，id 基于文件路径生成 slug                                                                                                      |
+| **Draft**              | 位于 `src/posts/drafts/` 的 Post，仅开发环境可见，构建不生成路由                                                                                                   |
+| **Frontmatter**        | YAML 元数据，经 ZodSchema 验证后成为类型安全的 PostFrontmatter                                                                                                     |
+| **GlobLoader**         | `astro/loaders` 的 `glob()` 加载器，支持 pattern/base/generateId/retainBody                                                                                        |
+| **ZodSchema**          | `astro/zod` 导出的 Zod 4，`z.coerce.date()`、`z.array(z.string())` 自动生成 TS 类型                                                                                |
+| **RenderFunction**     | `render(entry)` → `{ Content, headings, remarkPluginFrontmatter }`，Content 为 Astro 组件                                                                          |
+| **ContentCollections** | `defineCollection` + `getCollection/getEntry` 统一查询，支持构建时/实时两种                                                                                        |
+| **BuildPipeline**      | 统一构建后处理：Pagefind → lychee → vnu → Mermaid → Watermark                                                                                                      |
+| **ThemeSystem**        | CSS Token + daisyUI 主题 + prose 适配 + 运行时切换                                                                                                                 |
+| **ClientRuntime**      | 统一客户端入口 + 9 ClientModule 注册表 + 生命周期分发                                                                                                              |
+| **TelegramAuth**       | 文章级访问控制：前端墙 + JWT 轮询 + Bot 深度链接                                                                                                                   |
+| **Deep Module**        | 小接口大实现，隐藏复杂度 (Ousterhout)                                                                                                                              |
+| **Seam**               | 模块接口位置 (Feathers 术语)                                                                                                                                       |
+| **AstroIntegration**   | 通过 `astro:config:setup` 等钩子扩展构建，接收 `logger`                                                                                                            |
+| **ViewTransitions**    | SPA 模式转场，`<ClientRouter />` + 5 个生命周期事件                                                                                                                |
+| **Middleware**         | `onRequest(context, next)` 拦截请求，`context.locals` 共享数据                                                                                                     |
+| **ImageOptimization**  | Sharp 默认 / Passthrough 绕过，`image.service` / `image.endpoint` 配置                                                                                             |
+| **RSSGeneration**      | `@astrojs/rss` + `pagesGlobToRssItems` / `rssSchema`                                                                                                               |
+| **SitemapGeneration**  | `@astrojs/sitemap` chunks 分片、namespaces 排除、ChangeFreqEnum                                                                                                    |
+| **TailwindCSS4**       | CSS-first `@import "tailwindcss"` + `@plugin`，无配置文件                                                                                                          |
+| **DaisyUI5**           | `@plugin "daisyui/theme"` CSS 变量驱动，prefersdark 自动适配                                                                                                       |
+| **TypographyPlugin**   | `@tailwindcss/typography` prose 类族，`--tw-prose-*` CSS 变量                                                                                                      |
+| **PagefindModularUI**  | `Instance/Input/ResultList` 组件化，bundlePath/ranking/mergeIndex 配置                                                                                             |
+| **PagefindConfig**     | `<pagefind-config>` 声明式，base-url/bundle-path/excerpt-length/highlight-param                                                                                    |
+| **PagefindCSSVars**    | `--pagefind-ui-*` 样式变量，body.dark 自动适配深色                                                                                                                 |
+| **Oxlint**             | Oxc 高性能 linter，`.oxlintrc.json`/`.config.ts`，overrides 差异化，typeAware 类型感知                                                                             |
+| **Oxfmt**              | Oxc 格式化，`embeddedLanguageFormatting: "auto"`，Tailwind class 排序                                                                                              |
+| **TypeAwareLinting**   | tsgolint (Go) 语义分析，typescript/ 前缀规则                                                                                                                       |
+| **PrivateSubmodule**   | 私有 Git 仓库子模块挂载 drafts/，Deploy Key 只读，物理隔离                                                                                                         |
+| **Satteri**            | 替代 remark/rehype 的 Markdown 处理器（`@astrojs/markdown-satteri`），`MdastPlugin`/`HastPlugin` 插件系统，构建时 AST 转换：heading IDs、外链、Mermaid、日期、表格 |
 
 ## 角色速查
 
-| 角色 | 必读 L2 | 专属门禁 |
-|------|---------|----------|
-| `frontend-architect` | 0001, 0005, 0006, SUBAGENT_OPERATIONS | Playwright Chromium |
-| `content-engineer` | 0001, 0002, REFACTOR_PLAN | 内容管道+RSS验证 |
-| `build-deploy-engineer` | 0001, 0003, SECURITY_WHITEPAPER | lychee+vnu |
-| `cli-tool-engineer` | 0003, REFACTOR_PLAN | cargo test/clippy/audit |
-| `search-discovery-engineer` | 0001, 0006, architecture-map | Pagefind索引存在 |
-| `quality-dx-guardian` | 全部 ADR, SUBAGENT_OPERATIONS | 全套Playwright |
+| 角色                        | 必读 L2                               | 专属门禁                |
+| --------------------------- | ------------------------------------- | ----------------------- |
+| `frontend-architect`        | 0001, 0005, 0006, SUBAGENT_OPERATIONS | Playwright Chromium     |
+| `content-engineer`          | 0001, 0002, REFACTOR_PLAN             | 内容管道+RSS验证        |
+| `build-deploy-engineer`     | 0001, 0003, SECURITY_WHITEPAPER       | lychee+vnu              |
+| `cli-tool-engineer`         | 0003, REFACTOR_PLAN                   | cargo test/clippy/audit |
+| `search-discovery-engineer` | 0001, 0006, architecture-map          | Pagefind索引存在        |
+| `quality-dx-guardian`       | 全部 ADR, SUBAGENT_OPERATIONS         | 全套Playwright          |
 
 ## 常用命令
 
@@ -93,33 +93,41 @@ pnpm playwright test
 
 ## 任务卡规范
 
-```markdown
+````markdown
 # Task N: <Title>
 
 ## Metadata
+
 - ID, Phase, Assignee, Status, Dependencies, Estimated Hours
 
 ## Inputs
+
 - Files: [输入文件]
 - Specs: [docs/adr/0001-functional-architecture.md#3.1]
 - Contracts: [src/modules/build-pipeline.ts]
 
 ## Acceptance Criteria
+
 - [ ] 可验证标准
 
 ## Verification Commands
+
 ```bash
 pnpm check && pnpm build
 pnpm playwright test --project=chromium  # 角色专属
 ```
+````
 
 ## Outputs
+
 - Files, Tests, Contracts 更新
 
 ## Context (handoff)
+
 ```json
 { "exports": {}, "contracts": {}, "notes": "" }
 ```
+
 ```
 
 ## 指针写法对照
@@ -142,17 +150,18 @@ pnpm playwright test --project=chromium  # 角色专属
 ## 目录速查
 
 ```
+
 .agents/
 ├── scripts/task-claim.ts, task-progress.ts, task-complete.ts, run-gate.ts, check-regression.ts
-├── tasks/phase-1..8/           # 任务卡
-├── contracts/                  # 接口契约 (TS/Zod)
-├── lifecycle/                  # 月度绩效报告
-├── team/                       # 技能矩阵、容量规划
-└── tech-debt/                  # 技术债登记
+├── tasks/phase-1..8/ # 任务卡
+├── contracts/ # 接口契约 (TS/Zod)
+├── lifecycle/ # 月度绩效报告
+├── team/ # 技能矩阵、容量规划
+└── tech-debt/ # 技术债登记
 
 src/modules/
-├── index.ts                    # 统一导出
-├── types.ts                    # 共享类型
+├── index.ts # 统一导出
+├── types.ts # 共享类型
 ├── content-pipeline.ts
 ├── build-pipeline.ts
 ├── theme-system.ts
@@ -160,7 +169,8 @@ src/modules/
 ├── client-runtime.ts
 ├── telegram-auth.ts
 └── ui-components.ts
-```
+
+````
 
 ## 维护节奏
 
@@ -197,9 +207,10 @@ export const collections = { blog };
 import { getCollection, getEntry, render } from "astro:content";
 const posts = await getCollection("blog", ({ id }) => !id.startsWith("drafts/"));
 const { Content, headings } = await render(post);
-```
+````
 
 ### View Transitions
+
 ```astro
 ---
 import { ClientRouter } from "astro:transitions";
@@ -216,6 +227,7 @@ import { ClientRouter } from "astro:transitions";
 ```
 
 ### Middleware
+
 ```typescript
 // src/middleware/index.ts
 export async function onRequest(context, next) {
@@ -225,6 +237,7 @@ export async function onRequest(context, next) {
 ```
 
 ### Image Optimization
+
 ```astro
 ---
 import { Image } from "astro:assets";
@@ -234,6 +247,7 @@ import myImage from "./hero.png";
 ```
 
 ### Tailwind CSS 4 + daisyUI 5
+
 ```css
 /* global.css */
 @import "tailwindcss";
@@ -246,25 +260,27 @@ import myImage from "./hero.png";
 ```
 
 ### Pagefind
+
 ```html
 <pagefind-config base-url="/" bundle-path="/pagefind/">
-<pagefind-input placeholder="搜索...">
-<pagefind-results>
-  <script type="text/pagefind-template">
-    <li>{{ meta.title }} <a href="{{ url | safeUrl }}">{{ url }}</a></li>
-  </script>
-</pagefind-results>
+  <pagefind-input placeholder="搜索...">
+    <pagefind-results>
+      <script type="text/pagefind-template">
+        <li>{{ meta.title }} <a href="{{ url | safeUrl }}">{{ url }}</a></li>
+      </script>
+    </pagefind-results></pagefind-input
+  ></pagefind-config
+>
 ```
 
 ### Oxlint / Oxfmt
+
 ```jsonc
 // .oxlintrc.json
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "rules": { "no-unused-vars": "error" },
-  "overrides": [
-    { "files": ["*.astro"], "rules": { "no-unused-vars": "off" } }
-  ]
+  "overrides": [{ "files": ["*.astro"], "rules": { "no-unused-vars": "off" } }],
 }
 ```
 
@@ -273,6 +289,6 @@ import myImage from "./hero.png";
 import { defineConfig } from "oxlint";
 export default defineConfig({
   options: { typeAware: true },
-  overrides: [{ files: ["**/*.ts"], rules: { "typescript/no-explicit-any": "error" } }]
+  overrides: [{ files: ["**/*.ts"], rules: { "typescript/no-explicit-any": "error" } }],
 });
 ```

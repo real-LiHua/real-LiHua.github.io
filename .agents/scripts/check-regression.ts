@@ -49,10 +49,18 @@ const curTest = runCmd("pnpm playwright test --reporter=line 2>&1 | tail -10");
 
 // Get base metrics
 console.log(`\nBase (${baseSha}) metrics:`);
-const baseTsc = runCmd(`git stash && git checkout ${baseSha} --quiet && pnpm tsc -b 2>&1 | tail -5 && git checkout - --quiet && git stash pop --quiet 2>/dev/null || true`);
-const baseLint = runCmd(`git stash && git checkout ${baseSha} --quiet && pnpm oxlint 2>&1 | tail -3 && git checkout - --quiet && git stash pop --quiet 2>/dev/null || true`);
-const baseFmt = runCmd(`git stash && git checkout ${baseSha} --quiet && pnpm oxfmt --check 2>&1 | tail -3 && git checkout - --quiet && git stash pop --quiet 2>/dev/null || true`);
-const baseTest = runCmd(`git stash && git checkout ${baseSha} --quiet && pnpm playwright test --reporter=line 2>&1 | tail -10 && git checkout - --quiet && git stash pop --quiet 2>/dev/null || true`);
+const baseTsc = runCmd(
+  `git stash && git checkout ${baseSha} --quiet && pnpm tsc -b 2>&1 | tail -5 && git checkout - --quiet && git stash pop --quiet 2>/dev/null || true`,
+);
+const baseLint = runCmd(
+  `git stash && git checkout ${baseSha} --quiet && pnpm oxlint 2>&1 | tail -3 && git checkout - --quiet && git stash pop --quiet 2>/dev/null || true`,
+);
+const baseFmt = runCmd(
+  `git stash && git checkout ${baseSha} --quiet && pnpm oxfmt --check 2>&1 | tail -3 && git checkout - --quiet && git stash pop --quiet 2>/dev/null || true`,
+);
+const baseTest = runCmd(
+  `git stash && git checkout ${baseSha} --quiet && pnpm playwright test --reporter=line 2>&1 | tail -10 && git checkout - --quiet && git stash pop --quiet 2>/dev/null || true`,
+);
 
 // Simple comparison
 console.log("\n--- TypeScript ---");
@@ -73,4 +81,6 @@ console.log(`  Base:    ${baseTest.split("\n").pop() || "unknown"}`);
 
 // Check for regressions
 const hasRegression = false; // Simplified - would need proper parsing
-console.log(`\n${hasRegression ? "⚠️  REGRESSION DETECTED" : "✅ No significant regression detected"}`);
+console.log(
+  `\n${hasRegression ? "⚠️  REGRESSION DETECTED" : "✅ No significant regression detected"}`,
+);

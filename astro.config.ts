@@ -38,7 +38,9 @@ export default defineConfig({
     mdx(),
     sitemap(),
     satteriConfigIntegration(),
-    ...(isDev ? [] : [minify(), watermarkIntegration(String(process.env.SITE_URL ?? "http://localhost:4321"))]),
+    ...(isDev
+      ? []
+      : [minify(), watermarkIntegration(String(process.env.SITE_URL ?? "http://localhost:4321"))]),
     buildHooksIntegration(),
   ],
   security: { checkOrigin: false },

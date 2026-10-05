@@ -1,15 +1,19 @@
 # Architecture Decision Record: 博客系统功能架构设计
 
 ## Status
+
 Accepted
 
 ## Context
+
 个人博客需支持：文章发布/草稿管理、全文搜索、主题切换、Telegram 认证阅读、Mermaid 图表、盲水印版权保护、多平台部署。现有代码呈现“集成分散、组件耦合、主题变量重复、脚本碎片化”等浅模块特征，需重构为深度模块架构。
 
 ## Decision
+
 采用 **C4 模型** 定义四层架构，配合 **深度模块** 原则划定模块边界：
 
 ### C1: System Context (系统上下文)
+
 ```
 [作者] ──▶ [博客系统] ◀── [读者]
                 │
@@ -24,17 +28,19 @@ Accepted
 ```
 
 ### C2: Container (容器/运行时边界)
-| Container | 技术 | 职责 | 接口 |
-|-----------|------|------|------|
-| **Astro App (SSR/SSG)** | Astro 7 + Node Adapter | 核心渲染、路由、内容管道 | HTTP GET/POST, `astro:content` API |
-| **Build Pipeline** | Node.js (构建时) | 后处理管线 | `astro:build:done` hook |
-| **Client Runtime** | Vanilla TS + View Transitions | 交互、搜索、主题、TOC、阅读进度 | DOM Events (`astro:page-load` 等) |
-| **Rust CLI** | Rust (post-edit) | 文章增删改查、发布/撤回 | CLI 交互菜单 |
-| **Telegram Bot** | Grammy (外部服务) | 群组成员身份验证 | HTTPS Webhook / Deep Link |
+
+| Container               | 技术                          | 职责                            | 接口                               |
+| ----------------------- | ----------------------------- | ------------------------------- | ---------------------------------- |
+| **Astro App (SSR/SSG)** | Astro 7 + Node Adapter        | 核心渲染、路由、内容管道        | HTTP GET/POST, `astro:content` API |
+| **Build Pipeline**      | Node.js (构建时)              | 后处理管线                      | `astro:build:done` hook            |
+| **Client Runtime**      | Vanilla TS + View Transitions | 交互、搜索、主题、TOC、阅读进度 | DOM Events (`astro:page-load` 等)  |
+| **Rust CLI**            | Rust (post-edit)              | 文章增删改查、发布/撤回         | CLI 交互菜单                       |
+| **Telegram Bot**        | Grammy (外部服务)             | 群组成员身份验证                | HTTPS Webhook / Deep Link          |
 
 ### C3: Component (模块/深度模块边界)
 
 #### 3.1 Content Pipeline Module
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    ContentPipeline                           │
@@ -52,9 +58,11 @@ Accepted
 │    - RSS/站点地图生成 (@astrojs/rss, @astrojs/sitemap)       │
 └─────────────────────────────────────────────────────────────┘
 ```
+
 **Depth**: 调用者仅需 `getPublishedPosts()`/`renderPost()`，内部封装 loader/schema/processor/渲染全链路。
 
 #### 3.2 Build Pipeline Module
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      BuildPipeline                           │
@@ -72,9 +80,11 @@ Accepted
 │    - StageRunner (阶段执行器：超时、重试、错误聚合)           │
 └─────────────────────────────────────────────────────────────┘
 ```
+
 **Depth**: 单一 `execute()` 隐藏 5 个阶段、文件遍历、错误处理、日志聚合。
 
 #### 3.3 Theme System Module
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                       ThemeSystem                            │
@@ -90,9 +100,11 @@ Accepted
 │    - theme-toggle.ts (ClientModule) 仅 30 行                 │
 └─────────────────────────────────────────────────────────────┘
 ```
+
 **Depth**: 调用者只需引入 `theme-tokens.css`，主题切换、prose 适配、动画过渡全内置。
 
 #### 3.4 Search Module
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                       SearchModule                           │
@@ -109,6 +121,7 @@ Accepted
 ```
 
 #### 3.5 Client Runtime Module
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      ClientRuntime                           │
@@ -131,6 +144,7 @@ Accepted
 ```
 
 #### 3.6 UI Component Library (复合组件模式)
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      UIComponents                             │
@@ -151,6 +165,7 @@ Accepted
 ```
 
 #### 3.7 Telegram Auth Module
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     TelegramAuth                              │
@@ -169,6 +184,7 @@ Accepted
 ### C4: Code (关键实现细节)
 
 #### 接口契约 (TypeScript/Zod)
+
 ```typescript
 // src/content.config.ts 导出
 export type PostFrontmatter = z.infer<typeof blog.schema>;
@@ -181,6 +197,7 @@ export const renderPost = (id: string): Promise<RenderedPost>;
 ```
 
 #### 构建管线阶段契约
+
 ```typescript
 // src/integrations/build-pipeline.ts
 interface BuildStage {
@@ -191,6 +208,7 @@ interface BuildStage {
 ```
 
 #### 客户端模块契约
+
 ```typescript
 // src/scripts/client-entry.ts
 interface ClientContext {
@@ -207,21 +225,25 @@ type ClientModuleInit = (ctx: ClientContext) => void | Promise<void>;
 ## Consequences
 
 ### Positive
+
 - **单一职责**：每个深度模块封装完整子域逻辑
 - **可测试性**：接口小，易写内存适配器（如 `BuildPipeline` 用内存文件系统测试）
 - **局部性**：修改主题只碰 `theme-tokens.css`；修改搜索只碰 `SearchModule`
 - **杠杆性**：`ContentPipeline` 一次实现，`getPublishedPosts`/`renderPost`/`RSS`/`Sitemap` 全复用
 
 ### Negative / Trade-offs
+
 - **初期投入大**：需重写 4 个集成、拆分组件、统一脚本入口
 - **Astro 集成 API 学习成本**：`astro:build:done`/`astro:config:setup` 钩子类型较复杂
 - **ClientModule 注册顺序**：需显式管理依赖顺序（如 ThemeToggle 必在 TOC 之前）
 
 ## Alternatives Considered
+
 1. **保持现状** —— 浅模块蔓延，技术债累积，拒绝
 2. **微前端拆分** —— 过度设计，单人维护成本极高，拒绝
 3. **仅重构集成** —— 未解决组件/脚本/主题分层问题，拒绝
 
 ## Related ADRs
+
 - 待创建：`0002-theme-token-strategy.md` (CSS 变量 vs Tailwind @theme)
 - 待创建：`0003-pagefind-ui-approach.md` (声明式 vs 模块化 UI)

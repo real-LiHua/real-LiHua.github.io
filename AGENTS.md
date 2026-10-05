@@ -35,15 +35,15 @@ src/
 
 ### Deep Module Boundaries
 
-| Module | Interface | Implementation | Consumers |
-|--------|-----------|----------------|-----------|
-| `content-pipeline` | `getPublishedPosts()`, `renderPost()` | Astro Content Collections + Zod + satteri | Pages, RSS, Sitemap, Search |
-| `build-pipeline` | `execute(distDir)`, `registerStage()` | 5 stages: Pagefind → lychee → vnu → Mermaid → Watermark | `astro:build:done` hook |
-| `theme-system` | `init()`, `toggleTheme()`, CSS tokens | `theme-tokens.css` + daisyUI `@plugin` | BaseLayout, Navbar, PagefindSearch |
-| `search` | `generateIndex()`, `<PagefindSearch />` | Pagefind CLI + modular UI | BuildPipeline, Post pages |
-| `client-runtime` | `registerModule()`, `start()` | 9 ClientModules + lifecycle dispatch | BaseLayout (single entry) |
-| `telegram-auth` | `initClient()`, `AuthWallProps`, `pollAuthStatus()` | Frontend wall + JWT polling + Bot API | Post page, ClientRuntime |
-| `ui-components` | Composite components (Navbar, PostCardGrid/List, Tag, PagefindSearch, BaseLayout) | daisyUI + Tailwind + Astro slots | All pages |
+| Module             | Interface                                                                         | Implementation                                          | Consumers                          |
+| ------------------ | --------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------- |
+| `content-pipeline` | `getPublishedPosts()`, `renderPost()`                                             | Astro Content Collections + Zod + satteri               | Pages, RSS, Sitemap, Search        |
+| `build-pipeline`   | `execute(distDir)`, `registerStage()`                                             | 5 stages: Pagefind → lychee → vnu → Mermaid → Watermark | `astro:build:done` hook            |
+| `theme-system`     | `init()`, `toggleTheme()`, CSS tokens                                             | `theme-tokens.css` + daisyUI `@plugin`                  | BaseLayout, Navbar, PagefindSearch |
+| `search`           | `generateIndex()`, `<PagefindSearch />`                                           | Pagefind CLI + modular UI                               | BuildPipeline, Post pages          |
+| `client-runtime`   | `registerModule()`, `start()`                                                     | 9 ClientModules + lifecycle dispatch                    | BaseLayout (single entry)          |
+| `telegram-auth`    | `initClient()`, `AuthWallProps`, `pollAuthStatus()`                               | Frontend wall + JWT polling + Bot API                   | Post page, ClientRuntime           |
+| `ui-components`    | Composite components (Navbar, PostCardGrid/List, Tag, PagefindSearch, BaseLayout) | daisyUI + Tailwind + Astro slots                        | All pages                          |
 
 ---
 
@@ -158,6 +158,7 @@ pnpm lint-staged
 ### CI Pipeline
 
 The GitHub Actions workflow (`.github/workflows/deploy.yml`) runs on push to `main`:
+
 1. **cloudflare** — Build + deploy to Cloudflare Workers
 2. **codeberg** — Build + deploy to Codeberg Pages (SSH push)
 3. **github** — Build + deploy to GitHub Pages via `withastro/action`
@@ -227,6 +228,7 @@ pnpm build
 ```
 
 **Output structure:**
+
 ```
 dist/
 ├── client/          # Static assets for Pages deployments
@@ -243,23 +245,23 @@ dist/
 
 ### Deployment Targets
 
-| Target | URL | Method |
-|--------|-----|--------|
-| **Cloudflare Workers** | `https://<your-worker>.pages.dev` | `wrangler deploy` |
-| **Codeberg Pages** | `https://lihua.codeberg.page` | SSH bare repo push |
-| **GitHub Pages** | `https://real-LiHua.github.io` | `actions/deploy-pages` |
-| **IPFS** | Via Pinata gateway | `ipfs add` + Pinata pin |
+| Target                 | URL                               | Method                  |
+| ---------------------- | --------------------------------- | ----------------------- |
+| **Cloudflare Workers** | `https://<your-worker>.pages.dev` | `wrangler deploy`       |
+| **Codeberg Pages**     | `https://lihua.codeberg.page`     | SSH bare repo push      |
+| **GitHub Pages**       | `https://real-LiHua.github.io`    | `actions/deploy-pages`  |
+| **IPFS**               | Via Pinata gateway                | `ipfs add` + Pinata pin |
 
 ### Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `SITE_URL` | Base URL for sitemap, RSS, OGP | Yes (build) |
-| `CF_PAGES_URL` | Cloudflare Pages URL (fallback) | No |
-| `CLOUDFLARE_ACCOUNT_ID` | CF account ID | Deploy only |
-| `CLOUDFLARE_API_TOKEN` | CF API token | Deploy only |
-| `CODEBERG_PAGES` | SSH private key for Codeberg | Deploy only |
-| `PINATA_JWT_TOKEN` | Pinata API JWT | IPFS deploy only |
+| Variable                | Description                     | Required         |
+| ----------------------- | ------------------------------- | ---------------- |
+| `SITE_URL`              | Base URL for sitemap, RSS, OGP  | Yes (build)      |
+| `CF_PAGES_URL`          | Cloudflare Pages URL (fallback) | No               |
+| `CLOUDFLARE_ACCOUNT_ID` | CF account ID                   | Deploy only      |
+| `CLOUDFLARE_API_TOKEN`  | CF API token                    | Deploy only      |
+| `CODEBERG_PAGES`        | SSH private key for Codeberg    | Deploy only      |
+| `PINATA_JWT_TOKEN`      | Pinata API JWT                  | IPFS deploy only |
 
 ### Local Preview of Deployed Builds
 
@@ -357,6 +359,7 @@ pnpm post:edit
 ### Content Collections Schema
 
 Defined in `src/content.config.ts`:
+
 - `title` (required, string)
 - `publishDate` (optional, date)
 - `updatedDate` (optional, date)
@@ -408,14 +411,14 @@ pnpm add -D package@latest
 
 ### Debugging
 
-| Issue | Solution |
-|-------|----------|
-| Build fails on types | Run `pnpm check` for detailed errors |
-| Styles not applying | Check daisyUI class names, run `pnpm build` |
-| Content not showing | Verify frontmatter matches schema in `content.config.ts` |
-| Search not working | Ensure `pnpm build` ran (generates Pagefind index) |
-| Hydration errors | Check client scripts for `isBrowser` guards |
-| Rust CLI not found | Run `cargo build --release -p post-edit` |
+| Issue                | Solution                                                 |
+| -------------------- | -------------------------------------------------------- |
+| Build fails on types | Run `pnpm check` for detailed errors                     |
+| Styles not applying  | Check daisyUI class names, run `pnpm build`              |
+| Content not showing  | Verify frontmatter matches schema in `content.config.ts` |
+| Search not working   | Ensure `pnpm build` ran (generates Pagefind index)       |
+| Hydration errors     | Check client scripts for `isBrowser` guards              |
+| Rust CLI not found   | Run `cargo build --release -p post-edit`                 |
 
 ---
 
@@ -490,6 +493,7 @@ pnpm oxfmt --write
 ## Technical Reference (from Official Docs)
 
 ### Astro 7 Content Collections
+
 - **Glob Loader** (`astro/loaders`): `glob({ pattern: "**/*.{md,mdx}", base: "./src/posts" })` — 支持 `generateId`、`retainBody` (v5.17+)、`pattern` 数组
 - **Schema** (`astro/zod`): Zod 4 语法，`z.coerce.date()`、`z.array(z.string())`、`.optional()`、`.nullable()`，自动生成 TS 类型
 - **Markdown 处理器**: **Satteri** (`@astrojs/markdown-satteri`) 替代已弃用的 remark/rehype，提供 `MdastPlugin`/`HastPlugin` 插件系统（heading IDs、外链标记、Mermaid 渲染、日期自动填充、表格对齐）
@@ -499,11 +503,13 @@ pnpm oxfmt --write
 - **Sitemap**: `@astrojs/sitemap` v3.7+ 支持 `chunks` 分片、`namespaces` 排除、`ChangeFreqEnum`
 
 ### Astro Integrations & Hooks
+
 - **钩子**: `astro:config:setup` (配置)、`astro:build:start` (构建前)、`astro:build:done` (构建后)、`astro:routes:resolved` (路由解析后)
 - **IntegrationResolvedRoute**: `pattern`、`component`、`prerender`、`params`、`generateId`
 - **Logger**: `astro:build:done` 等钩子接收 `logger: AstroIntegrationLogger`
 
 ### View Transitions (SPA Mode)
+
 - **ClientRouter**: `<ClientRouter fallback="animate|swap|none" />`，`animate` 默认模拟转场
 - **生命周期**: `astro:before-preparation` → `astro:after-preparation` → `astro:before-swap` → `astro:after-swap` → `astro:page-load`
 - **脚本重执行**: `<script is:inline data-astro-rerun>` 强制每次导航执行，或监听 `astro:page-load`
@@ -511,27 +517,32 @@ pnpm oxfmt --write
 - **表单**: `<form data-astro-reload>` 退出 SPA 模式
 
 ### Middleware
+
 - `src/middleware/index.ts` 导出 `onRequest(context, next)`，可读写 `context.locals` 跨组件共享
 - 预渲染时运行，按需渲染时每请求运行，Cookie/Headers 仅 SSR 可用
 
 ### Image Optimization
+
 - **Sharp** (默认): `image.service.entrypoint: 'astro/assets/services/sharp'`，配置 `limitInputPixels`、`webp`/`jpeg`/`avif`/`png` encoder 选项
 - **Passthrough**: `passthroughImageService()` 绕过处理，适配 Cloudflare Workers 等边缘环境
 - **Endpoint**: `image.endpoint.route` 自定义图片服务路由
 
 ### Tailwind CSS 4 + daisyUI 5
+
 - **CSS-first**: `@import "tailwindcss"; @plugin "@tailwindcss/typography"; @plugin "daisyui";`
 - **主题**: `@plugin "daisyui/theme" { name: "light"; prefersdark: false; color-scheme: "light"; --color-*: ... }`
 - **Typography**: `@tailwindcss/typography` 通过 `--tw-prose-*` CSS 变量控制，`[data-theme="dark"]` 覆盖
 - **Vite 插件**: `@tailwindcss/vite` 集成
 
 ### Pagefind
+
 - **模块化 UI**: `Instance({ bundlePath })` + `Input({ containerElement })` + `ResultList({ containerElement, resultTemplate })`
 - **声明式**: `<pagefind-config base-url="/" bundle-path="/pagefind/"><pagefind-input><pagefind-results>`
 - **CSS 变量**: `--pagefind-ui-primary`、`--pagefind-ui-background`、`--pagefind-ui-text`、`body.dark` 覆盖
 - **结果模板**: `<script type="text/pagefind-template">` 内部 `{{ meta.title }}`、`{{ url | safeUrl }}`、`{{+ excerpt +}}`
 
 ### Oxlint / Oxfmt
+
 - **配置**: `.oxlintrc.json` (ESLint 兼容) 或 `oxlint.config.ts` (`defineConfig`)，支持 `overrides` 按 glob 差异化
 - **类型感知**: `typeAware: true` 需 `oxlint-tsgolint`，规则前缀 `typescript/`
 - **Oxfmt**: `oxfmt.config.ts` (`defineConfig`)，`embeddedLanguageFormatting: "auto"`，Tailwind class 排序内置
@@ -564,14 +575,14 @@ pnpm exec tsx .agents/scripts/task-complete.ts 1.1
 
 ### Roles
 
-| Role ID | Type | Focus | Quality Gate |
-|---------|------|-------|--------------|
-| `frontend-architect` | Stream | Components, Theme, View Transitions | Playwright Chromium |
-| `content-engineer` | Stream | Content Collections, MDX, Zod, RSS | Content pipeline + RSS |
-| `build-deploy-engineer` | Platform | BuildPipeline, Pagefind, CI/CD | lychee + vnu |
-| `cli-tool-engineer` | Platform | post-edit (Rust), CLI, publishing | cargo test/clippy/audit |
-| `search-discovery-engineer` | Complicated | Pagefind index, Search UI, algorithms | Pagefind index exists |
-| `quality-dx-guardian` | Enabling | oxlint/oxfmt/TS/Playwright/ADR | Full Playwright suite |
+| Role ID                     | Type        | Focus                                 | Quality Gate            |
+| --------------------------- | ----------- | ------------------------------------- | ----------------------- |
+| `frontend-architect`        | Stream      | Components, Theme, View Transitions   | Playwright Chromium     |
+| `content-engineer`          | Stream      | Content Collections, MDX, Zod, RSS    | Content pipeline + RSS  |
+| `build-deploy-engineer`     | Platform    | BuildPipeline, Pagefind, CI/CD        | lychee + vnu            |
+| `cli-tool-engineer`         | Platform    | post-edit (Rust), CLI, publishing     | cargo test/clippy/audit |
+| `search-discovery-engineer` | Complicated | Pagefind index, Search UI, algorithms | Pagefind index exists   |
+| `quality-dx-guardian`       | Enabling    | oxlint/oxfmt/TS/Playwright/ADR        | Full Playwright suite   |
 
 ### Key Directories
 
@@ -599,18 +610,18 @@ Full operations guide: `docs/SUBAGENT_OPERATIONS.md`
 
 ## Architecture References
 
-| Document | Purpose |
-|----------|---------|
-| `CONTEXT.md` | Domain glossary (33 core terms) |
-| `docs/adr/0001-functional-architecture.md` | C4 model + deep module boundaries |
-| `docs/adr/0002-draft-isolation-submodule.md` | Draft isolation via private Git submodule |
-| `docs/adr/0003-subagent-responsibilities-controls.md` | 6 roles, lifecycle, comms, quality gates |
-| `docs/adr/0004-agents-knowledge-base-architecture.md` | Knowledge base 3-tier architecture + context pointers |
-| `docs/adr/0005-knowledge-update-process.md` | L0-L3 trigger layers, automation scripts, CI guards |
-| `docs/architecture-map.md` | Mermaid dependency graph, data flows, seam decisions |
-| `docs/SECURITY_WHITEPAPER.md` | Threat model, CSP, auth, build pipeline security, incident response |
-| `REFACTOR_PLAN.md` | 8-phase refactor plan with verification & rollback |
-| `src/modules/index.ts` | Unified module exports |
+| Document                                              | Purpose                                                             |
+| ----------------------------------------------------- | ------------------------------------------------------------------- |
+| `CONTEXT.md`                                          | Domain glossary (33 core terms)                                     |
+| `docs/adr/0001-functional-architecture.md`            | C4 model + deep module boundaries                                   |
+| `docs/adr/0002-draft-isolation-submodule.md`          | Draft isolation via private Git submodule                           |
+| `docs/adr/0003-subagent-responsibilities-controls.md` | 6 roles, lifecycle, comms, quality gates                            |
+| `docs/adr/0004-agents-knowledge-base-architecture.md` | Knowledge base 3-tier architecture + context pointers               |
+| `docs/adr/0005-knowledge-update-process.md`           | L0-L3 trigger layers, automation scripts, CI guards                 |
+| `docs/architecture-map.md`                            | Mermaid dependency graph, data flows, seam decisions                |
+| `docs/SECURITY_WHITEPAPER.md`                         | Threat model, CSP, auth, build pipeline security, incident response |
+| `REFACTOR_PLAN.md`                                    | 8-phase refactor plan with verification & rollback                  |
+| `src/modules/index.ts`                                | Unified module exports                                              |
 
 ---
 
@@ -622,19 +633,19 @@ This is a single-package repository. No workspace commands needed.
 
 ### Key Files for Agents
 
-| File | Purpose |
-|------|---------|
-| `astro.config.ts` | Astro configuration, integrations, adapter |
-| `src/content.config.ts` | Content collections schema |
-| `package.json` | Scripts, dependencies, lint-staged config |
-| `.oxlintrc.json` | Linting rules |
-| `oxfmt.config.ts` | Formatting config |
-| `.github/workflows/deploy.yml` | CI/CD pipeline (4-platform deploy) |
+| File                                    | Purpose                                                        |
+| --------------------------------------- | -------------------------------------------------------------- |
+| `astro.config.ts`                       | Astro configuration, integrations, adapter                     |
+| `src/content.config.ts`                 | Content collections schema                                     |
+| `package.json`                          | Scripts, dependencies, lint-staged config                      |
+| `.oxlintrc.json`                        | Linting rules                                                  |
+| `oxfmt.config.ts`                       | Formatting config                                              |
+| `.github/workflows/deploy.yml`          | CI/CD pipeline (4-platform deploy)                             |
 | `.github/workflows/knowledge-guard.yml` | Knowledge base guards (pointers, terms, contracts, regression) |
-| `.github/pull_request_template.md` | PR template with KB impact checklist |
-| `wrangler.jsonc` | Cloudflare Workers config |
-| `Cargo.toml` | Rust CLI project config |
-| `src/modules/*.ts` | Deep module interfaces |
+| `.github/pull_request_template.md`      | PR template with KB impact checklist                           |
+| `wrangler.jsonc`                        | Cloudflare Workers config                                      |
+| `Cargo.toml`                            | Rust CLI project config                                        |
+| `src/modules/*.ts`                      | Deep module interfaces                                         |
 
 ### Useful Commands Reference
 

@@ -70,30 +70,40 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // Store in KV if available
     if (kv) {
       const sessionKey = `tg_auth:${postId}:${userId}`;
-      await kv.put(sessionKey, JSON.stringify({
-        token,
-        userId,
-        postId,
-        expiresAt,
-        groupVerified: true,
-      }), { expirationTtl: expiresIn });
+      await kv.put(
+        sessionKey,
+        JSON.stringify({
+          token,
+          userId,
+          postId,
+          expiresAt,
+          groupVerified: true,
+        }),
+        { expirationTtl: expiresIn },
+      );
     }
 
     // Return token to bot (bot will send to user via Web App or message)
-    return new Response(JSON.stringify({
-      token,
-      expiresIn,
-      redirectUrl: `/posts/${postId}/?token=${token}&user_id=${userId}&expires_in=${expiresIn}`,
-    }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        token,
+        expiresIn,
+        redirectUrl: `/posts/${postId}/?token=${token}&user_id=${userId}&expires_in=${expiresIn}`,
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
     console.error("Callback error:", error);
     return new Response("Internal server error", { status: 500 });
   }
 };
 
-async function generateToken(payload: { userId: number; postId: string }, secret: string): Promise<string> {
+async function generateToken(
+  payload: { userId: number; postId: string },
+  secret: string,
+): Promise<string> {
   const header = { alg: "HS256", typ: "JWT" };
   const now = Math.floor(Date.now() / 1000);
   const claims = {
@@ -108,7 +118,7 @@ async function generateToken(payload: { userId: number; postId: string }, secret
     encoder.encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
-    ["sign"]
+    ["sign"],
   );
 
   const headerB64 = base64UrlEncode(JSON.stringify(header));

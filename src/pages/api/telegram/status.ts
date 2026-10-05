@@ -39,17 +39,20 @@ export const GET: APIRoute = async ({ request, locals }) => {
   if (kv) {
     try {
       const sessionKey = `tg_auth:${postId}`;
-      const stored = await kv.get(sessionKey, "json") as SessionData | null;
+      const stored = (await kv.get(sessionKey, "json")) as SessionData | null;
 
       if (stored && stored.expiresAt > Date.now()) {
-        return new Response(JSON.stringify({
-          authenticated: true,
-          token: stored.token,
-          userId: stored.userId,
-          expiresIn: Math.ceil((stored.expiresAt - Date.now()) / 1000),
-        }), {
-          headers: { "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({
+            authenticated: true,
+            token: stored.token,
+            userId: stored.userId,
+            expiresIn: Math.ceil((stored.expiresAt - Date.now()) / 1000),
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+          },
+        );
       }
     } catch (e) {
       console.error("KV read error:", e);
@@ -62,14 +65,17 @@ export const GET: APIRoute = async ({ request, locals }) => {
     // Verify JWT token
     const isValid = await verifyToken(token, postId);
     if (isValid) {
-      return new Response(JSON.stringify({
-        authenticated: true,
-        token,
-        userId: isValid.userId,
-        expiresIn: Math.ceil((isValid.expiresAt - Date.now()) / 1000),
-      }), {
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({
+          authenticated: true,
+          token,
+          userId: isValid.userId,
+          expiresIn: Math.ceil((isValid.expiresAt - Date.now()) / 1000),
+        }),
+        {
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     }
   }
 
@@ -78,7 +84,10 @@ export const GET: APIRoute = async ({ request, locals }) => {
   });
 };
 
-async function verifyToken(token: string, postId: string): Promise<{ userId: number; expiresAt: number } | null> {
+async function verifyToken(
+  token: string,
+  postId: string,
+): Promise<{ userId: number; expiresAt: number } | null> {
   try {
     const secret = getSecret("JWT_SECRET") || "dev-secret-change-in-production";
     const key = await crypto.subtle.importKey(
@@ -86,7 +95,7 @@ async function verifyToken(token: string, postId: string): Promise<{ userId: num
       new TextEncoder().encode(secret),
       { name: "HMAC", hash: "SHA-256" },
       false,
-      ["verify", "sign"]
+      ["verify", "sign"],
     );
 
     const [headerB64, payloadB64, signatureB64] = token.split(".");
@@ -94,7 +103,12 @@ async function verifyToken(token: string, postId: string): Promise<{ userId: num
 
     const data = `${headerB64}.${payloadB64}`;
     const signature = base64UrlToUint8Array(signatureB64);
-    const valid = await crypto.subtle.verify("HMAC", key, signature, new TextEncoder().encode(data).buffer);
+    const valid = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      signature,
+      new TextEncoder().encode(data).buffer,
+    );
 
     if (!valid) return null;
 
@@ -120,5 +134,10 @@ function base64UrlDecode(str: string): string {
   const base64 = str.replace(/-/g, "+").replace(/_/g, "/");
   const pad = base64.length % 4;
   const padded = base64 + (pad ? "=".repeat(4 - pad) : "");
-  return decodeURIComponent(atob(padded).split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+  return decodeURIComponent(
+    atob(padded)
+      .split("")
+      .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+      .join(""),
+  );
 }

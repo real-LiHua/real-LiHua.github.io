@@ -81,9 +81,7 @@ gateResult.common.build = runCmd("pnpm build", "Build") ? "pass" : "fail";
 
 // Role-specific gates
 const roleGates: Record<string, [string, string][]> = {
-  "frontend-architect": [
-    ["pnpm playwright test --project=chromium", "Playwright (Chromium)"],
-  ],
+  "frontend-architect": [["pnpm playwright test --project=chromium", "Playwright (Chromium)"]],
   "content-engineer": [
     ["pnpm build && node -e \"require('./dist/server/entry.mjs')\"", "Content pipeline + RSS"],
   ],
@@ -99,22 +97,19 @@ const roleGates: Record<string, [string, string][]> = {
   "search-discovery-engineer": [
     ["pnpm build && ls dist/client/pagefind/*.json", "Pagefind index exists"],
   ],
-  "quality-dx-guardian": [
-    ["pnpm playwright test", "Full Playwright suite"],
-  ],
+  "quality-dx-guardian": [["pnpm playwright test", "Full Playwright suite"]],
 };
 
 const specificGates = roleGates[progress.assignee] || [];
 for (const [cmd, label] of specificGates) {
-  gateResult.specific[label.toLowerCase().replace(/\s+/g, "-")] = runCmd(cmd, label) ? "pass" : "fail";
+  gateResult.specific[label.toLowerCase().replace(/\s+/g, "-")] = runCmd(cmd, label)
+    ? "pass"
+    : "fail";
 }
 
 // Determine overall
-const allResults = [
-  ...Object.values(gateResult.common),
-  ...Object.values(gateResult.specific),
-];
-gateResult.overall = allResults.every(r => r === "pass") ? "pass" : "fail";
+const allResults = [...Object.values(gateResult.common), ...Object.values(gateResult.specific)];
+gateResult.overall = allResults.every((r) => r === "pass") ? "pass" : "fail";
 
 writeFileSync(gateFile, JSON.stringify(gateResult, null, 2));
 

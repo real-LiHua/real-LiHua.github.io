@@ -58,19 +58,20 @@ graph TD
 
 ## 接口契约矩阵 (Interface Contract Matrix)
 
-| Module | Exported Interface | Key Methods | Consumers |
-|--------|-------------------|-------------|-----------|
-| **ContentPipeline** | `ContentPipeline` | `getPublishedPosts()`, `renderPost(id)` | Pages, RSS, Sitemap, Search Index |
-| **BuildPipeline** | `BuildPipeline` | `execute(distDir)`, `registerStage()` | `astro.config.ts` (integration) |
-| **ThemeSystem** | `ThemeSystem` | `init()`, `toggleTheme()`, `onThemeChange()` | `BaseLayout`, `Navbar`, `PagefindSearch` |
-| **SearchModule** | `SearchModule` | `generateIndex()`, `<PagefindSearch />` | `buildPipeline`, `Posts pages` |
-| **ClientRuntime** | `ClientRuntime` | `registerModule()`, `start()` | `BaseLayout` (single entry) |
-| **TelegramAuthModule** | `TelegramAuthModule` | `initClient()`, `AuthWallProps`, `pollAuthStatus()` | `PostPage`, `ClientRuntime` |
-| **UIComponents** | Component Factories | `Navbar`, `PostCardGrid/List`, `Tag`, `PagefindSearch`, `BaseLayout` | All Pages |
+| Module                 | Exported Interface   | Key Methods                                                          | Consumers                                |
+| ---------------------- | -------------------- | -------------------------------------------------------------------- | ---------------------------------------- |
+| **ContentPipeline**    | `ContentPipeline`    | `getPublishedPosts()`, `renderPost(id)`                              | Pages, RSS, Sitemap, Search Index        |
+| **BuildPipeline**      | `BuildPipeline`      | `execute(distDir)`, `registerStage()`                                | `astro.config.ts` (integration)          |
+| **ThemeSystem**        | `ThemeSystem`        | `init()`, `toggleTheme()`, `onThemeChange()`                         | `BaseLayout`, `Navbar`, `PagefindSearch` |
+| **SearchModule**       | `SearchModule`       | `generateIndex()`, `<PagefindSearch />`                              | `buildPipeline`, `Posts pages`           |
+| **ClientRuntime**      | `ClientRuntime`      | `registerModule()`, `start()`                                        | `BaseLayout` (single entry)              |
+| **TelegramAuthModule** | `TelegramAuthModule` | `initClient()`, `AuthWallProps`, `pollAuthStatus()`                  | `PostPage`, `ClientRuntime`              |
+| **UIComponents**       | Component Factories  | `Navbar`, `PostCardGrid/List`, `Tag`, `PagefindSearch`, `BaseLayout` | All Pages                                |
 
 ## 数据流向 (Data Flow)
 
 ### 构建时
+
 ```
 src/posts/*.md
     │
@@ -106,6 +107,7 @@ src/posts/*.md
 ```
 
 ### 运行时 (客户端)
+
 ```
 用户访问页面
     │
@@ -148,27 +150,27 @@ src/posts/*.md
 
 ## 模块边界决策记录 (Seam Decisions)
 
-| Seam | Location | Why Here | Adapters |
-|------|----------|----------|----------|
-| **ContentPipeline** | `src/modules/content-pipeline.ts` | 隔离 Astro Content Collections API 变更 | 单一实现 (生产), 内存实现 (测试) |
-| **BuildPipeline** | `src/modules/build-pipeline.ts` | 统一 5 个构建阶段，复用文件遍历 | 真实 FS (生产), MemFS (测试) |
-| **ThemeSystem** | `src/modules/theme-system.ts` + `theme-tokens.css` | CSS 变量单一源，daisyUI/Tailwind 解耦 | 无 (纯 CSS + 极简 TS) |
-| **SearchModule** | `src/modules/search.ts` | Pagefind CLI/UI 变更不波及页面 | 声明式 UI (生产), 模块化 UI (备选) |
-| **ClientRuntime** | `src/modules/client-runtime.ts` | 9 个脚本统一生命周期，便于测试/禁用 | 真实 DOM (生产), JSDOM (测试) |
-| **TelegramAuthModule** | `src/modules/telegram-auth.ts` | 前后端契约分离，Bot 可独立演进 | Grammy Bot (生产), Mock Bot (测试) |
-| **UIComponents** | `src/modules/ui-components.ts` | 复合组件模式，Props 类型安全 | 无 (Astro 组件即实现) |
+| Seam                   | Location                                           | Why Here                                | Adapters                           |
+| ---------------------- | -------------------------------------------------- | --------------------------------------- | ---------------------------------- |
+| **ContentPipeline**    | `src/modules/content-pipeline.ts`                  | 隔离 Astro Content Collections API 变更 | 单一实现 (生产), 内存实现 (测试)   |
+| **BuildPipeline**      | `src/modules/build-pipeline.ts`                    | 统一 5 个构建阶段，复用文件遍历         | 真实 FS (生产), MemFS (测试)       |
+| **ThemeSystem**        | `src/modules/theme-system.ts` + `theme-tokens.css` | CSS 变量单一源，daisyUI/Tailwind 解耦   | 无 (纯 CSS + 极简 TS)              |
+| **SearchModule**       | `src/modules/search.ts`                            | Pagefind CLI/UI 变更不波及页面          | 声明式 UI (生产), 模块化 UI (备选) |
+| **ClientRuntime**      | `src/modules/client-runtime.ts`                    | 9 个脚本统一生命周期，便于测试/禁用     | 真实 DOM (生产), JSDOM (测试)      |
+| **TelegramAuthModule** | `src/modules/telegram-auth.ts`                     | 前后端契约分离，Bot 可独立演进          | Grammy Bot (生产), Mock Bot (测试) |
+| **UIComponents**       | `src/modules/ui-components.ts`                     | 复合组件模式，Props 类型安全            | 无 (Astro 组件即实现)              |
 
 ## 深度模块评分 (Depth Assessment)
 
-| Module | Interface Size | Implementation Complexity | Depth Score | Notes |
-|--------|---------------|---------------------------|-------------|-------|
-| ContentPipeline | 5 methods | High (loader, schema, render, RSS, sitemap) | ⭐⭐⭐⭐⭐ | 核心杠杆点 |
-| BuildPipeline | 2 methods | High (5 stages, file walker, error aggregation) | ⭐⭐⭐⭐⭐ | 消除重复遍历 |
-| ThemeSystem | 4 methods + CSS vars | Medium (CSS tokens, daisyUI integration) | ⭐⭐⭐⭐ | 一处改变全局生效 |
-| SearchModule | 3 methods + Component | Medium (Pagefind CLI + UI variants) | ⭐⭐⭐⭐ | 组件化隔离 |
-| ClientRuntime | 3 methods | Medium (registry, lifecycle, deps) | ⭐⭐⭐⭐ | 统一入口消除碎片 |
-| TelegramAuthModule | 6 methods | High (wall, polling, JWT, Bot API) | ⭐⭐⭐⭐ | 前后端契约明确 |
-| UIComponents | 6 component factories | Medium (daisyUI + composite pattern) | ⭐⭐⭐ | 复合组件减少 Props 爆炸 |
+| Module             | Interface Size        | Implementation Complexity                       | Depth Score | Notes                   |
+| ------------------ | --------------------- | ----------------------------------------------- | ----------- | ----------------------- |
+| ContentPipeline    | 5 methods             | High (loader, schema, render, RSS, sitemap)     | ⭐⭐⭐⭐⭐  | 核心杠杆点              |
+| BuildPipeline      | 2 methods             | High (5 stages, file walker, error aggregation) | ⭐⭐⭐⭐⭐  | 消除重复遍历            |
+| ThemeSystem        | 4 methods + CSS vars  | Medium (CSS tokens, daisyUI integration)        | ⭐⭐⭐⭐    | 一处改变全局生效        |
+| SearchModule       | 3 methods + Component | Medium (Pagefind CLI + UI variants)             | ⭐⭐⭐⭐    | 组件化隔离              |
+| ClientRuntime      | 3 methods             | Medium (registry, lifecycle, deps)              | ⭐⭐⭐⭐    | 统一入口消除碎片        |
+| TelegramAuthModule | 6 methods             | High (wall, polling, JWT, Bot API)              | ⭐⭐⭐⭐    | 前后端契约明确          |
+| UIComponents       | 6 component factories | Medium (daisyUI + composite pattern)            | ⭐⭐⭐      | 复合组件减少 Props 爆炸 |
 
 ## 迁移路径 (Migration Path)
 

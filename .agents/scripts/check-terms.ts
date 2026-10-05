@@ -75,7 +75,12 @@ function getAllFiles(dir: string, exts: string[]): string[] {
     for (const entry of readdirSync(d, { withFileTypes: true })) {
       const full = join(d, entry.name);
       if (entry.isDirectory()) {
-        if (!entry.name.startsWith(".") && entry.name !== "node_modules" && entry.name !== "dist" && entry.name !== ".astro") {
+        if (
+          !entry.name.startsWith(".") &&
+          entry.name !== "node_modules" &&
+          entry.name !== "dist" &&
+          entry.name !== ".astro"
+        ) {
           walk(full);
         }
       } else if (exts.includes(extname(entry.name))) {
@@ -96,7 +101,12 @@ interface TermIssue {
   suggestion?: string;
 }
 
-function checkFile(content: string, file: string, glossary: Map<string, string>, allTerms: Set<string>): TermIssue[] {
+function checkFile(
+  content: string,
+  file: string,
+  glossary: Map<string, string>,
+  allTerms: Set<string>,
+): TermIssue[] {
   const issues: TermIssue[] = [];
   const lines = content.split("\n");
   const fileRel = relative(ROOT, file);
@@ -116,11 +126,16 @@ function checkFile(content: string, file: string, glossary: Map<string, string>,
         const matched = match[0];
         // Check if this usage looks like a definition (has —, :, or "is")
         const contextBefore = line.slice(Math.max(0, match.index - 30), match.index);
-        const contextAfter = line.slice(match.index + matched.length, match.index + matched.length + 30);
+        const contextAfter = line.slice(
+          match.index + matched.length,
+          match.index + matched.length + 30,
+        );
         const fullContext = contextBefore + matched + contextAfter;
 
         // Heuristic: if the term is being defined rather than used
-        const looksLikeDefinition = /[—:]\s*$/.test(contextBefore) || /\b(is|means|refers to|defined as)\b/i.test(contextAfter);
+        const looksLikeDefinition =
+          /[—:]\s*$/.test(contextBefore) ||
+          /\b(is|means|refers to|defined as)\b/i.test(contextAfter);
 
         if (looksLikeDefinition && fileRel !== "CONTEXT.md") {
           issues.push({
@@ -142,7 +157,12 @@ function checkFile(content: string, file: string, glossary: Map<string, string>,
       if (pt.length > 2 && !glossary.has(pt.toLowerCase()) && !allTerms.has(pt.toLowerCase())) {
         // Check if it's a known code identifier (TypeScript, component names, etc.)
         const codeContext = /[<>{}[\]()=;,:]/.test(line);
-        if (!codeContext && !/^(The|This|That|These|Those|When|Where|Which|Who|How|Why|If|Then|Else|For|While|Return|Import|Export|Const|Let|Var|Function|Class|Interface|Type|Enum|Async|Await|Promise|Error|Null|Undefined|True|False|String|Number|Boolean|Object|Array|Map|Set|Date|RegExp|JSON|Math|Console|Window|Document|Element|Node|Event|Handler|Listener|Callback|Props|State|Context|Provider|Consumer|Ref|Memo|Effect|Layout|Component|Page|Route|Path|Query|Param|Body|Header|Footer|Main|Section|Article|Aside|Nav|Div|Span|Button|Input|Form|Label|Select|Option|Table|Row|Cell|Head|Body|Title|Meta|Link|Script|Style|Image|Video|Audio|Source|Canvas|Svg|Path|Circle|Rect|Line|Polygon|Text|Group|Defs|Use|Symbol|Marker|ClipPath|Mask|Filter|LinearGradient|RadialGradient|Stop|Animate|AnimateTransform|AnimateMotion|Set|ForeignObject|Switch|Image|View|G|Defs|Symbol|Marker|ClipPath|Mask|Filter|LinearGradient|RadialGradient|Stop|Animate|AnimateTransform|AnimateMotion|Set|ForeignObject|Switch)$/.test(pt)) {
+        if (
+          !codeContext &&
+          !/^(The|This|That|These|Those|When|Where|Which|Who|How|Why|If|Then|Else|For|While|Return|Import|Export|Const|Let|Var|Function|Class|Interface|Type|Enum|Async|Await|Promise|Error|Null|Undefined|True|False|String|Number|Boolean|Object|Array|Map|Set|Date|RegExp|JSON|Math|Console|Window|Document|Element|Node|Event|Handler|Listener|Callback|Props|State|Context|Provider|Consumer|Ref|Memo|Effect|Layout|Component|Page|Route|Path|Query|Param|Body|Header|Footer|Main|Section|Article|Aside|Nav|Div|Span|Button|Input|Form|Label|Select|Option|Table|Row|Cell|Head|Body|Title|Meta|Link|Script|Style|Image|Video|Audio|Source|Canvas|Svg|Path|Circle|Rect|Line|Polygon|Text|Group|Defs|Use|Symbol|Marker|ClipPath|Mask|Filter|LinearGradient|RadialGradient|Stop|Animate|AnimateTransform|AnimateMotion|Set|ForeignObject|Switch|Image|View|G|Defs|Symbol|Marker|ClipPath|Mask|Filter|LinearGradient|RadialGradient|Stop|Animate|AnimateTransform|AnimateMotion|Set|ForeignObject|Switch)$/.test(
+            pt,
+          )
+        ) {
           // Likely a domain term not in glossary
           issues.push({
             file: fileRel,
@@ -173,25 +193,125 @@ function main() {
 
   // Add common technical terms that shouldn't be flagged
   const techTerms = [
-    "typescript", "javascript", "astro", "tailwind", "daisyui", "pagefind",
-    "cloudflare", "github", "codeberg", "pinata", "wrangler", "playwright",
-    "oxlint", "oxfmt", "husky", "lintstaged", "pnpm", "node", "npm", "yarn",
-    "git", "ssh", "http", "https", "api", "rest", "graphql", "json", "yaml",
-    "toml", "markdown", "mdx", "html", "css", "svg", "png", "jpg", "webp",
-    "avif", "woff", "woff2", "ttf", "eot", "otf", "font", "fontsource",
-    "dayjs", "zod", "satteri", "mermaid", "shiki", "remark", "rehype",
-    "hast", "mdast", "unist", "vfile", "vnu", "lychee", "cargo", "rust",
-    "tsx", "jsx", "esm", "cjs", "umd", "iife", "cli", "gui", "tui", "ui",
-    "ux", "ci", "cd", "ssr", "ssg", "spa", "mpa", "pwa", "seo", "ogp",
-    "rss", "atom", "xml", "sitemap", "robots", "canonical", "hreflang",
-    "i18n", "l10n", "a11y", "i18n", "rtl", "ltr", "dir", "lang", "charset",
-    "utf8", "utf16", "ascii", "base64", "hex", "sha256", "md5", "uuid",
-    "nanoid", "ulid", "cuid", "ksuid", "xid", "uuidv4", "uuidv7",
+    "typescript",
+    "javascript",
+    "astro",
+    "tailwind",
+    "daisyui",
+    "pagefind",
+    "cloudflare",
+    "github",
+    "codeberg",
+    "pinata",
+    "wrangler",
+    "playwright",
+    "oxlint",
+    "oxfmt",
+    "husky",
+    "lintstaged",
+    "pnpm",
+    "node",
+    "npm",
+    "yarn",
+    "git",
+    "ssh",
+    "http",
+    "https",
+    "api",
+    "rest",
+    "graphql",
+    "json",
+    "yaml",
+    "toml",
+    "markdown",
+    "mdx",
+    "html",
+    "css",
+    "svg",
+    "png",
+    "jpg",
+    "webp",
+    "avif",
+    "woff",
+    "woff2",
+    "ttf",
+    "eot",
+    "otf",
+    "font",
+    "fontsource",
+    "dayjs",
+    "zod",
+    "satteri",
+    "mermaid",
+    "shiki",
+    "remark",
+    "rehype",
+    "hast",
+    "mdast",
+    "unist",
+    "vfile",
+    "vnu",
+    "lychee",
+    "cargo",
+    "rust",
+    "tsx",
+    "jsx",
+    "esm",
+    "cjs",
+    "umd",
+    "iife",
+    "cli",
+    "gui",
+    "tui",
+    "ui",
+    "ux",
+    "ci",
+    "cd",
+    "ssr",
+    "ssg",
+    "spa",
+    "mpa",
+    "pwa",
+    "seo",
+    "ogp",
+    "rss",
+    "atom",
+    "xml",
+    "sitemap",
+    "robots",
+    "canonical",
+    "hreflang",
+    "i18n",
+    "l10n",
+    "a11y",
+    "i18n",
+    "rtl",
+    "ltr",
+    "dir",
+    "lang",
+    "charset",
+    "utf8",
+    "utf16",
+    "ascii",
+    "base64",
+    "hex",
+    "sha256",
+    "md5",
+    "uuid",
+    "nanoid",
+    "ulid",
+    "cuid",
+    "ksuid",
+    "xid",
+    "uuidv4",
+    "uuidv7",
   ];
   for (const t of techTerms) allTerms.add(t);
 
   console.log("🔍 Scanning files for term usage...");
-  const files = getAllFiles(ROOT, TARGET_EXTS).filter(f => !f.includes("node_modules") && !f.includes(".git"));
+  const files = getAllFiles(ROOT, TARGET_EXTS).filter(
+    (f) => !f.includes("node_modules") && !f.includes(".git"),
+  );
   console.log(`  Scanning ${files.length} files...`);
 
   let allIssues: TermIssue[] = [];
@@ -211,9 +331,9 @@ function main() {
   }
 
   const issues = Array.from(uniqueIssues.values());
-  const undefinedTerms = issues.filter(i => i.type === "undefined");
-  const redefinedTerms = issues.filter(i => i.type === "redefined");
-  const inconsistentTerms = issues.filter(i => i.type === "inconsistent");
+  const undefinedTerms = issues.filter((i) => i.type === "undefined");
+  const redefinedTerms = issues.filter((i) => i.type === "redefined");
+  const inconsistentTerms = issues.filter((i) => i.type === "inconsistent");
 
   console.log(`\n📊 Results:`);
   console.log(`  Undefined terms:    ${undefinedTerms.length}`);
@@ -243,37 +363,46 @@ function main() {
       readdirSync(REPORT_DIR, { recursive: true });
     }
     const reportFile = join(REPORT_DIR, `term-check-${Date.now()}.json`);
-    writeFileSync(reportFile, JSON.stringify({
-      timestamp: new Date().toISOString(),
-      glossarySize: glossary.size,
-      filesScanned: files.length,
-      totalIssues: issues.length,
-      byType: {
-        undefined: undefinedTerms.length,
-        redefined: redefinedTerms.length,
-        inconsistent: inconsistentTerms.length,
-      },
-      issues: issues.map(i => ({
-        file: i.file,
-        line: i.line,
-        term: i.term,
-        type: i.type,
-        context: i.context,
-        suggestion: i.suggestion,
-      })),
-    }, null, 2));
+    writeFileSync(
+      reportFile,
+      JSON.stringify(
+        {
+          timestamp: new Date().toISOString(),
+          glossarySize: glossary.size,
+          filesScanned: files.length,
+          totalIssues: issues.length,
+          byType: {
+            undefined: undefinedTerms.length,
+            redefined: redefinedTerms.length,
+            inconsistent: inconsistentTerms.length,
+          },
+          issues: issues.map((i) => ({
+            file: i.file,
+            line: i.line,
+            term: i.term,
+            type: i.type,
+            context: i.context,
+            suggestion: i.suggestion,
+          })),
+        },
+        null,
+        2,
+      ),
+    );
     console.log(`\n📄 Report: ${relative(ROOT, reportFile)}`);
   }
 
   if (issues.length > 0) {
-    console.log("\n💡 Review and update CONTEXT.md for undefined terms; move definitions to CONTEXT.md for redefined terms");
+    console.log(
+      "\n💡 Review and update CONTEXT.md for undefined terms; move definitions to CONTEXT.md for redefined terms",
+    );
     process.exit(1);
   } else {
     console.log("\n✅ All term usage consistent with CONTEXT.md");
   }
 }
 
-main().catch(e => {
+main().catch((e) => {
   console.error("Fatal:", e);
   process.exit(1);
 });

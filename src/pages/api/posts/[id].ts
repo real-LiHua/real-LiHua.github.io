@@ -59,7 +59,7 @@ export const GET: APIRoute = async ({ params, request }) => {
       "X-Content-Type-Options": "nosniff",
     },
   });
-}
+};
 
 async function verifyToken(token: string, postId: string): Promise<SessionPayload | null> {
   try {
@@ -69,7 +69,7 @@ async function verifyToken(token: string, postId: string): Promise<SessionPayloa
       new TextEncoder().encode(secret),
       { name: "HMAC", hash: "SHA-256" },
       false,
-      ["verify"]
+      ["verify"],
     );
 
     const [headerB64, payloadB64, signatureB64] = token.split(".");
@@ -77,7 +77,12 @@ async function verifyToken(token: string, postId: string): Promise<SessionPayloa
 
     const data = `${headerB64}.${payloadB64}`;
     const signature = base64UrlToUint8Array(signatureB64);
-    const valid = await crypto.subtle.verify("HMAC", key, signature, new TextEncoder().encode(data).buffer);
+    const valid = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      signature,
+      new TextEncoder().encode(data).buffer,
+    );
 
     if (!valid) return null;
 
@@ -95,7 +100,7 @@ async function renderToHtml(
   Content: any,
   post: any,
   headings: any[],
-  userId: number
+  userId: number,
 ): Promise<string> {
   // Build the article HTML similar to the static page
   const { title, description, publishDate, tags } = post.data;
@@ -108,9 +113,13 @@ async function renderToHtml(
     tocHtml = `
       <aside class="toc-sidebar">
         <nav class="toc-nav">
-          ${headings.map(({ depth, slug, text }) => `
+          ${headings
+            .map(
+              ({ depth, slug, text }) => `
             <a href="#${slug}" class="toc-link" style="padding-left: ${Math.max(depth - 2, 0) * 0.75}rem">${text}</a>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </nav>
       </aside>
     `;
@@ -192,14 +201,14 @@ function injectCssWatermark(html: string, userId: string): string {
   // Add data attribute to article for CSS-based watermark
   return html.replace(
     '<article class="prose',
-    `<article class="prose" data-watermark-user="${userId}"`
+    `<article class="prose" data-watermark-user="${userId}"`,
   );
 }
 
 function injectUnicodeTags(html: string, userId: string): string {
   // Add invisible Unicode tag characters (U+E0000-U+E007F)
   // These are deprecated but still render as invisible
-  const tagBase = 0xE0000;
+  const tagBase = 0xe0000;
   let tags = "";
   for (const char of userId) {
     const code = tagBase + parseInt(char, 10);
@@ -233,5 +242,10 @@ function base64UrlDecode(str: string): string {
   const base64 = str.replace(/-/g, "+").replace(/_/g, "/");
   const pad = base64.length % 4;
   const padded = base64 + (pad ? "=".repeat(4 - pad) : "");
-  return decodeURIComponent(atob(padded).split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+  return decodeURIComponent(
+    atob(padded)
+      .split("")
+      .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+      .join(""),
+  );
 }

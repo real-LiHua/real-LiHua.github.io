@@ -13,14 +13,14 @@
 
 ### 1.1 资产识别
 
-| 资产 | 类型 | 机密性 | 完整性 | 可用性 | 说明 |
-|------|------|--------|--------|--------|------|
-| 文章内容 (Markdown/MDX) | 代码仓库 | 低 | 高 | 高 | 公开发布，防篡改优先 |
-| **草稿文章** | **私有子模块仓库** | **高** | **高** | **中** | **物理隔离于公开仓库，仅构建时挂载，杜绝泄露** |
-| Telegram 群组 ID / Bot Token | 环境变量 | 高 | 高 | 高 | 仅 CI/CD 注入，不入仓库 |
-| 构建产物 | 部署制品 | 低 | 高 | 高 | 多平台分发，需防篡改 |
-| 访问日志 / 分析数据 | 第三方服务 | 中 | 中 | 中 | Cloudflare Analytics 等 |
-| 用户会话 (Telegram JWT) | 客户端 localStorage | 高 | 高 | 中 | 短期有效，含群组成员身份证明 |
+| 资产                         | 类型                | 机密性 | 完整性 | 可用性 | 说明                                           |
+| ---------------------------- | ------------------- | ------ | ------ | ------ | ---------------------------------------------- |
+| 文章内容 (Markdown/MDX)      | 代码仓库            | 低     | 高     | 高     | 公开发布，防篡改优先                           |
+| **草稿文章**                 | **私有子模块仓库**  | **高** | **高** | **中** | **物理隔离于公开仓库，仅构建时挂载，杜绝泄露** |
+| Telegram 群组 ID / Bot Token | 环境变量            | 高     | 高     | 高     | 仅 CI/CD 注入，不入仓库                        |
+| 构建产物                     | 部署制品            | 低     | 高     | 高     | 多平台分发，需防篡改                           |
+| 访问日志 / 分析数据          | 第三方服务          | 中     | 中     | 中     | Cloudflare Analytics 等                        |
+| 用户会话 (Telegram JWT)      | 客户端 localStorage | 高     | 高     | 中     | 短期有效，含群组成员身份证明                   |
 
 ### 1.2 合规基线
 
@@ -35,14 +35,14 @@
 
 ## 2. 威胁模型 (STRIDE)
 
-| 威胁类别 | 典型场景 | 影响资产 | 缓解措施 |
-|----------|----------|----------|----------|
-| **Spoofing** | 伪造 Telegram Bot 验证响应 | TelegramAuth JWT | Bot Token 仅服务端持有，JWT 签名验证 |
-| **Tampering** | 修改部署制物注入恶意脚本 | 构建产物、文章内容 | 多平台部署一致性校验、SRI、水印溯源 |
-| **Repudiation** | 否认发布过某文章 | 文章内容 | Git 提交历史、盲水印、IPFS CID 不可变 |
-| **Information Disclosure** | 环境变量泄露 | Bot Token | CI 密文管理、**草稿物理隔离 (私有子模块)** |
-| **Denial of Service** | Pagefind 索引过大、构建超时 | 可用性 | 阶段超时控制、索引分片 |
-| **Elevation of Privilege** | 绕过 Telegram 认证读私有文 | 私有文章 | 服务端 JWT 验证、短过期时间 |
+| 威胁类别                   | 典型场景                    | 影响资产           | 缓解措施                                   |
+| -------------------------- | --------------------------- | ------------------ | ------------------------------------------ |
+| **Spoofing**               | 伪造 Telegram Bot 验证响应  | TelegramAuth JWT   | Bot Token 仅服务端持有，JWT 签名验证       |
+| **Tampering**              | 修改部署制物注入恶意脚本    | 构建产物、文章内容 | 多平台部署一致性校验、SRI、水印溯源        |
+| **Repudiation**            | 否认发布过某文章            | 文章内容           | Git 提交历史、盲水印、IPFS CID 不可变      |
+| **Information Disclosure** | 环境变量泄露                | Bot Token          | CI 密文管理、**草稿物理隔离 (私有子模块)** |
+| **Denial of Service**      | Pagefind 索引过大、构建超时 | 可用性             | 阶段超时控制、索引分片                     |
+| **Elevation of Privilege** | 绕过 Telegram 认证读私有文  | 私有文章           | 服务端 JWT 验证、短过期时间                |
 
 ---
 
@@ -64,7 +64,8 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 
 ```html
 <!-- BaseLayout.astro 注入 -->
-<meta http-equiv="Content-Security-Policy"
+<meta
+  http-equiv="Content-Security-Policy"
   content="
     default-src 'self';
     script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net;
@@ -79,10 +80,12 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
     frame-ancestors 'none';
     upgrade-insecure-requests;
     block-all-mixed-content;
-  ">
+  "
+/>
 ```
 
 **策略说明**：
+
 - `'wasm-unsafe-eval'`：Pagefind WASM 搜索索引加载所需
 - `'unsafe-inline'` style：daisyUI/Tailwind 运行时注入、主题切换内联样式
 - `connect-src` Telegram Bot API + WebSocket 长轮询
@@ -90,14 +93,14 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 
 ### 3.3 安全响应头
 
-| Header | 值 | 目的 |
-|--------|-----|------|
-| `X-Content-Type-Options` | `nosniff` | 禁止 MIME 嗅探 |
-| `X-Frame-Options` | `DENY` | 禁止嵌入 iframe |
-| `Referrer-Policy` | `strict-origin-when-cross-origin` | 限制 Referrer 泄露 |
-| `Permissions-Policy` | `accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()` | 禁用无关浏览器 API |
-| `Cross-Origin-Opener-Policy` | `same-origin` | 隔离浏览上下文 |
-| `Cross-Origin-Resource-Policy` | `same-origin` | 资源跨源保护 |
+| Header                         | 值                                                                                                              | 目的               |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `X-Content-Type-Options`       | `nosniff`                                                                                                       | 禁止 MIME 嗅探     |
+| `X-Frame-Options`              | `DENY`                                                                                                          | 禁止嵌入 iframe    |
+| `Referrer-Policy`              | `strict-origin-when-cross-origin`                                                                               | 限制 Referrer 泄露 |
+| `Permissions-Policy`           | `accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()` | 禁用无关浏览器 API |
+| `Cross-Origin-Opener-Policy`   | `same-origin`                                                                                                   | 隔离浏览上下文     |
+| `Cross-Origin-Resource-Policy` | `same-origin`                                                                                                   | 资源跨源保护       |
 
 ---
 
@@ -123,12 +126,14 @@ const blog = defineCollection({
     tags: z.array(z.string().max(50)).optional(),
     authors: z.array(z.string().max(100)).optional(),
     image: z.string().url().optional(),
-    telegramAuth: z.object({
-      enabled: z.boolean(),
-      groupId: z.string().regex(/^-?\d+$/), // Telegram group ID 格式
-      groupName: z.string().max(100).optional(),
-      customMessage: z.string().max(500).optional(),
-    }).optional(),
+    telegramAuth: z
+      .object({
+        enabled: z.boolean(),
+        groupId: z.string().regex(/^-?\d+$/), // Telegram group ID 格式
+        groupName: z.string().max(100).optional(),
+        customMessage: z.string().max(500).optional(),
+      })
+      .optional(),
   }),
 });
 ```
@@ -156,6 +161,7 @@ const blog = defineCollection({
 ```
 
 **安全控制点**：
+
 - **Bot Token** 仅存在于 Cloudflare Workers 服务端环境变量
 - **JWT**：HS256 签名，载荷 `{ postId, userId, groupId, exp }`，15 分钟过期
 - **前端轮询**：最大 5 分钟，指数退避，失败不阻塞页面其他功能
@@ -175,16 +181,16 @@ const ZERO_WIDTH_CHARS = ["\u200B", "\u200C", "\u200D", "\uFEFF"] as const;
 
 ### 4.5 客户端脚本安全
 
-| 脚本 | 权限 | 沙箱隔离 | 完整性校验 |
-|------|------|----------|------------|
-| theme-toggle | localStorage 读写 | 无 | 内联 CSP nonce |
-| toc | DOM 读取 | 无 | 内联 CSP nonce |
-| reading-progress | scroll 监听 | 无 | 内联 CSP nonce |
-| scroll-reveal | IntersectionObserver | 无 | 内联 CSP nonce |
-| tilt-card | mousemove 监听 | 无 | 内联 CSP nonce |
-| code-copy | Clipboard API | 需用户手势 | 内联 CSP nonce |
-| telegram-auth | fetch + localStorage | 同源 | 内联 CSP nonce |
-| gravatar-fallback | img onerror | 同源 | 内联 CSP nonce |
+| 脚本              | 权限                 | 沙箱隔离   | 完整性校验     |
+| ----------------- | -------------------- | ---------- | -------------- |
+| theme-toggle      | localStorage 读写    | 无         | 内联 CSP nonce |
+| toc               | DOM 读取             | 无         | 内联 CSP nonce |
+| reading-progress  | scroll 监听          | 无         | 内联 CSP nonce |
+| scroll-reveal     | IntersectionObserver | 无         | 内联 CSP nonce |
+| tilt-card         | mousemove 监听       | 无         | 内联 CSP nonce |
+| code-copy         | Clipboard API        | 需用户手势 | 内联 CSP nonce |
+| telegram-auth     | fetch + localStorage | 同源       | 内联 CSP nonce |
+| gravatar-fallback | img onerror          | 同源       | 内联 CSP nonce |
 
 **统一入口**：`client-entry.ts` 单一注册点，便于审计与禁用。
 
@@ -199,7 +205,7 @@ const ZERO_WIDTH_CHARS = ["\u200B", "\u200C", "\u200D", "\uFEFF"] as const;
 permissions:
   contents: read
   pages: write
-  id-token: write  # OIDC 认证部署
+  id-token: write # OIDC 认证部署
 
 jobs:
   cloudflare:
@@ -221,6 +227,7 @@ jobs:
 > **引号规范**：所有 `env:` 值与 `run:` 中的变量引用均用双引号包裹，防止词分割与命令注入。详见 [第 10 节引号规范](#10-命令参数引号规范)。
 
 **关键控制**：
+
 - **最小权限**：`contents: read`，仅部署步骤 `pages: write` / `id-token: write`
 - **Secret 隔离**：每平台独立 Secret，无共享 Token
 - **OIDC 认证**：Cloudflare / GitHub Pages 使用 Workload Identity Federation，无长期凭证
@@ -229,13 +236,13 @@ jobs:
 
 ### 5.2 构建管线阶段安全 (BuildPipeline)
 
-| 阶段 | 安全控制 | 失败处理 |
-|------|----------|----------|
-| **Pagefind** | 仅索引 `dist/client` 静态文件，无外部请求 | 记录错误，继续 |
-| **Link Check (lychee)** | `--exclude-mail` 跳过 mailto，`--max-concurrency 10` 限速 | 非 0 退出码阻断 |
-| **HTML Validate (vnu-jar)** | `--skip-non-html`、`--filterfile` 排除已知误报 | 记录错误，继续 |
-| **Mermaid Render** | `securityLevel: "loose"` 仅渲染可信代码块，无外部加载 | 单文件失败跳过 |
-| **Watermark Inject** | 仅处理 `posts/*.html`，校验 `authors` 字段 | 单文件失败跳过 |
+| 阶段                        | 安全控制                                                  | 失败处理        |
+| --------------------------- | --------------------------------------------------------- | --------------- |
+| **Pagefind**                | 仅索引 `dist/client` 静态文件，无外部请求                 | 记录错误，继续  |
+| **Link Check (lychee)**     | `--exclude-mail` 跳过 mailto，`--max-concurrency 10` 限速 | 非 0 退出码阻断 |
+| **HTML Validate (vnu-jar)** | `--skip-non-html`、`--filterfile` 排除已知误报            | 记录错误，继续  |
+| **Mermaid Render**          | `securityLevel: "loose"` 仅渲染可信代码块，无外部加载     | 单文件失败跳过  |
+| **Watermark Inject**        | 仅处理 `posts/*.html`，校验 `authors` 字段                | 单文件失败跳过  |
 
 **阶段隔离**：每阶段独立 `try/catch`，超时 60s，错误聚合最后汇报。
 
@@ -248,7 +255,7 @@ jobs:
 {
   "packageManager": "pnpm@11.3.0",
   "dependencies": {
-    "astro": "^7.3.5",      // 精确次版本锁定
+    "astro": "^7.3.5", // 精确次版本锁定
     "daisyui": "^5.7.47",
     "tailwindcss": "^4.3.3"
   }
@@ -266,13 +273,13 @@ jobs:
 
 ### 6.1 个人数据处理
 
-| 数据类型 | 来源 | 存储位置 | 保留期限 | 法律依据 |
-|----------|------|----------|----------|----------|
-| Telegram User ID | Bot 验证 | JWT 载荷 (客户端) | 15 分钟 | 合同履行 (访问控制) |
-| 群组成员身份 | Bot API | 不持久化 | 即时 | 合同履行 |
-| 访问日志 (IP、UA) | Cloudflare Analytics | Cloudflare 边缘 | 30 天 | 合法利益 (安全分析) |
-| 主题偏好 | 用户选择 | localStorage | 永久 (用户控制) | 同意 |
-| **草稿内容** | **作者编写** | **私有子模块仓库 (加密存储)** | **作者控制** | **合同履行 (创作过程)** |
+| 数据类型          | 来源                 | 存储位置                      | 保留期限        | 法律依据                |
+| ----------------- | -------------------- | ----------------------------- | --------------- | ----------------------- |
+| Telegram User ID  | Bot 验证             | JWT 载荷 (客户端)             | 15 分钟         | 合同履行 (访问控制)     |
+| 群组成员身份      | Bot API              | 不持久化                      | 即时            | 合同履行                |
+| 访问日志 (IP、UA) | Cloudflare Analytics | Cloudflare 边缘               | 30 天           | 合法利益 (安全分析)     |
+| 主题偏好          | 用户选择             | localStorage                  | 永久 (用户控制) | 同意                    |
+| **草稿内容**      | **作者编写**         | **私有子模块仓库 (加密存储)** | **作者控制**    | **合同履行 (创作过程)** |
 
 **最小化原则**：不收集姓名、邮箱、Cookie、指纹、行为追踪。**草稿物理隔离于公开部署管线，仅作者可见**。
 
@@ -321,12 +328,12 @@ jobs:
 
 ### 7.2 关键联系人
 
-| 角色 | 联系方式 | 职责 |
-|------|----------|------|
-| 站点所有者 | GitHub Issues / Telegram | 决策、对外沟通 |
-| Cloudflare 支持 | Cloudflare Dashboard | WAF/边缘配置紧急变更 |
-| GitHub 支持 | GitHub Support Portal | Actions/Secrets 事件 |
-| Codeberg 管理员 | Codeberg 实例管理 | Pages 部署异常 |
+| 角色            | 联系方式                 | 职责                 |
+| --------------- | ------------------------ | -------------------- |
+| 站点所有者      | GitHub Issues / Telegram | 决策、对外沟通       |
+| Cloudflare 支持 | Cloudflare Dashboard     | WAF/边缘配置紧急变更 |
+| GitHub 支持     | GitHub Support Portal    | Actions/Secrets 事件 |
+| Codeberg 管理员 | Codeberg 实例管理        | Pages 部署异常       |
 
 ---
 
@@ -347,12 +354,12 @@ pnpm playwright test  # E2E: CSP 生效、认证流程、水印验证
 
 ### 8.2 定期渗透测试
 
-| 频率 | 范围 | 工具/方法 |
-|------|------|-----------|
-| 每周 | 依赖漏洞扫描 | `pnpm audit`、GitHub Dependabot |
-| 每月 | CSP/Headers 审计 | `securityheaders.com`、Observatory |
-| 每季度 | 完整渗透测试 | OWASP ZAP 自动扫描 + 手工验证 |
-| 每年 | 架构威胁建模更新 | STRIDE 重评、ADR 审查 |
+| 频率   | 范围             | 工具/方法                          |
+| ------ | ---------------- | ---------------------------------- |
+| 每周   | 依赖漏洞扫描     | `pnpm audit`、GitHub Dependabot    |
+| 每月   | CSP/Headers 审计 | `securityheaders.com`、Observatory |
+| 每季度 | 完整渗透测试     | OWASP ZAP 自动扫描 + 手工验证      |
+| 每年   | 架构威胁建模更新 | STRIDE 重评、ADR 审查              |
 
 ### 8.3 安全基线清单 (发布前)
 
@@ -370,9 +377,9 @@ pnpm playwright test  # E2E: CSP 生效、认证流程、水印验证
 
 ## 9. 事件历史与经验沉淀
 
-| 日期 | 事件 | 根因 | 改进措施 | ADR |
-|------|------|------|----------|-----|
-| 2026-XX-XX | 初版白皮书发布 | — | 建立基线 | 0001 |
+| 日期       | 事件           | 根因 | 改进措施 | ADR  |
+| ---------- | -------------- | ---- | -------- | ---- |
+| 2026-XX-XX | 初版白皮书发布 | —    | 建立基线 | 0001 |
 
 ---
 
@@ -382,23 +389,23 @@ pnpm playwright test  # E2E: CSP 生效、认证流程、水印验证
 
 ### 10.1 核心原则
 
-| 场景 | 规则 | 示例 |
-|------|------|------|
-| **参数含空格/特殊字符** | 必须用双引号包裹 | `git commit -m "feat: add search"` |
-| **参数为变量/Secret** | 必须用双引号包裹 | `echo "${SECRET}"` |
-| **参数为路径** | 必须用双引号包裹 | `cp "src/file name.md" "dist/"` |
-| **命令子串/管道** | 整体用双引号，内部单引号 | `sh -c "grep 'pattern' file.txt"` |
-| **JSON/复杂结构** | 单引号包裹整体，内部双引号 | `jq -r '.key | "\(.name)"'` |
+| 场景                    | 规则                       | 示例                               |
+| ----------------------- | -------------------------- | ---------------------------------- | ------------ |
+| **参数含空格/特殊字符** | 必须用双引号包裹           | `git commit -m "feat: add search"` |
+| **参数为变量/Secret**   | 必须用双引号包裹           | `echo "${SECRET}"`                 |
+| **参数为路径**          | 必须用双引号包裹           | `cp "src/file name.md" "dist/"`    |
+| **命令子串/管道**       | 整体用双引号，内部单引号   | `sh -c "grep 'pattern' file.txt"`  |
+| **JSON/复杂结构**       | 单引号包裹整体，内部双引号 | `jq -r '.key                       | "\(.name)"'` |
 
 ### 10.2 禁止模式
 
-| ❌ 错误写法 | ✅ 正确写法 | 风险 |
-|-------------|-------------|------|
-| `cmd arg with spaces` | `cmd "arg with spaces"` | 参数被拆分为多个 |
-| `cmd $VAR` | `cmd "$VAR"` | 空值导致参数丢失、词分割 |
-| `cmd $(cmd)` | `cmd "$(cmd)"` | 命令替换结果被词分割 |
-| `sh -c cmd arg` | `sh -c "cmd arg"` | 仅第一个词作为命令 |
-| `echo $SECRET` | `echo "$SECRET"` | Secret 泄露到进程表/日志 |
+| ❌ 错误写法           | ✅ 正确写法             | 风险                     |
+| --------------------- | ----------------------- | ------------------------ |
+| `cmd arg with spaces` | `cmd "arg with spaces"` | 参数被拆分为多个         |
+| `cmd $VAR`            | `cmd "$VAR"`            | 空值导致参数丢失、词分割 |
+| `cmd $(cmd)`          | `cmd "$(cmd)"`          | 命令替换结果被词分割     |
+| `sh -c cmd arg`       | `sh -c "cmd arg"`       | 仅第一个词作为命令       |
+| `echo $SECRET`        | `echo "$SECRET"`        | Secret 泄露到进程表/日志 |
 
 ### 10.3 CI/CD 中的强制规范
 
@@ -467,10 +474,10 @@ echo "$output"
   "scripts": {
     // ❌ 错误：参数无引号
     "build": "astro build --out-dir dist/client",
-    
+
     // ✅ 正确：参数带引号
     "build": "astro build --out-dir \"dist/client\"",
-    
+
     // ✅ 更安全：使用环境变量
     "build": "astro build --out-dir \"${OUT_DIR:-dist/client}\""
   }
@@ -494,16 +501,16 @@ echo "$output"
 
 ### A. 安全相关配置文件清单
 
-| 文件 | 安全相关内容 |
-|------|--------------|
-| `astro.config.ts` | `security: { checkOrigin: false }` (开发便利，生产无影响)、CSP meta 注入 |
-| `src/layouts/BaseLayout.astro` | CSP、安全响应头、ClientRouter、Pagefind UI |
-| `src/integrations/build-hooks.ts` | 构建阶段安全控制 (超时、错误隔离) |
-| `src/integrations/watermark.ts` | 盲水印注入逻辑 |
-| `src/scripts/telegram-auth.ts` | 客户端认证流程、JWT 校验 |
-| `.github/workflows/deploy.yml` | CI/CD 权限、Secret 管理、OIDC |
-| `wrangler.jsonc` | Cloudflare Workers 绑定、环境变量 |
-| `src/content.config.ts` | Zod Schema 输入验证 |
+| 文件                              | 安全相关内容                                                             |
+| --------------------------------- | ------------------------------------------------------------------------ |
+| `astro.config.ts`                 | `security: { checkOrigin: false }` (开发便利，生产无影响)、CSP meta 注入 |
+| `src/layouts/BaseLayout.astro`    | CSP、安全响应头、ClientRouter、Pagefind UI                               |
+| `src/integrations/build-hooks.ts` | 构建阶段安全控制 (超时、错误隔离)                                        |
+| `src/integrations/watermark.ts`   | 盲水印注入逻辑                                                           |
+| `src/scripts/telegram-auth.ts`    | 客户端认证流程、JWT 校验                                                 |
+| `.github/workflows/deploy.yml`    | CI/CD 权限、Secret 管理、OIDC                                            |
+| `wrangler.jsonc`                  | Cloudflare Workers 绑定、环境变量                                        |
+| `src/content.config.ts`           | Zod Schema 输入验证                                                      |
 
 ### B. 威胁建模数据流图 (DFD)
 
@@ -519,22 +526,22 @@ echo "$output"
 
 ### C. 密钥管理策略
 
-| 密钥 | 存储 | 轮换周期 | 撤销流程 |
-|------|------|----------|----------|
-| Cloudflare API Token | GitHub Secrets | 90 天 | Settings → Secrets 删除 + 新建 |
-| Telegram Bot Token | Cloudflare Workers Secret | 90 天 | BotFather `/revoke` + 重新部署 |
-| Codeberg SSH Deploy Key | GitHub Secrets | 90 天 | Codeberg Settings 删除公钥 + 新建 |
-| Pinata JWT | GitHub Secrets | 90 天 | Pinata Dashboard 撤销 + 新建 |
-| JWT 签名密钥 | Cloudflare Workers Secret | 180 天 | 重新部署 Worker (旧 JWT 自动失效) |
+| 密钥                    | 存储                      | 轮换周期 | 撤销流程                          |
+| ----------------------- | ------------------------- | -------- | --------------------------------- |
+| Cloudflare API Token    | GitHub Secrets            | 90 天    | Settings → Secrets 删除 + 新建    |
+| Telegram Bot Token      | Cloudflare Workers Secret | 90 天    | BotFather `/revoke` + 重新部署    |
+| Codeberg SSH Deploy Key | GitHub Secrets            | 90 天    | Codeberg Settings 删除公钥 + 新建 |
+| Pinata JWT              | GitHub Secrets            | 90 天    | Pinata Dashboard 撤销 + 新建      |
+| JWT 签名密钥            | Cloudflare Workers Secret | 180 天   | 重新部署 Worker (旧 JWT 自动失效) |
 
 ---
 
 ## 11. 版本历史
 
-| 版本 | 日期 | 作者 | 变更摘要 |
-|------|------|------|----------|
-| 1.1 | 2026-10-05 | real-LiHua | 新增第 10 节命令参数引号规范，CI/CD 与安全基线同步更新 |
-| 1.0 | 2026-10-05 | real-LiHua | 初版：覆盖架构、威胁模型、CSP、认证、构建管线、事件响应 |
+| 版本 | 日期       | 作者       | 变更摘要                                                |
+| ---- | ---------- | ---------- | ------------------------------------------------------- |
+| 1.1  | 2026-10-05 | real-LiHua | 新增第 10 节命令参数引号规范，CI/CD 与安全基线同步更新  |
+| 1.0  | 2026-10-05 | real-LiHua | 初版：覆盖架构、威胁模型、CSP、认证、构建管线、事件响应 |
 
 ---
 

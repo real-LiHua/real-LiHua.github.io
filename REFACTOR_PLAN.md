@@ -3,6 +3,7 @@
 ## Current State
 
 项目是一个基于 **Astro 7 + MDX + Content Collections** 的个人博客，部署到 Cloudflare Workers / Codeberg / GitHub Pages / IPFS 四平台。核心技术栈冻结：
+
 - Astro 7 (Node adapter, standalone)
 - Tailwind CSS 4 + daisyUI 5 + @tailwindcss/typography
 - Pagefind 零配置静态搜索
@@ -11,6 +12,7 @@
 - GitHub Actions 4 并行部署任务
 
 **当前痛点**：
+
 1. **集成分散**：4 个自定义 Astro 集成 (`build-hooks`, `satteri-config`, `watermark`, `mermaid-compile-time`) 各自为政，`astro:build:done` 钩子重复遍历文件
 2. **组件耦合**：`Navigation.astro` 内联路由逻辑、移动端/桌面端重复代码；`PostCard` 两种变体逻辑混合
 3. **主题变量冗余**：`global.css` 光/暗主题各 35 行 CSS 变量重复，`prose` 变量分离在 `:root` 与 `[data-theme="dark"]`
@@ -33,45 +35,45 @@
 
 ## Affected Files
 
-| File | Change Type | Dependencies |
-|------|-------------|--------------|
-| `src/integrations/build-pipeline.ts` | create | blocks all integration refactors |
-| `src/integrations/build-hooks.ts` | delete | blocked by build-pipeline |
-| `src/integrations/satteri-config.ts` | modify | blocked by build-pipeline (markdown config) |
-| `src/integrations/watermark.ts` | modify | blocked by build-pipeline (file IO abstraction) |
-| `src/integrations/mermaid-compile-time.ts` | modify | blocked by build-pipeline (file IO abstraction) |
-| `src/components/Navigation.astro` | delete | blocks navbar/* refactors |
-| `src/components/navbar/Start.astro` | modify | blocked by Navigation delete |
-| `src/components/navbar/Center.astro` | create | blocked by Navigation delete |
-| `src/components/navbar/End.astro` | modify | blocked by Navigation delete |
-| `src/components/navbar/MobileMenu.astro` | create | blocked by Navigation delete |
-| `src/components/Navbar.astro` | create | blocks Header refactor |
-| `src/components/Header.astro` | modify | blocked by Navbar create |
-| `src/components/common/PostCard.astro` | delete | blocks PostCardGrid/List create |
-| `src/components/common/PostCardGrid.astro` | create | blocked by PostCard delete |
-| `src/components/common/PostCardList.astro` | create | blocked by PostCard delete |
-| `src/components/common/Tag.astro` | keep | — |
-| `src/components/PagefindSearch.astro` | create | blocks BaseLayout modify |
-| `src/layouts/BaseLayout.astro` | modify | blocked by PagefindSearch create |
-| `src/styles/global.css` | modify | blocked by theme-tokens.css create |
-| `src/styles/theme-tokens.css` | create | blocks global.css modify |
-| `src/scripts/client-entry.ts` | create | blocks all script refactors |
-| `src/scripts/theme-toggle.ts` | modify | blocked by client-entry |
-| `src/scripts/toc.ts` | modify | blocked by client-entry |
-| `src/scripts/reading-progress.ts` | modify | blocked by client-entry |
-| `src/scripts/scroll-reveal.ts` | modify | blocked by client-entry |
-| `src/scripts/tilt-card.ts` | modify | blocked by client-entry |
-| `src/scripts/code-copy.ts` | modify | blocked by client-entry |
-| `src/scripts/telegram-auth.ts` | modify | blocked by client-entry |
-| `src/scripts/gravatar-fallback.ts` | modify | blocked by client-entry |
-| `src/utils/content.ts` | modify | blocks pages/posts/[id].astro |
-| `src/utils/date.ts` | keep | — |
-| `src/content.config.ts` | modify | exports types |
-| `src/pages/posts/index.astro` | modify | blocked by PostCardGrid/List |
-| `src/pages/posts/[id].astro` | modify | blocked by content.ts types, client-entry |
-| `src/pages/tags/[tag].astro` | modify | blocked by PostCardGrid/List |
-| `astro.config.ts` | modify | replace integrations |
-| `package.json` | modify | scripts/client-entry build step |
+| File                                       | Change Type | Dependencies                                    |
+| ------------------------------------------ | ----------- | ----------------------------------------------- |
+| `src/integrations/build-pipeline.ts`       | create      | blocks all integration refactors                |
+| `src/integrations/build-hooks.ts`          | delete      | blocked by build-pipeline                       |
+| `src/integrations/satteri-config.ts`       | modify      | blocked by build-pipeline (markdown config)     |
+| `src/integrations/watermark.ts`            | modify      | blocked by build-pipeline (file IO abstraction) |
+| `src/integrations/mermaid-compile-time.ts` | modify      | blocked by build-pipeline (file IO abstraction) |
+| `src/components/Navigation.astro`          | delete      | blocks navbar/\* refactors                      |
+| `src/components/navbar/Start.astro`        | modify      | blocked by Navigation delete                    |
+| `src/components/navbar/Center.astro`       | create      | blocked by Navigation delete                    |
+| `src/components/navbar/End.astro`          | modify      | blocked by Navigation delete                    |
+| `src/components/navbar/MobileMenu.astro`   | create      | blocked by Navigation delete                    |
+| `src/components/Navbar.astro`              | create      | blocks Header refactor                          |
+| `src/components/Header.astro`              | modify      | blocked by Navbar create                        |
+| `src/components/common/PostCard.astro`     | delete      | blocks PostCardGrid/List create                 |
+| `src/components/common/PostCardGrid.astro` | create      | blocked by PostCard delete                      |
+| `src/components/common/PostCardList.astro` | create      | blocked by PostCard delete                      |
+| `src/components/common/Tag.astro`          | keep        | —                                               |
+| `src/components/PagefindSearch.astro`      | create      | blocks BaseLayout modify                        |
+| `src/layouts/BaseLayout.astro`             | modify      | blocked by PagefindSearch create                |
+| `src/styles/global.css`                    | modify      | blocked by theme-tokens.css create              |
+| `src/styles/theme-tokens.css`              | create      | blocks global.css modify                        |
+| `src/scripts/client-entry.ts`              | create      | blocks all script refactors                     |
+| `src/scripts/theme-toggle.ts`              | modify      | blocked by client-entry                         |
+| `src/scripts/toc.ts`                       | modify      | blocked by client-entry                         |
+| `src/scripts/reading-progress.ts`          | modify      | blocked by client-entry                         |
+| `src/scripts/scroll-reveal.ts`             | modify      | blocked by client-entry                         |
+| `src/scripts/tilt-card.ts`                 | modify      | blocked by client-entry                         |
+| `src/scripts/code-copy.ts`                 | modify      | blocked by client-entry                         |
+| `src/scripts/telegram-auth.ts`             | modify      | blocked by client-entry                         |
+| `src/scripts/gravatar-fallback.ts`         | modify      | blocked by client-entry                         |
+| `src/utils/content.ts`                     | modify      | blocks pages/posts/[id].astro                   |
+| `src/utils/date.ts`                        | keep        | —                                               |
+| `src/content.config.ts`                    | modify      | exports types                                   |
+| `src/pages/posts/index.astro`              | modify      | blocked by PostCardGrid/List                    |
+| `src/pages/posts/[id].astro`               | modify      | blocked by content.ts types, client-entry       |
+| `src/pages/tags/[tag].astro`               | modify      | blocked by PostCardGrid/List                    |
+| `astro.config.ts`                          | modify      | replace integrations                            |
+| `package.json`                             | modify      | scripts/client-entry build step                 |
 
 ---
 
@@ -188,14 +190,14 @@ If something fails:
 
 ## Risks
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| `build-pipeline` 并行阶段竞态 | 中 | 高 | 每阶段串行执行，文件锁或临时目录隔离 |
-| daisyUI 5 `@plugin` 语法与 Tailwind CSS 4 `@theme` 冲突 | 低 | 中 | 优先用官方文档验证的 `@plugin "daisyui/theme"` 写法 |
-| Pagefind 模块化 UI 与现有 `pagefind-modal` 冲突 | 低 | 中 | 保留 `<pagefind-modal>` 仅作备用，主 UI 用组件化 |
-| 客户端模块注册顺序导致依赖失败 | 中 | 中 | `client-entry` 显式定义加载顺序，必要时 `await` |
-| Rust CLI `post-edit` 依赖旧 frontmatter 字段 | 低 | 低 | 重构不改字段名，仅类型导出 |
-| `astro:build:done` 单钩子超时 | 低 | 高 | 分阶段设置超时，日志分级 |
+| Risk                                                    | Likelihood | Impact | Mitigation                                          |
+| ------------------------------------------------------- | ---------- | ------ | --------------------------------------------------- |
+| `build-pipeline` 并行阶段竞态                           | 中         | 高     | 每阶段串行执行，文件锁或临时目录隔离                |
+| daisyUI 5 `@plugin` 语法与 Tailwind CSS 4 `@theme` 冲突 | 低         | 中     | 优先用官方文档验证的 `@plugin "daisyui/theme"` 写法 |
+| Pagefind 模块化 UI 与现有 `pagefind-modal` 冲突         | 低         | 中     | 保留 `<pagefind-modal>` 仅作备用，主 UI 用组件化    |
+| 客户端模块注册顺序导致依赖失败                          | 中         | 中     | `client-entry` 显式定义加载顺序，必要时 `await`     |
+| Rust CLI `post-edit` 依赖旧 frontmatter 字段            | 低         | 低     | 重构不改字段名，仅类型导出                          |
+| `astro:build:done` 单钩子超时                           | 低         | 高     | 分阶段设置超时，日志分级                            |
 
 ---
 

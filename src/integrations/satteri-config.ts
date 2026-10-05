@@ -87,7 +87,12 @@ export const satteriConfigIntegration = (): AstroIntegration => ({
       updateConfig({
         markdown: {
           processor: satteri({
-            hastPlugins: [mermaidHast(), satteriTableAlign(), satteriHeadingIdsPlugin, satteriExternalLinks(siteUrl)],
+            hastPlugins: [
+              mermaidHast(),
+              satteriTableAlign(),
+              satteriHeadingIdsPlugin,
+              satteriExternalLinks(siteUrl),
+            ],
             mdastPlugins: [mermaidMdast(), satteriPublishDate(), satteriUpdatedDate()],
           }),
           shikiConfig: {

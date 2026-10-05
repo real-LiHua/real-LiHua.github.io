@@ -81,7 +81,12 @@ function getAllFiles(dir: string, exts: string[]): string[] {
     for (const entry of readdirSync(d, { withFileTypes: true })) {
       const full = join(d, entry.name);
       if (entry.isDirectory()) {
-        if (!entry.name.startsWith(".") && entry.name !== "node_modules" && entry.name !== "dist" && entry.name !== ".astro") {
+        if (
+          !entry.name.startsWith(".") &&
+          entry.name !== "node_modules" &&
+          entry.name !== "dist" &&
+          entry.name !== ".astro"
+        ) {
           walk(full);
         }
       } else if (exts.includes(extname(entry.name))) {
@@ -145,11 +150,14 @@ function tryAutoFix(pointer: Pointer): string | null {
 
   try {
     // Use git log --follow to find renames/moves
-    const result = execSync(`git log --follow --name-only --oneline -- "${targetPath}" 2>/dev/null | head -20`, {
-      encoding: "utf-8",
-      cwd: ROOT,
-      stdio: ["ignore", "pipe", "ignore"],
-    });
+    const result = execSync(
+      `git log --follow --name-only --oneline -- "${targetPath}" 2>/dev/null | head -20`,
+      {
+        encoding: "utf-8",
+        cwd: ROOT,
+        stdio: ["ignore", "pipe", "ignore"],
+      },
+    );
 
     const lines = result.trim().split("\n");
     for (const line of lines) {
@@ -216,7 +224,9 @@ function generateReport(result: ScanResult): string {
 async function main() {
   console.log("🔍 Scanning for pointers...");
 
-  const files = getAllFiles(ROOT, TARGET_EXTS).filter(f => !f.includes("node_modules") && !f.includes(".git"));
+  const files = getAllFiles(ROOT, TARGET_EXTS).filter(
+    (f) => !f.includes("node_modules") && !f.includes(".git"),
+  );
   console.log(`  Scanning ${files.length} files...`);
 
   let allPointers: Pointer[] = [];
@@ -247,8 +257,8 @@ async function main() {
     timestamp: new Date().toISOString(),
     totalFiles: files.length,
     totalPointers: allPointers.length,
-    validPointers: allPointers.filter(p => p.exists).length,
-    brokenPointers: allPointers.filter(p => !p.exists).length,
+    validPointers: allPointers.filter((p) => p.exists).length,
+    brokenPointers: allPointers.filter((p) => !p.exists).length,
     pointers: allPointers,
     fixed,
   };
@@ -261,7 +271,7 @@ async function main() {
 
   if (result.brokenPointers > 0) {
     console.log("\n❌ Broken pointers:");
-    for (const p of allPointers.filter(p => !p.exists)) {
+    for (const p of allPointers.filter((p) => !p.exists)) {
       console.log(`  ${p.file}:${p.line} → ${p.target}`);
     }
   }
@@ -287,7 +297,7 @@ async function main() {
   }
 }
 
-main().catch(e => {
+main().catch((e) => {
   console.error("Fatal:", e);
   process.exit(1);
 });

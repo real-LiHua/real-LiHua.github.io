@@ -1,6 +1,6 @@
 {
   "name": "blog",
-  "compatibility_date": "2026-09-02",
+  "compatibility_date": "2026-10-04",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
     "directory": "./dist",
@@ -14,7 +14,7 @@
     {
       "binding": "TG_AUTH_KV",
       "id": "your-kv-namespace-id",
-      "preview_id": "your-preview-kv-namespace-id"
-    }
-  ]
+      "preview_id": "your-preview-kv-namespace-id",
+    },
+  ],
 }

@@ -5,12 +5,14 @@ import type { CollectionEntry } from "astro:content";
 import { z } from "astro/zod";
 
 // ===== Frontmatter Schema (与 content.config.ts 保持同步) =====
-export const telegramAuthSchema = z.object({
-  enabled: z.boolean(),
-  groupId: z.string(),
-  groupName: z.string().optional(),
-  customMessage: z.string().optional(),
-}).optional();
+export const telegramAuthSchema = z
+  .object({
+    enabled: z.boolean(),
+    groupId: z.string(),
+    groupName: z.string().optional(),
+    customMessage: z.string().optional(),
+  })
+  .optional();
 
 export const postFrontmatterSchema = z.object({
   authors: z.array(z.string()).optional(),

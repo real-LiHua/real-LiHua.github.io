@@ -8,12 +8,7 @@
     "MD041": false,
     "MD043": false,
     "MD052": false,
-    "MD059": false
+    "MD059": false,
   },
-  "ignore": [
-    "node_modules/**",
-    "dist/**",
-    ".astro/**",
-    "src/posts/drafts/**"
-  ]
+  "ignore": ["node_modules/**", "dist/**", ".astro/**", "src/posts/drafts/**"],
 }

@@ -3,11 +3,19 @@
 /**
  * Message Bus CLI
  *
- * A simple TypeScript CLI for the agent message bus infrastructure.
- * Provides commands for sending, receiving, acknowledging, and listing messages.
+ * A simple TypeScript CLI for the agent message bus infrastructure. Provides commands for sending,
+ * receiving, acknowledging, and listing messages.
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, unlinkSync, renameSync } from "fs";
+import {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  unlinkSync,
+  renameSync,
+} from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
@@ -31,7 +39,7 @@ const MAX_RETRIES = 3;
 const messageSchema = JSON.parse(readFileSync(SCHEMA_PATH, "utf-8"));
 const routingTable = JSON.parse(readFileSync(ROUTING_PATH, "utf-8"));
 
-const ajv = new Ajv({ strict: false, formats: { "date-time": true, "uuid": true } });
+const ajv = new Ajv({ strict: false, formats: { "date-time": true, uuid: true } });
 const validateMessage = ajv.compile(messageSchema);
 
 // Types
@@ -138,7 +146,9 @@ function writeAtomic(filePath: string, content: string): void {
 // Send message command
 async function sendMessage(args: string[]): Promise<void> {
   if (args.length < 6) {
-    console.error("Usage: send-message <from> <to> <type> <priority> <payload-json> [correlation_id] [ttl]");
+    console.error(
+      "Usage: send-message <from> <to> <type> <priority> <payload-json> [correlation_id] [ttl]",
+    );
     console.error("  to: role-id or 'broadcast' or comma-separated list");
     console.error("  payload-json: JSON object string");
     process.exit(1);
@@ -316,7 +326,9 @@ async function listPending(args: string[]): Promise<void> {
       const overdue = ageMs > ACK_TIMEOUT_MS ? " ⚠ OVERDUE" : "";
 
       console.log(`  ${message.id}`);
-      console.log(`    From: ${message.from} | Type: ${message.type} | Priority: ${message.priority}`);
+      console.log(
+        `    From: ${message.from} | Type: ${message.type} | Priority: ${message.priority}`,
+      );
       console.log(`    Age: ${ageMinutes}m ${ageSeconds}s${status}${overdue}`);
       console.log(`    Payload: ${JSON.stringify(message.payload).slice(0, 100)}...`);
 
@@ -354,7 +366,9 @@ async function main() {
     default:
       console.error(`Unknown command: ${command}`);
       console.error("Available commands:");
-      console.error("  send-message <from> <to> <type> <priority> <payload-json> [correlation_id] [ttl]");
+      console.error(
+        "  send-message <from> <to> <type> <priority> <payload-json> [correlation_id] [ttl]",
+      );
       console.error("  receive-messages <role> [limit]");
       console.error("  ack-message <role> <message-id> [processing-duration-ms]");
       console.error("  list-pending [role] [--all]");
