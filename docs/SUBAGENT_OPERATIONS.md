@@ -192,7 +192,7 @@ cat .agents/lifecycle/performance-frontend-architect-2026-10.md
 ### Image Optimization
 
 - **Sharp** (默认): `image.service.entrypoint: 'astro/assets/services/sharp'`，配置 `limitInputPixels`、`webp`/`jpeg`/`avif`/`png` encoder 选项
-- **Passthrough**: `passthroughImageService()` 绕过处理，适配 Cloudflare Workers 等边缘环境
+- **Passthrough**: `passthroughImageService()` 绕过处理，适配 tgcloud 等边缘环境
 - **Endpoint**: `image.endpoint.route` 自定义图片服务路由
 
 ### Tailwind CSS 4 + daisyUI 5

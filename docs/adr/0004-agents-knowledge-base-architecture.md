@@ -184,7 +184,7 @@ import type { PostFrontmatter, BlogCollection } from "@/modules/types";
 import { formatDate } from "../utils/date";
 ````
 
-**环境即源头**：`package.json` 的 `scripts`、`astro.config.ts` 的集成配置、`wrangler.jsonc` 的绑定——文档不复述，仅在 AGENTS.md 给出命令入口。
+**环境即源头**：`package.json` 的 `scripts`、`astro.config.ts` 的集成配置、`tgcloud.jsonc` 的绑定——文档不复述，仅在 AGENTS.md 给出命令入口。
 
 ### 8. 子智能体知识隔离
 
@@ -194,7 +194,7 @@ import { formatDate } from "../utils/date";
 | ------------------------- | --------- | ------------------------------------- | ----------------------------------------------------- |
 | frontend-architect        | AGENTS.md | 0001, 0005, 0006, SUBAGENT_OPERATIONS | src/components, src/styles, playwright.config.ts      |
 | content-engineer          | AGENTS.md | 0001, 0002, REFACTOR_PLAN             | src/content.config.ts, src/utils/content.ts           |
-| build-deploy-engineer     | AGENTS.md | 0001, 0003, SECURITY_WHITEPAPER       | .github/workflows, wrangler.jsonc                     |
+| build-deploy-engineer     | AGENTS.md | 0001, 0003, SECURITY_WHITEPAPER       | .github/workflows, tgcloud.jsonc                     |
 | cli-tool-engineer         | AGENTS.md | 0003, REFACTOR_PLAN                   | Cargo.toml, src/post-edit/                            |
 | search-discovery-engineer | AGENTS.md | 0001, 0006, architecture-map.md       | src/modules/search.ts                                 |
 | quality-dx-guardian       | AGENTS.md | 全部 ADR, SUBAGENT_OPERATIONS         | .oxlintrc.json, oxfmt.config.ts, playwright.config.ts |

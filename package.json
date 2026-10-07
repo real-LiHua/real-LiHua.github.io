@@ -7,9 +7,12 @@
     "check": "astro check",
     "build": "astro build",
     "audit": "pnpm audit --registry https://registry.npmjs.org/",
-    "preview": "astro build && wrangler dev",
+    "preview": "astro build && pnpm exec tgcloud dev",
     "astro": "astro",
     "prepare": "husky",
+    "deploy": "tgcloud push",
+    "status": "tgcloud status",
+    "run": "tgcloud run",
     "post:edit": "cargo run -p post-edit --",
     "verify:watermark": "tsx src/scripts/verify-watermark.ts"
   },
@@ -22,7 +25,6 @@
     "@astrojs/sitemap": "^3.7.4",
     "@astrojs/ts-plugin": "^1.10.12",
     "@fontsource/twinkle-star": "^5.3.0",
-    "@grammyjs/auto-retry": "^2.0.2",
     "@helia/strings": "^5.1.1",
     "@shopify/draggable": "^1.2.1",
     "@tailwindcss/typography": "^0.5.20",
@@ -33,7 +35,6 @@
     "daisyui": "^5.7.47",
     "expressive-code-language-badge": "^1.1.0",
     "gaxios": "^7.3.1",
-    "grammy": "^1.46.0",
     "helia": "^6.1.4",
     "mdast-util-toc": "^7.1.0",
     "mermaid": "^11.17.2",
@@ -44,10 +45,10 @@
     "typescript": "^6.0.3"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.62.5",
     "@mermaid-js/mermaid-cli": "^11.17.0",
     "@playwright/mcp": "^0.0.77",
     "@shikijs/colorized-brackets": "^4.5.0",
+    "@tgcloud/cli": "^0.1.2",
     "@types/hast": "^3.0.5",
     "@types/mdast": "^4.0.4",
     "astro-favicons": "^3.1.8",
@@ -67,8 +68,7 @@
     "pagefind": "^1.5.2",
     "playwright": "^1.63.0",
     "tsx": "^4.23.15",
-    "vnu-jar": "^26.10.2",
-    "wrangler": "^4.147.0"
+    "vnu-jar": "^26.10.2"
   },
   "lint-staged": {
     "*.{js,mjs,jsx,ts,tsx}": [

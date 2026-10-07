@@ -2,38 +2,82 @@
 
 ## Project Overview
 
-A personal blog built with **Astro 7** using **MDX** for content, **Tailwind CSS 4** + **daisyUI 5** for styling, and **Pagefind** for client-side search. The blog is deployed to **Cloudflare Workers**, **Codeberg Pages**, **GitHub Pages**, and **IPFS** via Pinata.
+This repository contains **two integrated projects**:
+
+1. **Astro 7 Personal Blog** — A personal blog built with **Astro 7** using **MDX** for content, **Tailwind CSS 4** + **daisyUI 5** for styling, and **Pagefind** for client-side search. The blog is deployed to **Codeberg Pages**, **GitHub Pages**, and **IPFS** via Pinata. The **tgcloud Telegram Bot** runs on Telegram's serverless platform.
+
+2. **tgcloud Telegram Bot** — A Telegram Mini App bot running on the **tgcloud** serverless platform (Telegram's serverless platform similar to wrangler/vercel + drizzle-kit). The bot runs on Telegram's V8 isolates and uses the tgcloud SDK for database, Bot API, and HTTP.
 
 ### Key Technologies
 
+**Astro Blog:**
 - **Framework:** Astro 7 (Node adapter, standalone mode)
 - **Content:** MDX with Astro Content Collections (glob loader)
 - **Styling:** Tailwind CSS 4 + daisyUI 5 + @tailwindcss/typography
 - **Search:** Pagefind (zero-config static search)
 - **Lint/Format:** oxlint + oxfmt (via lint-staged + Husky)
 - **CLI Tool:** Rust (post-edit) for interactive post management
-- **CI/CD:** GitHub Actions with 4 parallel deployment jobs
+- **CI/CD:** GitHub Actions with 3 parallel deployment jobs (Codeberg, GitHub Pages, IPFS); tgcloud bot uses separate deployment
 
-### Architecture
+**tgcloud Telegram Bot:**
+- **Platform:** tgcloud (Telegram's serverless platform)
+- **Runtime:** V8 isolates on Telegram's infrastructure
+- **Language:** JavaScript modules (ESM, `.js` extension required)
+- **Database:** Built-in DB with query builder (`db`), no foreign keys, manual migrations
+- **Bot API:** `api` object with auto-unwrapped results, throws `BotApiError` (replaces grammy)
+- **HTTP:** Web-standard `fetch` for outbound requests
+- **Deploy:** `pnpm exec tgcloud push` (code) + `pnpm exec tgcloud migrate` (DB schema)
+
+### Architecture Overview
+
+This repository contains **two integrated projects** that share a single repository but deploy independently:
 
 ```
-src/
-├── components/       # Astro components (Header, Footer, CodeCopy, etc.)
-├── layouts/          # BaseLayout (theme, OGP, ClientRouter, Pagefind)
-├── pages/            # Routes: index, about, posts/[id], tags/, meow.ts, etc.
-├── posts/            # .md / .mdx blog articles (content collections)
-│   └── drafts/       # Drafts determined by path (no frontmatter `draft` field)
-├── scripts/          # Client-side JS (theme-toggle, scroll-reveal, tilt-card, etc.)
-├── styles/           # global.css — Tailwind + daisyUI theme vars
-├── utils/            # Date helpers (dayjs), content utilities
-├── integrations/     # Custom Astro integrations (build-hooks, satteri-config, mermaid)
-├── plugins/          # Remark/Rehype plugins (mdast-toc)
-├── post-edit/        # Rust CLI source (post-edit binary)
-├── modules/          # Deep modules with explicit interfaces (types, pipelines, runtime)
-└── .agents/          # Sub-agent orchestration (tasks, scripts, contracts, lifecycle)
+├── src/                          # Astro 7 Blog (Main Project)
+│   ├── components/               # Astro components (Header, Footer, CodeCopy, etc.)
+│   ├── layouts/                  # BaseLayout (theme, OGP, ClientRouter, Pagefind)
+│   ├── pages/                    # Routes: index, about, posts/[id], tags/, meow.ts, etc.
+│   ├── posts/                    # .md / .mdx blog articles (content collections)
+│   │   └── drafts/               # Drafts determined by path (no frontmatter `draft` field)
+│   ├── scripts/                  # Client-side JS (theme-toggle, scroll-reveal, tilt-card, etc.)
+│   ├── styles/                   # global.css — Tailwind + daisyUI theme vars
+│   ├── utils/                    # Date helpers (dayjs), content utilities
+│   ├── integrations/             # Custom Astro integrations (build-hooks, satteri-config, mermaid)
+│   ├── plugins/                  # Remark/Rehype plugins (mdast-toc)
+│   ├── post-edit/                # Rust CLI source (post-edit binary)
+│   ├── modules/                  # Deep modules with explicit interfaces (types, pipelines, runtime)
+│   └── .agents/                  # Sub-agent orchestration (tasks, scripts, contracts, lifecycle)
+│
+├── tgcloud/                      # tgcloud Telegram Bot (Independent Project)
+│   ├── handlers/                 # Telegram update handlers
+│   │   └── message.js            # Message handler (echo example)
+│   ├── endpoints/                # Mini App endpoints (POST /api/<name>)
+│   ├── schema.js                 # Database schema (tables as named exports)
+│   └── tgcloud.jsonc             # tgcloud project config
+│
+├── .agents/                      # Sub-agent orchestration (shared)
+│   ├── scripts/                  # Core scripts (task-claim, task-progress, task-complete, run-gate, check-regression)
+│   ├── tasks/phase-1..8/         # Task cards (from REFACTOR_PLAN.md)
+│   ├── lifecycle/                # Monthly performance reviews
+│   ├── team/                     # Skills matrix, capacity planning
+│   ├── contracts/                # Interface contracts (TypeScript/Zod)
+│   └── tech-debt/                # Technical debt register
+│
+├── .github/workflows/            # CI/CD pipelines
+│   ├── deploy.yml                # Multi-platform deploy (Astro blog)
+│   └── knowledge-guard.yml       # Knowledge base guards
+│
+├── schema.js                     # Root-level tgcloud schema (symlink to tgcloud/schema.js)
+├── handlers/message.js           # Telegram handler (symlink to tgcloud/handlers/message.js)
+├── tgcloud.jsonc                 # tgcloud project config (if present)
+├── .github/workflows/deploy.yml  # Blog deployment (3-platform)
+├── .github/workflows/knowledge-guard.yml  # Knowledge base guards
+├── .github/pull_request_template.md
+├── Cargo.toml                    # Rust CLI project config
+└── src/modules/*.ts              # Deep module interfaces (Astro Blog)
 ```
 
-### Deep Module Boundaries
+### Deep Module Boundaries (Astro Blog)
 
 | Module             | Interface                                                                         | Implementation                                          | Consumers                          |
 | ------------------ | --------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------- |
@@ -44,6 +88,25 @@ src/
 | `client-runtime`   | `registerModule()`, `start()`                                                     | 9 ClientModules + lifecycle dispatch                    | BaseLayout (single entry)          |
 | `telegram-auth`    | `initClient()`, `AuthWallProps`, `pollAuthStatus()`                               | Frontend wall + JWT polling + Bot API                   | Post page, ClientRuntime           |
 | `ui-components`    | Composite components (Navbar, PostCardGrid/List, Tag, PagefindSearch, BaseLayout) | daisyUI + Tailwind + Astro slots                        | All pages                          |
+
+### tgcloud Telegram Bot Module Boundaries
+
+| Module           | Interface                                                                   | Implementation                              | Consumers                     |
+| ---------------- | --------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------- |
+| `bot-handlers`   | `handleMessage()`, `handleCallbackQuery()`                                  | `tgcloud/handlers/*.js`                     | Telegram Platform             |
+| `bot-endpoints`  | `POST /api/<name>` handlers                                                 | `tgcloud/endpoints/*.js`                    | Mini App Frontend             |
+| `bot-db`         | `db` query builder, `schema.js`                                             | tgcloud SDK `db` + `schema.js`              | Handlers, Endpoints           |
+| `bot-api`        | `api` (Bot API), `fetch` (HTTP), `console`                                  | tgcloud SDK `api`, `fetch`, `console`       | Handlers, Endpoints           |
+| `bot-deploy`     | `push()`, `migrate()`, `run()`, `webhook()`                                 | tgcloud CLI                                 | CI/CD, Local Dev              |
+
+### Integration Points (Astro Blog ↔ tgcloud Bot)
+
+| Integration Point          | Mechanism                                                                 | Data Flow                          |
+| -------------------------- | ------------------------------------------------------------------------- | ---------------------------------- |
+| **Telegram Auth**          | Blog post frontmatter `telegramAuth` → Bot validates group membership     | Blog → Bot (JWT)                   |
+| **Content Sharing**        | Bot reads published posts via `content-pipeline`                          | Blog → Bot (Content API)           |
+| **Search Index**           | Blog generates Pagefind index → Bot can query                             | Blog → Bot (Search)                |
+| **Deployment**             | Independent CI/CD pipelines                                               | Independent                        |
 
 ---
 
@@ -59,7 +122,7 @@ pnpm dev
 # Type-check + build + Pagefind index + HTML validation
 pnpm build
 
-# Preview production build with Wrangler (Cloudflare Workers simulator)
+# Preview production build with Wrangler (tgcloud simulator)
 pnpm preview
 
 # Run Astro CLI commands
@@ -70,6 +133,26 @@ pnpm post:edit
 
 # Audit dependencies
 pnpm audit
+```
+
+### tgcloud Telegram Bot Commands
+
+```bash
+# Check status of local vs cloud
+pnpm status
+
+# Deploy code to tgcloud
+pnpm deploy
+
+# Apply database schema changes
+pnpm exec tgcloud migrate
+
+# Run a handler/endpoint locally
+pnpm run <module> [args]
+
+# Check/sync bot webhook
+pnpm exec tgcloud webhook
+```
 ```
 
 ---
@@ -101,8 +184,8 @@ pnpm build
 
 ```bash
 pnpm preview
-# Runs: astro build && wrangler dev
-# Simulates Cloudflare Workers environment locally
+# Runs: astro build && tgcloud local dev preview
+# Simulates tgcloud environment locally
 ```
 
 ### Hot Reload / Watch Mode
@@ -157,14 +240,15 @@ pnpm lint-staged
 
 ### CI Pipeline
 
-The GitHub Actions workflow (`.github/workflows/deploy.yml`) runs on push to `main`:
+The GitHub Actions workflow (`.github/workflows/deploy.yml`) runs on push to `main` for the **Astro Blog**:
 
-1. **cloudflare** — Build + deploy to Cloudflare Workers
-2. **codeberg** — Build + deploy to Codeberg Pages (SSH push)
-3. **github** — Build + deploy to GitHub Pages via `withastro/action`
-4. **ipfs** — Build + pin to IPFS via Pinata
+1. **codeberg** — Build + deploy to Codeberg Pages (SSH push)
+2. **github** — Build + deploy to GitHub Pages via `withastro/action`
+3. **ipfs** — Build + pin to IPFS via Pinata
 
 All jobs install lychee for link checking and run `pnpm build`.
+
+**tgcloud Telegram Bot** uses separate deployment via `pnpm deploy` (tgcloud push) and `pnpm exec tgcloud migrate`.
 
 ---
 
@@ -238,35 +322,32 @@ dist/
 │   ├── tags/
 │   ├── index.html
 │   └── ...
-├── server/          # Server bundle (Cloudflare Workers)
-│   └── entry.mjs
-└── _worker.js       # Worker entry (if applicable)
+└── server/          # Server bundle (tgcloud)
+    └── entry.mjs
 ```
 
 ### Deployment Targets
 
-| Target                 | URL                               | Method                  |
-| ---------------------- | --------------------------------- | ----------------------- |
-| **Cloudflare Workers** | `https://<your-worker>.pages.dev` | `wrangler deploy`       |
-| **Codeberg Pages**     | `https://lihua.codeberg.page`     | SSH bare repo push      |
-| **GitHub Pages**       | `https://real-LiHua.github.io`    | `actions/deploy-pages`  |
-| **IPFS**               | Via Pinata gateway                | `ipfs add` + Pinata pin |
+| Target           | URL                               | Method                  |
+| ---------------- | --------------------------------- | ----------------------- |
+| **tgcloud**      | `https://<your-bot>.tgcloud.ai`   | `pnpm deploy` (tgcloud push) |
+| **Codeberg Pages** | `https://lihua.codeberg.page`     | SSH bare repo push      |
+| **GitHub Pages** | `https://real-LiHua.github.io`    | `actions/deploy-pages`  |
+| **IPFS**         | Via Pinata gateway                | `ipfs add` + Pinata pin |
 
 ### Environment Variables
 
-| Variable                | Description                     | Required         |
-| ----------------------- | ------------------------------- | ---------------- |
-| `SITE_URL`              | Base URL for sitemap, RSS, OGP  | Yes (build)      |
-| `CF_PAGES_URL`          | Cloudflare Pages URL (fallback) | No               |
-| `CLOUDFLARE_ACCOUNT_ID` | CF account ID                   | Deploy only      |
-| `CLOUDFLARE_API_TOKEN`  | CF API token                    | Deploy only      |
-| `CODEBERG_PAGES`        | SSH private key for Codeberg    | Deploy only      |
-| `PINATA_JWT_TOKEN`      | Pinata API JWT                  | IPFS deploy only |
+| Variable           | Description                     | Required         |
+| ------------------ | ------------------------------- | ---------------- |
+| `SITE_URL`         | Base URL for sitemap, RSS, OGP  | Yes (build)      |
+| `TG_API_TOKEN`     | tgcloud API token               | Deploy only      |
+| `CODEBERG_PAGES`   | SSH private key for Codeberg    | Deploy only      |
+| `PINATA_JWT_TOKEN` | Pinata API JWT                  | IPFS deploy only |
 
 ### Local Preview of Deployed Builds
 
 ```bash
-# Cloudflare Workers preview
+# tgcloud local dev preview
 pnpm preview
 
 # Static preview (any static server)
@@ -429,7 +510,7 @@ pnpm add -D package@latest
 - **Content Security Policy:** Strict CSP via meta tags in `BaseLayout.astro` (see `docs/SECURITY_WHITEPAPER.md`)
 - **Dependencies:** `pnpm audit` runs in CI; review advisories before merging
 - **Link checking:** lychee runs in CI to catch broken links
-- **Telegram Bot Token:** Only in Cloudflare Workers secret, never in repo or build output
+- **Telegram Bot Token:** Only in tgcloud secret, never in repo or build output
 - **Watermark:** Zero-width character blind watermark on original articles (build pipeline stage)
 
 Full security baseline: `docs/SECURITY_WHITEPAPER.md`
@@ -524,7 +605,7 @@ pnpm oxfmt --write
 ### Image Optimization
 
 - **Sharp** (默认): `image.service.entrypoint: 'astro/assets/services/sharp'`，配置 `limitInputPixels`、`webp`/`jpeg`/`avif`/`png` encoder 选项
-- **Passthrough**: `passthroughImageService()` 绕过处理，适配 Cloudflare Workers 等边缘环境
+- **Passthrough**: `passthroughImageService()` 绕过处理，适配 tgcloud 等边缘环境
 - **Endpoint**: `image.endpoint.route` 自定义图片服务路由
 
 ### Tailwind CSS 4 + daisyUI 5
@@ -643,9 +724,10 @@ This is a single-package repository. No workspace commands needed.
 | `.github/workflows/deploy.yml`          | CI/CD pipeline (4-platform deploy)                             |
 | `.github/workflows/knowledge-guard.yml` | Knowledge base guards (pointers, terms, contracts, regression) |
 | `.github/pull_request_template.md`      | PR template with KB impact checklist                           |
-| `wrangler.jsonc`                        | Cloudflare Workers config                                      |
 | `Cargo.toml`                            | Rust CLI project config                                        |
 | `src/modules/*.ts`                      | Deep module interfaces                                         |
+| `schema.js`                             | tgcloud database schema                                        |
+| `handlers/message.js`                   | Telegram message handler                                       |
 
 ### Useful Commands Reference
 
@@ -667,7 +749,15 @@ pnpm post:edit        # Manage posts (Rust CLI)
 pnpm playwright test  # E2E tests
 
 # Deploy (local preview)
-pnpm preview          # Wrangler dev
+pnpm preview          # tgcloud local dev preview
+
+# tgcloud Telegram Bot
+pnpm status           # Check local vs cloud status
+pnpm deploy           # Deploy to tgcloud
+pnpm exec tgcloud migrate   # Apply database schema changes
+pnpm run <module>           # Run handler/endpoint locally (tgcloud run)
+pnpm exec tgcloud webhook   # Check/sync bot webhook
+```
 
 # Sub-agent ops
 pnpm exec tsx .agents/scripts/task-claim.ts <id> --assignee <role>

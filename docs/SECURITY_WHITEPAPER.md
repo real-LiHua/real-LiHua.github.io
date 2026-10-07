@@ -1,15 +1,20 @@
 # Web 安全白皮书
 
 **项目**：real-LiHua 个人博客
-**版本**：1.0
-**日期**：2026-10-05
+**版本**：1.1
+**日期**：2026-10-07
 **分级**：公开
 
 ---
 
 ## 1. 概述
 
-本白皮书定义了 real-LiHua 个人博客系统的安全架构、威胁模型、防护措施与合规基线。系统基于 **Astro 7 + Node Adapter (Standalone) + Cloudflare Workers / Codeberg Pages / GitHub Pages / IPFS** 多平台部署，采用 **静态生成 (SSG)** 为主、客户端增强为辅的架构。
+本白皮书定义了 real-LiHua 个人博客系统的安全架构、威胁模型、防护措施与合规基线。系统包含两个独立部署的子系统：
+
+1. **Astro 7 个人博客** — 基于 **Astro 7 + Node Adapter (Standalone)** 静态生成 (SSG)，部署到 **Codeberg Pages / GitHub Pages / IPFS** 多平台
+2. **tgcloud Telegram Bot** — 运行在 **tgcloud** 无服务器平台 (Telegram 的 V8 隔离环境)，使用 tgcloud SDK 提供数据库、Bot API 和 HTTP 服务
+
+两个子系统独立部署，通过 Telegram Auth、内容共享、搜索索引等接口集成。
 
 ### 1.1 资产识别
 
@@ -19,7 +24,7 @@
 | **草稿文章**                 | **私有子模块仓库**  | **高** | **高** | **中** | **物理隔离于公开仓库，仅构建时挂载，杜绝泄露** |
 | Telegram 群组 ID / Bot Token | 环境变量            | 高     | 高     | 高     | 仅 CI/CD 注入，不入仓库                        |
 | 构建产物                     | 部署制品            | 低     | 高     | 高     | 多平台分发，需防篡改                           |
-| 访问日志 / 分析数据          | 第三方服务          | 中     | 中     | 中     | Cloudflare Analytics 等                        |
+| 访问日志 / 分析数据          | 第三方服务          | 中     | 中     | 中     | tgcloud Analytics 等                        |
 | 用户会话 (Telegram JWT)      | 客户端 localStorage | 高     | 高     | 中     | 短期有效，含群组成员身份证明                   |
 
 ### 1.2 合规基线
@@ -51,13 +56,13 @@
 ### 3.1 网络与传输层
 
 ```nginx
-# Cloudflare Workers / Pages 自动强制 HTTPS
+# tgcloud / Pages 自动强制 HTTPS
 # HSTS 预加载已提交 hstspreload.org
 Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 ```
 
-- **TLS 1.3 only** (Cloudflare 默认)
-- **Certificate Transparency** 监控 (Cloudflare 提供)
+- **TLS 1.3 only** (tgcloud / Pages 默认)
+- **Certificate Transparency** 监控 (tgcloud 提供)
 - **DNSSEC** 已启用 (域名注册商)
 
 ### 3.2 内容安全策略 (CSP)
@@ -162,7 +167,7 @@ const blog = defineCollection({
 
 **安全控制点**：
 
-- **Bot Token** 仅存在于 Cloudflare Workers 服务端环境变量
+- **Bot Token** 仅存在于 tgcloud 服务端环境变量
 - **JWT**：HS256 签名，载荷 `{ postId, userId, groupId, exp }`，15 分钟过期
 - **前端轮询**：最大 5 分钟，指数退避，失败不阻塞页面其他功能
 - **群组 ID 校验**：正则 `^-?\d+$` 防注入
@@ -220,7 +225,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
           CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
       - name: Deploy
-        uses: cloudflare/wrangler-action@v3
+        uses: tgcloud/tgcloud-action@v1
         # 无需额外 secret，使用 OIDC
 ```
 
@@ -230,7 +235,7 @@ jobs:
 
 - **最小权限**：`contents: read`，仅部署步骤 `pages: write` / `id-token: write`
 - **Secret 隔离**：每平台独立 Secret，无共享 Token
-- **OIDC 认证**：Cloudflare / GitHub Pages 使用 Workload Identity Federation，无长期凭证
+- **OIDC 认证**：tgcloud / GitHub Pages 使用 Workload Identity Federation，无长期凭证
 - **SSH 密钥轮换**：Codeberg 部署密钥 90 天轮换
 - **依赖审计**：`pnpm audit` 每次构建运行，高危阻断
 
@@ -265,7 +270,7 @@ jobs:
 - **lockfile 入库**：`pnpm-lock.yaml` 提交 Git
 - **依赖固定版本**：`^` 仅允许补丁升级，主/次版本手动升级
 - **定期审计**：`pnpm audit --registry https://registry.npmjs.org/` CI 集成
-- **恶意包监控**：GitHub Dependabot + `npm audit signatures`
+- **恶意包监控**：GitHub Dependabot + `pnpm audit signatures`
 
 ---
 
@@ -277,7 +282,7 @@ jobs:
 | ----------------- | -------------------- | ----------------------------- | --------------- | ----------------------- |
 | Telegram User ID  | Bot 验证             | JWT 载荷 (客户端)             | 15 分钟         | 合同履行 (访问控制)     |
 | 群组成员身份      | Bot API              | 不持久化                      | 即时            | 合同履行                |
-| 访问日志 (IP、UA) | Cloudflare Analytics | Cloudflare 边缘               | 30 天           | 合法利益 (安全分析)     |
+| 访问日志 (IP、UA) | tgcloud Analytics | tgcloud 边缘               | 30 天           | 合法利益 (安全分析)     |
 | 主题偏好          | 用户选择             | localStorage                  | 永久 (用户控制) | 同意                    |
 | **草稿内容**      | **作者编写**         | **私有子模块仓库 (加密存储)** | **作者控制**    | **合同履行 (创作过程)** |
 
@@ -305,13 +310,13 @@ jobs:
     │       P2: 信息泄露 (非敏感)、轻微配置错误
     │
     ├─▶ 隔离 (P0/P1)
-    │       - 回滚部署 (Cloudflare: `wrangler rollback`)
+    │       - 回滚部署 (`tgcloud rollback`)
     │       - 撤销受损 Secret (GitHub Settings → Secrets)
     │       - 禁用 Telegram Bot (`/revoke` BotFather)
     │
     ├─▶ 取证
     │       - Git 提交历史排查
-    │       - Cloudflare WAF 日志分析
+    │       - tgcloud WAF 日志分析
     │       - 构建日志 (GitHub Actions) 审计
     │       - IPFS CID 对比验证
     │
@@ -331,7 +336,7 @@ jobs:
 | 角色            | 联系方式                 | 职责                 |
 | --------------- | ------------------------ | -------------------- |
 | 站点所有者      | GitHub Issues / Telegram | 决策、对外沟通       |
-| Cloudflare 支持 | Cloudflare Dashboard     | WAF/边缘配置紧急变更 |
+| tgcloud 支持 | tgcloud Dashboard     | WAF/边缘配置紧急变更 |
 | GitHub 支持     | GitHub Support Portal    | Actions/Secrets 事件 |
 | Codeberg 管理员 | Codeberg 实例管理        | Pages 部署异常       |
 
@@ -509,13 +514,13 @@ echo "$output"
 | `src/integrations/watermark.ts`   | 盲水印注入逻辑                                                           |
 | `src/scripts/telegram-auth.ts`    | 客户端认证流程、JWT 校验                                                 |
 | `.github/workflows/deploy.yml`    | CI/CD 权限、Secret 管理、OIDC                                            |
-| `wrangler.jsonc`                  | Cloudflare Workers 绑定、环境变量                                        |
+| `tgcloud.jsonc`                  | tgcloud 绑定、环境变量                                        |
 | `src/content.config.ts`           | Zod Schema 输入验证                                                      |
 
 ### B. 威胁建模数据流图 (DFD)
 
 ```
-[用户浏览器] ──HTTPS──▶ [Cloudflare Edge] ──▶ [静态资源 / Workers]
+[用户浏览器] ──HTTPS──▶ [tgcloud Edge] ──▶ [静态资源 / Workers]
     │                          │                    │
     │                    WAF 规则              KV 存储 (Bot Token)
     │                          │                    │
@@ -528,11 +533,11 @@ echo "$output"
 
 | 密钥                    | 存储                      | 轮换周期 | 撤销流程                          |
 | ----------------------- | ------------------------- | -------- | --------------------------------- |
-| Cloudflare API Token    | GitHub Secrets            | 90 天    | Settings → Secrets 删除 + 新建    |
-| Telegram Bot Token      | Cloudflare Workers Secret | 90 天    | BotFather `/revoke` + 重新部署    |
+| tgcloud API Token    | GitHub Secrets            | 90 天    | Settings → Secrets 删除 + 新建    |
+| Telegram Bot Token      | tgcloud Secret | 90 天    | BotFather `/revoke` + 重新部署    |
 | Codeberg SSH Deploy Key | GitHub Secrets            | 90 天    | Codeberg Settings 删除公钥 + 新建 |
 | Pinata JWT              | GitHub Secrets            | 90 天    | Pinata Dashboard 撤销 + 新建      |
-| JWT 签名密钥            | Cloudflare Workers Secret | 180 天   | 重新部署 Worker (旧 JWT 自动失效) |
+| JWT 签名密钥            | tgcloud Secret | 180 天   | 重新部署 Worker (旧 JWT 自动失效) |
 
 ---
 

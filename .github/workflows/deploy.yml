@@ -16,47 +16,6 @@ permissions:
   pages: write
 
 jobs:
-  cloudflare:
-    name: cloudflare
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - uses: pnpm/setup@v1
-        with:
-          runtime: node@24
-          cache: true
-
-      - name: Install lychee
-        run: |
-          curl -sSfL https://github.com/lycheeverse/lychee/releases/latest/download/lychee-x86_64-unknown-linux-gnu.tar.gz \
-            | tar xz --strip-components=1 lychee-x86_64-unknown-linux-gnu/lychee
-          sudo install lychee /usr/local/bin/
-
-      - name: Build
-        env:
-          SITE_URL: ${{ vars.CF_PAGES_URL || 'https://lihua.codeberg.page' }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        run: pnpm build
-
-      - uses: cloudflare/wrangler-action@v4
-        with:
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
-      - name: Set Cloudflare Worker Secrets
-        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
-        run: |
-          echo "${{ secrets.TELEGRAM_BOT_TOKEN }}" | wrangler secret put TELEGRAM_BOT_TOKEN --env production
-          echo "${{ secrets.TELEGRAM_GROUP_ID }}" | wrangler secret put TELEGRAM_GROUP_ID --env production
-          echo "${{ secrets.TELEGRAM_BOT_USERNAME }}" | wrangler secret put TELEGRAM_BOT_USERNAME --env production
-          echo "${{ secrets.JWT_SECRET }}" | wrangler secret put JWT_SECRET --env production
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
   codeberg:
     name: codeberg
     runs-on: ubuntu-latest

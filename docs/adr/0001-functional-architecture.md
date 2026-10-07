@@ -19,7 +19,7 @@ Accepted
                 │
     ┌───────────┼───────────┐
     ▼           ▼           ▼
-[Cloudflare] [Codeberg] [GitHub Pages] [IPFS/Pinata]
+[tgcloud] [Codeberg] [GitHub Pages] [IPFS/Pinata]
     │           │           │            │
     └───────────┴───────────┴────────────┘
                     │
