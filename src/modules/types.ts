@@ -206,6 +206,8 @@ export interface BaseLayoutProps {
   image?: string;
   url?: string;
   canonical?: string;
+  /** Emit `robots: noindex, nofollow` — used by Telegram-gated posts. */
+  noindex?: boolean;
   children: unknown;
 }
 

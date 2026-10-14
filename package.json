@@ -20,7 +20,8 @@
     "verify:watermark": "tsx src/scripts/verify-watermark.ts",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
-    "test:chromium": "playwright test --project=chromium"
+    "test:chromium": "playwright test --project=chromium",
+    "lint:md": "markdownlint-cli2 \"**/*.md\""
   },
   "dependencies": {
     "@astrojs/check": "^0.9.10",
@@ -94,6 +95,7 @@
       "oxfmt"
     ],
     "*.{md,mdx}": [
+      "markdownlint-cli2 --fix",
       "oxfmt"
     ],
     "!(*.css|*.js|*.mjs|*.jsx|*.ts|*.tsx|*.astro|*.rs|*.md|*.mdx)": [

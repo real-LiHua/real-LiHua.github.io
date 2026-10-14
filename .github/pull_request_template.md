@@ -68,8 +68,9 @@
 
 - [ ] `pnpm check` — TypeScript + Astro types
 - [ ] `pnpm build` — Full build + validation
-- [ ] `pnpm oxlint` — Linting
-- [ ] `pnpm oxfmt --check` — Formatting
+- [ ] `pnpm exec oxlint .` — Linting
+- [ ] `pnpm exec oxfmt --check` — Formatting
+- [ ] `pnpm run lint:md` — Markdown lint
 
 ### Knowledge Base Guards (run in CI)
 
@@ -83,7 +84,7 @@
 
 ### Testing
 
-- [ ] `pnpm playwright test` — E2E tests pass
+- [ ] `pnpm exec playwright test --project=chromium` — E2E tests pass
 - [ ] Manual verification: [describe what you tested]
 
 ---

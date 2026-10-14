@@ -28,7 +28,8 @@ test-results/
 coverage/
 
 # Rust
-Cargo.lock
+# Cargo.lock is intentionally committed: this repo is a binary/CLI crate
+# (`post-edit`), where a reproducible lockfile is required.
 target/
 **/target/
 

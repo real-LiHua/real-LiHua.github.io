@@ -1,0 +1,38 @@
+{
+  // markdownlint-cli2 config — semantic markdown lint (optional / ad-hoc).
+  // Formatting is owned by oxfmt (see package.json lint-staged + oxfmt.config.ts);
+  // this linter only adds semantic checks. Rules disabled here are deliberate
+  // repo conventions, documented inline:
+  //   MD013 line-length        — long CJK lines are normal
+  //   MD025 multi-h1           — docs use a title block + sections
+  //   MD033 inline-HTML        — docs embed HTML in callouts/tables
+  //   MD036 emphasis-as-heading— used for lightweight sub-labels
+  //   MD041 first-line-heading — docs start with a comment/frontmatter
+  //   MD040 fenced-code-language — plain fences used for diagrams/output
+  //   MD060 table-column-style — markdownlint miscounts CJK double-width cells
+  //   MD034 no-bare-urls       — reference links are written bare in places
+  //   MD004 ul-style           — mixed list markers exist across docs
+  //   MD035 hr-style           — `---` and `***` both appear as section rules
+  "config": {
+    "default": true,
+    "MD013": false,
+    "MD025": false,
+    "MD033": false,
+    "MD036": false,
+    "MD041": false,
+    "MD040": false,
+    "MD060": false,
+    "MD034": false,
+    "MD004": false,
+    "MD035": false,
+  },
+  "ignores": [
+    "node_modules/**",
+    "dist/**",
+    ".astro/**",
+    ".agents/skills/**",
+    ".agents/learning/**",
+    ".agents/reports/**",
+    "CHANGELOG.md",
+  ],
+}

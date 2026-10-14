@@ -1,7 +1,9 @@
 ---
 // Base layout — the single HTML shell for every page.
-// Owns SEO meta, the no-flash theme script, View Transitions and the one client
-// entry script (docs/adr/0007-client-module-registry.md).
+// Owns SEO meta, structured data (JSON-LD), the CSP meta, the no-flash theme
+// script, View Transitions and the one client entry script
+// (docs/adr/0007-client-module-registry.md, docs/SEO.md,
+// docs/SECURITY_WHITEPAPER.md §3.2).
 import { ClientRouter } from "astro:transitions";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
@@ -16,16 +18,69 @@ const {
   publishDate,
   updatedDate,
   authors,
+  tags,
   image,
   canonical,
+  noindex = false,
 } = Astro.props as BaseLayoutProps;
 
 const siteName = "LiHua.dev";
 const fullTitle = title === siteName ? title : `${title} · ${siteName}`;
 const base = Astro.site ?? Astro.url;
-const canonicalURL = canonical ? new URL(canonical, base) : new URL(Astro.url.pathname, base);
+const canonicalURL = (canonical ? new URL(canonical, base) : new URL(Astro.url.pathname, base)).toString();
+const rssURL = new URL("/rss.xml", base).toString();
 const ogImage = image ? new URL(image, base).toString() : undefined;
 const themeScript = themeSystem.inlineScript();
+const isArticle = Boolean(publishDate);
+
+// Baseline CSP (docs/SECURITY_WHITEPAPER.md §3.2). Two deliberate deviations
+// from the whitepaper's sketch, both documented there:
+//   - no CDN origin is whitelisted because the site loads no third-party
+//     scripts (Pagefind assets are emitted same-origin under /pagefind/);
+//   - `'unsafe-inline'` is required by the inline no-flash theme script, the
+//     lazily injected Pagefind UI loader and Astro's ClientRouter.
+// `'wasm-unsafe-eval'` is required by the Pagefind WASM index.
+// `frame-ancestors` is omitted on purpose: meta-delivered CSP cannot enforce
+// it — that header must be served by the host (see the whitepaper §3.3).
+const csp = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: https:",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "frame-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "upgrade-insecure-requests",
+].join("; ");
+
+// Structured data (docs/SEO.md §6). WebSite for index-like pages, BlogPosting
+// for articles. `<` is escaped so a title/description can never close the
+// script element early.
+const jsonLd = isArticle
+  ? {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: title,
+      description,
+      url: canonicalURL,
+      mainEntityOfPage: canonicalURL,
+      ...(ogImage ? { image: ogImage } : {}),
+      ...(publishDate ? { datePublished: new Date(publishDate).toISOString() } : {}),
+      ...(updatedDate ? { dateModified: new Date(updatedDate).toISOString() } : {}),
+      ...(authors?.length ? { author: authors.map((name) => ({ "@type": "Person", name })) } : {}),
+      ...(tags?.length ? { keywords: tags.join(", ") } : {}),
+    }
+  : {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: siteName,
+      url: base.toString(),
+      description,
+    };
+const jsonLdScript = JSON.stringify(jsonLd).replaceAll("<", String.raw`\u003c`);
 ---
 
 <!doctype html>
@@ -33,19 +88,29 @@ const themeScript = themeSystem.inlineScript();
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content={csp} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate" type="application/rss+xml" title={siteName} href={rssURL} />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    {tags?.length && <meta name="keywords" content={tags.join(", ")} />}
     <link rel="canonical" href={canonicalURL} />
 
-    <meta property="og:type" content="article" />
+    <meta property="og:type" content={isArticle ? "article" : "website"} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:site_name" content={siteName} />
     {ogImage && <meta property="og:image" content={ogImage} />}
     {authors?.map((author) => <meta property="article:author" content={author} />)}
     {publishDate && <meta property="article:published_time" content={new Date(publishDate).toISOString()} />}
     {updatedDate && <meta property="article:modified_time" content={new Date(updatedDate).toISOString()} />}
     <meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+
+    <script type="application/ld+json" set:html={jsonLdScript} />
 
     {pagefind && <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />}
     <script is:inline set:html={themeScript} />

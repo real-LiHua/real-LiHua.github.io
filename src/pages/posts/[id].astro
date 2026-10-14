@@ -33,8 +33,10 @@ const botUsername = env.PUBLIC_TG_BOT_USERNAME ?? "your_bot";
   publishDate={frontmatter.publishDate}
   updatedDate={frontmatter.updatedDate}
   authors={frontmatter.authors}
+  tags={frontmatter.tags}
   image={frontmatter.image}
   pagefind={!requiresAuth}
+  noindex={requiresAuth}
 >
   <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_16rem]">
     <article class="prose mx-auto w-full max-w-none" data-article>

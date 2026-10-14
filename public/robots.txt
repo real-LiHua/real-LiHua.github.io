@@ -1,0 +1,10 @@
+# public/robots.txt — see docs/SEO.md §5.
+# The canonical host is the GitHub Pages site; other deploy targets
+# (Codeberg, IPFS) emit the same canonical, so crawlers consolidate here.
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /drafts
+
+# Sitemap is produced by @astrojs/sitemap at build time.
+Sitemap: https://real-lihua.github.io/sitemap-index.xml
