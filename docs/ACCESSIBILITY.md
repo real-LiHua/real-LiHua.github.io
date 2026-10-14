@@ -116,7 +116,7 @@
 ## 8. 主题与视觉稳定性
 
 - 主题初始值跟随 `prefers-color-scheme`，用户切换后记忆。
-- 无 FOUC：主题脚本内联于 `BaseLayout` ⏸。
+- 无 FOUC：主题脚本内联于 `BaseLayout`。
 - `color-scheme` 同步，浏览器 UI（滚动条、表单控件）随双主题。
 - 选区 `::selection` 用淡朱 `primary/15`，非高饱和整块。
 

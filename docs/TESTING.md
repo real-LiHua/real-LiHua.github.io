@@ -42,6 +42,7 @@ pnpm check                    # astro check：TypeScript + Astro 类型
 pnpm exec oxlint .            # Lint（0 errors，warn 仅 no-console 等）
 pnpm exec oxfmt --check       # 格式检查（0 diffs）
 pnpm exec oxfmt --write       # 自动修复格式
+pnpm run lint:md              # Markdown lint（markdownlint-cli2；配置见 .markdownlint-cli2.jsonc）
 ```
 
 ### L2 — 构建与管线门禁
@@ -77,6 +78,8 @@ pnpm exec playwright test --debug             # 调试模式
 - `oxlint`
 
 - `oxfmt`
+
+- `markdownlint-cli2`（`pnpm run lint:md`）
 
 - `build`（全角色必跑）。
 

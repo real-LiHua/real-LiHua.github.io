@@ -157,18 +157,18 @@ pnpm audit --registry https://registry.npmjs.org/
 pnpm audit --fix
 ```
 
-**CI Integration:** `pnpm audit` runs in all 4 deployment jobs via `.github/workflows/deploy.yml`
+**CI Integration:** `pnpm audit --audit-level=high` runs on dependency PRs via `.github/workflows/dependency-guard.yml`（同作业含许可证检查，另有 `cargo audit` job）。
 
 ---
 
 ## Dependency Health Checks
 
-| Check                 | Command                          | Frequency          |
-| --------------------- | -------------------------------- | ------------------ |
-| Outdated packages     | `pnpm outdated`                  | Weekly             |
-| Audit vulnerabilities | `pnpm audit`                     | Per PR + Weekly    |
-| Lockfile integrity    | `pnpm install --frozen-lockfile` | CI (every build) ⏸ |
-| Bundle size impact    | `pnpm build` + analyze dist      | Per major update   |
+| Check                 | Command                          | Frequency        |
+| --------------------- | -------------------------------- | ---------------- |
+| Outdated packages     | `pnpm outdated`                  | Weekly           |
+| Audit vulnerabilities | `pnpm audit`                     | Per PR + Weekly  |
+| Lockfile integrity    | `pnpm install --frozen-lockfile` | CI (every build) |
+| Bundle size impact    | `pnpm build` + analyze dist      | Per major update |
 
 ---
 
@@ -203,14 +203,15 @@ pnpm audit --fix
 
 ## Related Files
 
-| File                           | Purpose                             |
-| ------------------------------ | ----------------------------------- |
-| `package.json`                 | Dependencies, scripts, lint-staged  |
-| `pnpm-lock.yaml`               | Locked versions (committed)         |
-| `pnpm-workspace.yaml`          | Workspace config (Rust + Node)      |
-| `.github/workflows/deploy.yml` | CI runs audit ⏸                     |
-| `oxfmt.config.ts`              | Formatter config (Tailwind sorting) |
-| `.oxlintrc.json`               | Linter config (all error)           |
+| File                                     | Purpose                                                 |
+| ---------------------------------------- | ------------------------------------------------------- |
+| `package.json`                           | Dependencies, scripts, lint-staged                      |
+| `pnpm-lock.yaml`                         | Locked versions (committed)                             |
+| `pnpm-workspace.yaml`                    | pnpm overrides / allowBuilds / minimumReleaseAgeExclude |
+| `.github/workflows/dependency-guard.yml` | CI: audit + license + cargo audit                       |
+| `.github/workflows/deploy.yml`           | CI: build + E2E + 多平台部署                            |
+| `oxfmt.config.ts`                        | Formatter config (Tailwind sorting)                     |
+| `.oxlintrc.json`                         | Linter config (all error)                               |
 
 ---
 
@@ -218,7 +219,7 @@ pnpm audit --fix
 
 - [ ] **Lockfile committed** — `pnpm-lock.yaml` always in git
 - [ ] **No `*` versions** — All deps use `^` or `~` or exact
-- [ ] **Audit in CI** — `pnpm audit` runs on every deploy ⏸（CI 工作流）
+- [x] **Audit in CI** — `pnpm audit` 在依赖变更 PR 上运行（`.github/workflows/dependency-guard.yml`）
 - [ ] **Review changelogs** — Before updating daisyUI, mermaid, Astro major
 - [ ] **Test build locally** — `pnpm build` must pass before PR
 - [ ] **Visual regression** — Check daisyUI components after update

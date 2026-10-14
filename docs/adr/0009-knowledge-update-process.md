@@ -81,7 +81,7 @@ graph LR
 
 **规则**：
 
-- 任何重构移动文件 → 必须运行 `pnpm exec tsx .agents/scripts/scan-pointers.ts` ⏸
+- 任何重构移动文件 → 必须运行 `pnpm exec tsx .agents/scripts/scan-pointers.ts`
 - AGENTS.md 指针表、任务卡 `Specs/Contracts` 字段、ADR 相对路径全覆盖
 
 ---
@@ -193,13 +193,13 @@ jobs:
 # Phase N 完成清单
 
 - [ ] 所有任务卡 status=done、Outputs 填写完整
-- [ ] 任务卡归档至 .agents/tasks/archive/phase-N/ ⏸
+- [ ] 任务卡归档至 .agents/tasks/archive/phase-N/
 - [ ] REFACTOR_PLAN.md 对应阶段勾选完成
 - [ ] CONTEXT.md 新增/变更术语同步
 - [ ] 相关 ADR 状态更新（Proposed→Accepted/Deprecated）
 - [ ] 指针扫描通过
 - [ ] 契约同步检查通过
-- [ ] 生成里程碑报告: .agents/milestones/phase-N.md ⏸
+- [ ] 生成里程碑报告: .agents/milestones/phase-N.md
 ```
 
 #### 5.2 PR 模板强制字段
@@ -282,7 +282,7 @@ jobs:
 | ------------ | --------------------------- | -------- | ------------------------------------ |
 | CONTEXT.md   | 随代码版本                  | 永久     | 仓库根目录                           |
 | ADR          | 不变更历史，新增 Superseded | 永久     | docs/adr/                            |
-| 任务卡       | Phase 归档                  | 2 年     | .agents/tasks/archive/ ⏸             |
+| 任务卡       | Phase 归档                  | 2 年     | .agents/tasks/archive/               |
 | 契约文件     | 语义化版本 (v1.2.3)         | 永久     | .agents/contracts/                   |
 | 健康度报告   | YYYY-MM                     | 2 年     | docs/KNOWLEDGE*HEALTH*<YYYY-MM>.md ⏸ |
 | 指针扫描报告 | 时间戳                      | 30 天    | .agents/reports/ ⏸                   |

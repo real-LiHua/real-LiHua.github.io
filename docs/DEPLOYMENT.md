@@ -76,7 +76,7 @@ dist/
 
 ---
 
-## 4. CI 工作流 `deploy.yml` **触发**：push 到 `main`。
+## 4. CI 工作流 `deploy.yml` **触发**：push 到 `main`
 
 **路径排除**（不触发构建）：`.agents/**`、`*.md`、`LICENSE.txt`、`src/post-edit/**` 、`Cargo.toml`。
 
@@ -95,7 +95,7 @@ dist/
 
 - Pagefind 索引生成（`dist/client/pagefind/`）
 - `lychee dist/client` 链接检查（非 0 退出码阻断）
-- `vnu --skip-non-html --filterfile message-filters.txt dist/client` ⏸（已知误报过滤，非阻断）
+- `vnu --skip-non-html --filterfile message-filters.txt dist/client`（已知误报过滤，非阻断）
 
 ---
 

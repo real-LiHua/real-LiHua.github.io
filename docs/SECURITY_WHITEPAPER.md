@@ -81,37 +81,54 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 
 ### 3.2 内容安全策略 (CSP)
 
+**状态：已注入基线策略**（`src/layouts/BaseLayout.astro`）。实际注入值：
+
 ```html
-<!-- BaseLayout.astro 注入 -->
 <meta
   http-equiv="Content-Security-Policy"
-  content="
-    default-src 'self';
-    script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src 'self' https://fonts.gstatic.com data:;
+  content="default-src 'self';
+    script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval';
+    style-src 'self' 'unsafe-inline';
     img-src 'self' data: https:;
-    connect-src 'self' https://api.telegram.org wss://*.telegram.org;
+    font-src 'self' data:;
+    connect-src 'self';
     frame-src 'self';
     object-src 'none';
     base-uri 'self';
     form-action 'self';
-    frame-ancestors 'none';
-    upgrade-insecure-requests;
-    block-all-mixed-content;
-  "
+    upgrade-insecure-requests"
 />
 ```
 
-**策略说明**：
+**与早期草图的差异（有意为之）**：
 
-- `'wasm-unsafe-eval'`：Pagefind WASM 搜索索引加载所需
-- `'unsafe-inline'` style：daisyUI/Tailwind 运行时注入、主题切换内联样式
-- `connect-src` Telegram Bot API + WebSocket 长轮询
-- **Mini App 需求**：若启用 Telegram Mini App，需调整 `frame-ancestors 'self' https://t.me` 允许在 Telegram 内嵌
-- 所有外部资源显式白名单，无 `*` 通配
+| 项                           | 草图                                  | 实际                             | 原因                                                                                       |
+| ---------------------------- | ------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------ |
+| 第三方脚本 CDN               | `https://cdn.jsdelivr.net`            | 不出现                           | 本站**不加载任何第三方脚本**；Pagefind 资产由构建产出同源 `/pagefind/`（`'self'` 覆盖）    |
+| `script-src 'unsafe-inline'` | 未列出                                | **必须列出**                     | 首帧无闪烁主题脚本（`is:inline`）、Pagefind UI 懒加载器、Astro `ClientRouter` 均为内联脚本 |
+| `connect-src`                | `https://api.telegram.org` + `wss://` | 仅 `'self'`                      | 博客前端不直连 Telegram（Mini App 尚未实现）；启用时再按最小权限追加                       |
+| `frame-ancestors`            | `'none'`                              | 不出现（须由托管方注入 HTTP 头） | **`<meta>` 形式无法生效**，仅 HTTP 响应头有效                                              |
+| `block-all-mixed-content`    | 列出                                  | 不出现                           | 已被规范废弃，`upgrade-insecure-requests` 覆盖其用途                                       |
+
+**保留项说明**：
+
+- `'wasm-unsafe-eval'`：Pagefind WASM 搜索索引加载所需。
+- `'unsafe-inline'`（style）：daisyUI/Tailwind 运行时注入、主题切换内联样式、Shiki 高亮。
+- `object-src 'none'` / `base-uri 'self'` / `form-action 'self'` / `default-src 'self'`：即使 `script-src` 含 `'unsafe-inline'`，仍可阻断插件注入、`<base>` 劫持、表单外发与向任意域外发（img/font/connect/frame）的资源窃取。
+- 所有外部资源显式白名单，无 `*` 通配。
+
+**为何不是“严格” CSP（诚实记录）**
+
+去除 `'unsafe-inline'` 需要 hash/nonce 化全部内联脚本与样式。当前**受阻于两处实现**：
+
+1. Astro 原生 CSP（`security.csp`）官方**不支持 `<ClientRouter />`（View Transitions）与 Shiki**——而本站两者都用。
+2. 手写 hash 需为构建产物逐一计算并注入，且 `ClientRouter` 运行时会再插入内联脚本，hash 无法预先枚举。
+
+因此现阶段采用**基线策略**：`'unsafe-inline'` 抵消了 XSS 防护的主要收益，但其余指令（`object-src 'none'`、`base-uri 'self'`、`form-action 'self'`、`default-src 'self'`）提供实质纵深防御。**严格化**列为 `PROJECT_STATUS.md` §4 的 `⏸` 项。
 
 ### 3.3 安全响应头
+
+> 下列响应头**无法经 `<meta>` 注入**。`src/middleware.ts`（`onRequest`）已为**按需渲染**（SSR）响应注入 `X-Content-Type-Options`、`Referrer-Policy`、`X-Frame-Options`、`Permissions-Policy`；**静态托管**（GitHub Pages、Codeberg Pages）不经过中间件，需由托管方在 HTTP 层下发。`frame-ancestors` 与 `X-Frame-Options` 同理。
 
 | Header                         | 值                                                                                                              | 目的               |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------- | ------------------ |
@@ -135,28 +152,34 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 ### 4.2 内容管道安全
 
 ```typescript
-// src/content.config.ts - Zod Schema 强制验证
+// src/content.config.ts — Zod Schema 强制验证（当前实现）
+const stringSchema = z.string();
+const tagArray = z.array(stringSchema);
+const authorArray = z.array(stringSchema);
+
 const blog = defineCollection({
   loader: glob({ base: "./src/posts", pattern: "**/*.md{,x}" }),
   schema: z.object({
-    title: z.coerce.string().max(200),
-    description: z.string().max(500).optional().nullable(),
+    title: z.coerce.string(),
+    description: z.string().optional().nullable(),
+    image: z.string().optional(),
     publishDate: z.coerce.date().optional(),
     updatedDate: z.coerce.date().optional(),
-    tags: z.array(z.string().max(50)).optional(),
-    authors: z.array(z.string().max(100)).optional(),
-    image: z.string().url().optional(),
+    tags: tagArray.optional(),
+    authors: authorArray.optional(),
     telegramAuth: z
       .object({
         enabled: z.boolean(),
-        groupId: z.string().regex(/^-?\d+$/), // Telegram group ID 格式
-        groupName: z.string().max(100).optional(),
-        customMessage: z.string().max(500).optional(),
+        groupId: z.string(), // Telegram group ID
+        groupName: z.string().optional(),
+        customMessage: z.string().optional(),
       })
       .optional(),
   }),
 });
 ```
+
+> ⏸ **待加固**：当前 schema 未对 `title` / `description` / `tags` / `authors` 设 `.max()` 长度上限（早期草案曾列出）。内容均来自仓库、非用户输入，故非本站安全边界的关键项，仅作纵深防御缺项记录。
 
 - **草稿物理隔离**：草稿存放于**私有 Git 子模块仓库** (`git submodule add <private-repo> src/posts/drafts` ⏸)，构建时挂载，公开仓库零草稿文件，彻底消除泄露风险
 - **路径遍历防护**：`glob` loader 限制 `base` 目录，ID 由文件路径生成
@@ -211,10 +234,10 @@ const blog = defineCollection({
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**实现位置**：`tgcloud/endpoints/getPostContent.js` ⏸
+**实现位置**：`src/pages/api/posts/[id].ts`
 
 ```javascript
-// tgcloud/endpoints/getPostContent.js
+// src/pages/api/posts/[id].ts
 import { db, EndpointError } from "sdk";
 import { eq } from "sdk/db";
 import { posts, groupMembers } from "../schema.js";
@@ -256,14 +279,14 @@ export default async function (input, ctx) {
 ### 4.5 盲水印溯源
 
 ```typescript
-// src/integrations/watermark.ts - 零宽字符水印
+// src/modules/build-pipeline.ts - 零宽字符水印
 const ZERO_WIDTH_CHARS = ["\u200B", "\u200C", "\u200D", "\uFEFF"] as const;
 // SHA-256(content + siteId) → 16 个零宽字符随机插入文本节点
 ```
 
 - **仅原创文章**：`authors` 字段为空或 `[]` 视为原创
 - **不可感知**：零宽字符不影响渲染，复制粘贴保留
-- **验证工具**：`pnpm verify:watermark` ⏸ 离线校验
+- **验证工具**：`pnpm verify:watermark` 离线校验
 
 ### 4.6 客户端脚本安全
 
@@ -431,7 +454,7 @@ pnpm check              # TypeScript + Astro 类型检查
 pnpm exec oxlint .      # 静态代码分析 (安全规则集)
 pnpm exec oxfmt --check # 格式一致性
 pnpm build              # 完整构建 + Pagefind + lychee + vnu
-pnpm exec playwright test  # E2E: CSP 生效、认证流程、水印验证（⏸ 需先补 @playwright/test 与配置）
+pnpm exec playwright test  # E2E: CSP 生效、认证流程、水印验证
 ```
 
 > **注意**：所有命令参数均遵循 [第 10 节引号规范](#10-命令参数引号规范)。CI 中含变量/路径的命令必须用双引号包裹，详见 `10.3 CI/CD 中的强制规范`。
@@ -452,7 +475,7 @@ pnpm exec playwright test  # E2E: CSP 生效、认证流程、水印验证（⏸
 - [ ] `lychee` 无死链 (除外显式排除)
 - [ ] `vnu-jar` 无 Error 级别违规
 - [ ] Telegram Bot Token 未出现在任何构建产物中
-- [ ] 水印验证通过 (`pnpm verify:watermark` ⏸)
+- [ ] 水印验证通过 (`pnpm verify:watermark`)
 - [ ] 多平台部署内容一致性校验 (SHA-256 对比)
 - [ ] 所有 CI/CD 命令参数符合 [第 10 节引号规范](#10-命令参数引号规范)
 - [ ] 无裸露变量/Secret 直接出现在命令行参数中
@@ -585,18 +608,18 @@ echo "$output"
 
 ### A. 安全相关配置文件清单
 
-| 文件                                    | 安全相关内容                                                             |
-| --------------------------------------- | ------------------------------------------------------------------------ |
-| `astro.config.ts`                       | `security: { checkOrigin: false }` (开发便利，生产无影响)、CSP meta 注入 |
-| `src/layouts/BaseLayout.astro` ⏸        | CSP、安全响应头、ClientRouter、Pagefind UI                               |
-| `src/integrations/build-hooks.ts` ⏸     | 构建阶段安全控制 (超时、错误隔离)                                        |
-| `src/integrations/watermark.ts` ⏸       | 盲水印注入逻辑                                                           |
-| `src/scripts/telegram-auth.ts` ⏸        | 客户端认证流程、JWT 校验                                                 |
-| `tgcloud/endpoints/getPostContent.js` ⏸ | 受保护内容路由、JWT 验证、群成员校验、内容返回                           |
-| `tgcloud/endpoints/getPostContent.js` ⏸ | Mini App 端点、initData 验证、群成员校验、内容返回                       |
-| `.github/workflows/deploy.yml`          | CI/CD 权限、Secret 管理、OIDC                                            |
-| `tgcloud.jsonc`                         | tgcloud 绑定、环境变量                                                   |
-| `src/content.config.ts`                 | Zod Schema 输入验证                                                      |
+| 文件                                   | 安全相关内容                                                         |
+| -------------------------------------- | -------------------------------------------------------------------- |
+| `astro.config.ts`                      | 构建配置与集成挂载（CSP 注入见 `BaseLayout.astro`）                  |
+| `src/layouts/BaseLayout.astro`         | CSP、SEO meta/JSON-LD、ClientRouter、Pagefind UI                     |
+| `src/modules/build-pipeline.ts`        | 构建阶段控制（Pagefind/lychee/vnu）与盲水印注入                      |
+| `src/middleware.ts`                    | 按需渲染安全响应头（nosniff / Referrer-Policy / X-Frame-Options 等） |
+| `src/scripts/modules/telegram-auth.ts` | 客户端认证流程、JWT 校验                                             |
+| `src/pages/api/posts/[id].ts`          | 受保护内容路由、JWT 验证、群成员校验、内容返回                       |
+| `src/pages/api/telegram/callback.ts`   | Telegram 认证端点、initData 验证、群成员校验、内容返回               |
+| `.github/workflows/deploy.yml`         | CI/CD 权限、Secret 管理、OIDC                                        |
+| `tgcloud.jsonc`                        | tgcloud 绑定、环境变量                                               |
+| `src/content.config.ts`                | Zod Schema 输入验证                                                  |
 
 ### B. 威胁建模数据流图 (DFD)
 

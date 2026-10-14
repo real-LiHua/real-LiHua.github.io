@@ -30,6 +30,7 @@ pnpm preview          # astro build + tgcloud 本地预览
 pnpm exec oxlint .             # Lint（package.json 无 oxlint 脚本）
 pnpm exec oxfmt --check        # Check formatting
 pnpm exec oxfmt --write        # Fix formatting
+pnpm run lint:md               # Markdown lint（markdownlint-cli2）
 
 # Content
 pnpm post:edit        # Rust CLI: manage posts (new/edit/list/delete/publish)
@@ -60,6 +61,7 @@ pnpm exec tgcloud webhook   # Check/sync webhook
 | **Sub-agent Coordination**         | `docs/adr/0004-subagent-coordination.md`                                 |
 | **Theme Token Strategy**           | `docs/adr/0005-theme-token-strategy.md`                                  |
 | **Visual Design Spec**             | `docs/VISUAL_DESIGN_SPEC.md`                                             |
+| **daisyUI 5 Migration**            | `docs/DAISYUI_MIGRATION.md`                                              |
 | **Pagefind UI Approach**           | `docs/adr/0006-pagefind-ui-approach.md`                                  |
 | **Client Module Registry**         | `docs/adr/0007-client-module-registry.md`                                |
 | **Knowledge Base Architecture**    | `docs/adr/0008-agents-knowledge-base-architecture.md`                    |
@@ -169,9 +171,9 @@ Defined in `src/content.config.ts` (Zod via `astro/zod`). Types exported from `s
 ## Security Baseline
 
 - **Secrets**: Never commit; use GitHub Actions secrets（`.github/workflows/`）
-- **CSP**: Strict via `BaseLayout.astro` meta tags ⏸
-- **Dependencies**: `pnpm audit` — 本地手动执行（`pnpm audit`），CI ⏸
-- **Links**: `lychee` — 本地手动执行，CI ⏸
+- **CSP**: Baseline `Content-Security-Policy` via `BaseLayout.astro` meta tag（严格化 ⏸，见 `docs/SECURITY_WHITEPAPER.md` §3.2）
+- **Dependencies**: `pnpm audit --audit-level=high` + 许可证检查 — CI 见 `.github/workflows/dependency-guard.yml`（PR 上自动运行）
+- **Links**: `lychee` — 构建管线内运行（`buildPipelineIntegration`）
 - **Bot Token**: Only in tgcloud secret
 - **Watermark**: Zero-width chars on original articles
 
@@ -181,20 +183,27 @@ Full: `docs/SECURITY_WHITEPAPER.md`
 
 ## Key Files Reference
 
-| File                                    | Purpose                                |
-| --------------------------------------- | -------------------------------------- |
-| `astro.config.ts`                       | Astro config, integrations, adapter    |
-| `package.json`                          | Scripts, deps, lint-staged             |
-| `.oxlintrc.json`                        | Lint rules                             |
-| `oxfmt.config.ts`                       | Format config                          |
-| `Cargo.toml`                            | Rust CLI config                        |
-| `.github/pull_request_template.md`      | PR template with KB impact checklist   |
-| `src/content.config.ts`                 | Content collections schema             |
-| `.github/workflows/deploy.yml`          | 4-platform CI/CD                       |
-| `.github/workflows/knowledge-guard.yml` | KB guards (pointers, terms, contracts) |
-| `src/modules/*.ts`                      | Deep module interfaces                 |
-| `schema.js`                             | tgcloud DB schema                      |
-| `handlers/message.js`                   | Telegram handler                       |
+| File                                     | Purpose                                  |
+| ---------------------------------------- | ---------------------------------------- |
+| `astro.config.ts`                        | Astro config, integrations, adapter      |
+| `package.json`                           | Scripts, deps, lint-staged               |
+| `.oxlintrc.json`                         | Lint rules                               |
+| `oxfmt.config.ts`                        | Format config                            |
+| `.markdownlint-cli2.jsonc`               | Markdown lint config                     |
+| `.husky/pre-commit`                      | pre-commit（lint-staged）                |
+| `Cargo.toml`                             | Rust CLI config                          |
+| `.github/pull_request_template.md`       | PR template with KB impact checklist     |
+| `src/content.config.ts`                  | Content collections schema               |
+| `.github/workflows/deploy.yml`           | 4-platform CI/CD                         |
+| `.github/workflows/knowledge-guard.yml`  | KB guards (pointers, terms, contracts)   |
+| `.github/workflows/dependency-guard.yml` | Dependency audit + license + cargo audit |
+| `public/robots.txt`                      | Crawl rules + sitemap pointer            |
+| `src/layouts/BaseLayout.astro`           | SEO meta + JSON-LD + CSP                 |
+| `docs/DAISYUI_MIGRATION.md`              | daisyUI 5 config + v4→v5 migration       |
+| `docs/DEPENDENCY_EVALUATION_TEMPLATE.md` | L1–L3 dependency evaluation template     |
+| `src/modules/*.ts`                       | Deep module interfaces                   |
+| `schema.js`                              | tgcloud DB schema                        |
+| `handlers/message.js`                    | Telegram handler                         |
 
 ---
 
@@ -213,7 +222,7 @@ PRs must declare KB impact in template. CI 运行 pointer/term/contract 检查�
 
 ## Current State
 
-`src/`（Astro 博客源码）、`.agents/scripts/`、`.agents/tasks/`、`.github/workflows/`、`src/post-edit/`（Rust CLI）均已在工作区就位，并通过 `pnpm check`、`pnpm build`、`oxlint`、`oxfmt --check` 与 Playwright E2E。`REFACTOR_PLAN.md` 的 8 个 Phase 已执行完毕（记录见 `IMPLEMENTATION_PROGRESS.md`）；项目按 `REWRITE_PLAN.md` **从零重写**（不从 git 恢复）。根级 `handlers/message.js`、`schema.js`、`tgcloud.jsonc` 为 tgcloud Bot 源码；`tgcloud/` 目录从未存在。文中 `⏸` 标注对应**尚未落地**的部分（如 CSP meta、CI 中的 `pnpm audit`、草稿物理隔离子模块），当前权威状态见 `PROJECT_STATUS.md`。
+`src/`（Astro 博客源码）、`.agents/scripts/`、`.agents/tasks/`、`.github/workflows/`、`src/post-edit/`（Rust CLI）均已在工作区就位，并通过 `pnpm check`、`pnpm build`、`oxlint`、`oxfmt --check`、`lint:md` 与 Playwright E2E。`REFACTOR_PLAN.md` 的 8 个 Phase 已执行完毕（记录见 `IMPLEMENTATION_PROGRESS.md`）；项目按 `REWRITE_PLAN.md` **从零重写**（不从 git 恢复）。根级 `handlers/message.js`、`schema.js`、`tgcloud.jsonc` 为 tgcloud Bot 源码；`tgcloud/` 目录从未存在。文中 `⏸` 标注对应**尚未落地**的部分（如严格 CSP、草稿物理隔离子模块、学习脚本），当前权威状态见 `PROJECT_STATUS.md`。
 
 ---
 
@@ -358,8 +367,8 @@ skill security-audit         # Before security review / pen test
 skill code-review            # Before PR review (standards + spec)
 skill opencode               # Before OpenCode config/migration
 
-# Learning commands
-pnpm exec tsx .agents/scripts/extract-learning.ts --output .agents/learning/extracted.md
-pnpm exec tsx .agents/scripts/aggregate-learning.ts --month 2026-10
-pnpm exec tsx .agents/scripts/learning-index.ts --rebuild --stats
+# Learning commands（⏸ 脚本尚未实现，见 PROJECT_STATUS.md §4）
+# pnpm exec tsx .agents/scripts/extract-learning.ts --output .agents/learning/extracted.md
+# pnpm exec tsx .agents/scripts/aggregate-learning.ts --month 2026-10
+# pnpm exec tsx .agents/scripts/learning-index.ts --rebuild --stats
 ```

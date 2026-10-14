@@ -100,7 +100,7 @@
 
 ## 待办改进
 
-- [ ] daisyUI 5 迁移指南文档化 (`docs/DAISYUI_MIGRATION.md`，待创建)
+- [x] daisyUI 5 迁移指南文档化 (`docs/DAISYUI_MIGRATION.md`)
 - [ ] ThemeTokens 增加 `--color-focus` 变量供焦点态使用
 - [ ] 考虑引入 `astro:before-swap` 预加载优化
 - [ ] 学习脚本自动化集成到 CI (`knowledge-guard.yml` )

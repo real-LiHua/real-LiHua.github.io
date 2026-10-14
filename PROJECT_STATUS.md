@@ -1,6 +1,6 @@
 # 项目状态（Project Status）
 
-**Last Updated:** 2026-10-12
+**Last Updated:** 2026-10-14
 **维护者:** real-LiHua
 **定位:** 本项目**当前状态**的单一事实来源（Single Source of Truth）。
 
@@ -35,12 +35,12 @@
 
 ## 2. Git 现状（事实数据）
 
-| 项            | 值                                                           |
-| ------------- | ------------------------------------------------------------ |
-| 当前分支      | `feat/onboarding-handbook-and-role-guides`                   |
-| `HEAD`        | `0819f83` — `ci: migrate from Cloudflare Workers to tgcloud` |
-| `origin/main` | `85a31f9`                                                    |
-| 工作区        | 大量改动**未提交**（重写源码 + 文档），**未 push**           |
+| 项            | 值                                                                              |
+| ------------- | ------------------------------------------------------------------------------- |
+| 当前分支      | `feat/onboarding-handbook-and-role-guides`                                      |
+| `HEAD`        | `793e7cf` — `feat: from-scratch rewrite of blog + bot, reconcile docs`          |
+| `origin/main` | `85a31f9`                                                                       |
+| 工作区        | 重写已提交（`793e7cf`，**未 push**）；其后新增的 SEO/安全/CI 设施改动**未提交** |
 
 > 关键点：本分支的工作区即重写产物；`HEAD`/`origin/main` 中的旧实现仅作参考，**不作为恢复来源**。
 
@@ -48,19 +48,24 @@
 
 ## 3. 重写设施状态（W0–W10）
 
-| 路径                                                | 工作区 | 说明                                                                                       |
-| --------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------ |
-| `src/`（Astro 博客，约 57 文件）                    | ✅     | pages / layouts / components / modules / integrations / plugins / scripts / styles / posts |
-| `src/post-edit/main.rs`                             | ✅     | Rust CLI（`pnpm post:edit`）                                                               |
-| `.github/workflows/deploy.yml`                      | ✅     | 4 平台 CI/CD（含 E2E 门禁）                                                                |
-| `.github/workflows/knowledge-guard.yml`             | ✅     | pointer / term / contract / regression 检查                                                |
-| `.agents/scripts/`（13 文件）                       | ✅     | 知识库守卫与任务编排脚本                                                                   |
-| `.agents/tasks/phase-1/1.1–1.10.md`                 | ✅     | 重写任务卡（W0–W10）                                                                       |
-| `handlers/message.js`、`schema.js`、`tgcloud.jsonc` | ✅     | tgcloud Bot 源码与配置                                                                     |
-| `pagefind.yaml`、`message-filters.txt`              | ✅     | 搜索索引与消息过滤配置                                                                     |
-| `scripts/fetch-bot-username.ts`                     | ✅     | Bot 用户名抓取脚本                                                                         |
-| `playwright.config.ts`、`tests/e2e/*.spec.ts`       | ✅     | Playwright E2E（navigation / theme / search / content / auth）                             |
-| `tgcloud/`（目录）                                  | ❌     | **从未存在**；Bot 源码为根级 `handlers/`、`schema.js`，见 §6                               |
+| 路径                                                                  | 工作区 | 说明                                                                                       |
+| --------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------ |
+| `src/`（Astro 博客，约 57 文件）                                      | ✅     | pages / layouts / components / modules / integrations / plugins / scripts / styles / posts |
+| `src/post-edit/main.rs`                                               | ✅     | Rust CLI（`pnpm post:edit`）                                                               |
+| `.github/workflows/deploy.yml`                                        | ✅     | 4 平台 CI/CD（含 E2E 门禁）                                                                |
+| `.github/workflows/knowledge-guard.yml`                               | ✅     | pointer / term / contract / regression 检查                                                |
+| `.github/workflows/dependency-guard.yml`                              | ✅     | 依赖守护：`pnpm audit`（high/critical 阻断）+ 许可证检查 + `cargo audit`                   |
+| `.agents/scripts/`（13 文件）                                         | ✅     | 知识库守卫与任务编排脚本                                                                   |
+| `.agents/tasks/phase-1/1.1–1.10.md`                                   | ✅     | 重写任务卡（W0–W10）                                                                       |
+| `.agents/milestones/`、`.agents/tasks/archive/`                       | ✅     | 里程碑报告与任务归档目录（含 README）                                                      |
+| `handlers/message.js`、`schema.js`、`tgcloud.jsonc`                   | ✅     | tgcloud Bot 源码与配置                                                                     |
+| `pagefind.yaml`、`message-filters.txt`                                | ✅     | 搜索索引与消息过滤配置                                                                     |
+| `scripts/fetch-bot-username.ts`                                       | ✅     | Bot 用户名抓取脚本                                                                         |
+| `public/robots.txt`                                                   | ✅     | 抓取规则 + Sitemap 指向（`docs/SEO.md` §5）                                                |
+| `.husky/pre-commit`、`.markdownlint-cli2.jsonc`                       | ✅     | pre-commit（lint-staged）+ markdown lint 配置                                              |
+| `docs/DAISYUI_MIGRATION.md`、`docs/DEPENDENCY_EVALUATION_TEMPLATE.md` | ✅     | daisyUI 5 迁移记录 + 依赖评估模板                                                          |
+| `playwright.config.ts`、`tests/e2e/*.spec.ts`                         | ✅     | Playwright E2E（navigation / theme / search / content / auth）                             |
+| `tgcloud/`（目录）                                                    | ❌     | **从未存在**；Bot 源码为根级 `handlers/`、`schema.js`，见 §6                               |
 
 ---
 
@@ -68,18 +73,29 @@
 
 以下项**尚未实现**，是当前 `⏸` 标注对应的真实缺口：
 
-- **CSP**：`src/layouts/BaseLayout.astro` 尚未注入严格 `Content-Security-Policy`。
-- **JSON-LD**：结构化数据（schema.org）尚未加入。
-- **`pnpm audit` in CI**：依赖审计目前为本地手动执行，CI 未接入。
+- **严格 CSP**：`BaseLayout.astro` 已注入**基线** CSP（`default-src 'self'`、`object-src 'none'`、`base-uri 'self'`、`form-action 'self'` 等，见 `docs/SECURITY_WHITEPAPER.md` §3.2）。“**严格**”策略（去掉 `'unsafe-inline'`、hash/`nonce` 化）当前**受阻**：Astro 原生 CSP（`security.csp`）官方**不支持 `<ClientRouter />` 与 Shiki**，而本站两者都用；`frame-ancestors` 亦无法经 `<meta>` 生效（须托管方注入 HTTP 头）。
+- **JSON-LD 的 `Person` / `BreadcrumbList`**：`WebSite`（首页类）与 `BlogPosting`（文章）已注入；关于页 `Person`、面包屑 `BreadcrumbList` 尚未加入（`docs/SEO.md` §6）。
 - **草稿物理隔离**：私有 Git 子模块方案尚未落地（见 `docs/adr/0002-draft-isolation-submodule.md`）。
-- **`.agents/milestones/`、`.agents/tasks/archive/`**：目录尚未创建。
-- **`dependency-guard.yml`**：依赖守护工作流尚未创建。
-- **`docs/DAISYUI_MIGRATION.md`**：迁移记录尚未创建。
-- **`mini-app/auth.html`**：Mini App 页面尚未创建。
+- **依赖体积对比**：`scripts/check-dep-size.ts` 尚未创建，`dependency-guard.yml` 未接入新增依赖体积对比（`docs/adr/0010-dependency-evaluation.md` §7 的 Size Check 步骤）。
+- **学习脚本缺失**：`AGENTS.md`「Quick Reference Card」引用的 `.agents/scripts/extract-learning.ts` / `aggregate-learning.ts` / `learning-index.ts` **不存在**（`.agents/learning/` 为 gitignored 本地目录）。
+- **`mini-app/auth.html`**：Mini App 页面尚未创建；其后端端点 `/api/auth/telegram/miniapp` 亦未实现（见 `docs/TELEGRAM_AUTH_COMPARISON.md`）。
 - **监控**：运行时监控/告警尚未配置。
-- **`public/robots.txt`**：缺失（重写前位于 `public/robots.txt`，重写中移除；`@astrojs/sitemap` 已生成 `sitemap-index.xml`）。
+- **默认分享图**：`og:image` 在文章缺 `image` 时无站点级默认图，分享卡片会降级为纯文本（`docs/SEO.md` §4）。
+- **sitemap 排除受保护路由**：草稿已由路径规则排除；受保护（`telegramAuth`）路由尚未从 sitemap 中排除（`docs/SEO.md` §2）。
+- **Content Schema 输入上限**：当前 `src/content.config.ts` 未对 `title` / `description` / `tags` / `authors` 设 `.max()` 长度上限（`docs/SECURITY_WHITEPAPER.md` §4.2）。
+- **子智能体设施目录**：`.agents/team/`、`.agents/lifecycle/`、`.agents/tech-debt/`、`.agents/team/skills-matrix.yaml` 尚未创建（见 `docs/adr/0004-subagent-coordination.md`；`.agents/scripts/subagent-*.ts` 已就位）。
 
-> **重写中移除、依赖仍在（待复核是否重建）**：`.husky/pre-commit*`（`husky`、`lint-staged` 仍在 devDependencies）、`.markdownlint-cli2.*` 配置（`markdownlint-cli2` 仍在 devDependencies）、`.vscode/*`。
+> **本轮已落地**（从 §4 移除）：
+>
+> - **CSP 基线** — `BaseLayout.astro` 注入 `<meta http-equiv="Content-Security-Policy">`（`'unsafe-inline'` + `'wasm-unsafe-eval'` 说明见 `docs/SECURITY_WHITEPAPER.md` §3.2）。
+> - **JSON-LD** — `WebSite` / `BlogPosting`；含 `noindex`（受保护文章）、`og:url`/`og:site_name`/`twitter:title|description`、`keywords`、RSS 自动发现链接。
+> - **`pnpm audit` 接入 CI** — `.github/workflows/dependency-guard.yml`（`--audit-level=high` 阻断 + 许可证检查 + `cargo audit`）。
+> - **`.agents/milestones/`、`.agents/tasks/archive/`** — 目录与 README 已创建。
+> - **`docs/DAISYUI_MIGRATION.md`** — 已创建。**`docs/DEPENDENCY_EVALUATION_TEMPLATE.md`** — 已创建（ADR 0010 清单项）。
+> - **`public/robots.txt`** — 已创建（Allow 全站 + Disallow `/api/`、`/drafts` + Sitemap）。
+> - **文档一致性清理** — 移除/更正了一批指向已落地设施的过期 `⏸` 与错误路径（`CONTRIBUTING.md`、`docs/SUBAGENT_OPERATIONS.md`、`docs/CONTENT_GUIDE.md`、`docs/ACCESSIBILITY.md`、`docs/TROUBLESHOOTING.md`、`docs/I18N.md`、`docs/GETTING_STARTED.md`、`docs/DEPLOYMENT.md`、`docs/SECURITY_WHITEPAPER.md` §3.3/§4.2/附录 A、`docs/adr/0004`）。
+>
+> **重写中移除、已复核**：`.husky/pre-commit` 与 `.markdownlint-cli2.jsonc` 已**重建**（husky v9 + lint-staged + markdownlint-cli2，见 §5）；`.vscode/*` 由 `.gitignore` 忽略（本地 IDE 配置，无需重建）；`.gitignore` 不再忽略 `Cargo.lock`（CLI crate，锁定文件应提交）。
 
 ---
 
@@ -92,9 +108,12 @@ pnpm check                    # astro check：0 error（2 hints）
 pnpm build                    # 构建成功（Pagefind / 水印 / Mermaid 由 buildPipelineIntegration 提供）
 pnpm exec oxlint .            # exit 0
 pnpm exec oxfmt --check       # 全部通过
+pnpm run lint:md              # markdownlint-cli2：0 issues（107 文件）
 pnpm exec playwright test     # 15/15 通过（--project=chromium）
 pnpm exec tsx .agents/scripts/{scan-pointers,check-terms,sync-contracts}.ts   # exit 0（advisory）
 ```
+
+依赖与供应链门禁在 PR 上自动运行：`.github/workflows/dependency-guard.yml`（`pnpm audit --audit-level=high`、许可证检查、`cargo audit`）。
 
 ---
 

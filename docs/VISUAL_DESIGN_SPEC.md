@@ -412,7 +412,7 @@
 
 ## 9. 实用交互规范：文章目录 (TOC)
 
-本节是 ClientModule `toc` ⏸（`src/scripts/toc.ts`，`pageLoad`/`afterSwap` 生命周期）的**行为规格**，属硬性验收项（原则 2"实用"的基准要求）。
+本节是 ClientModule `toc` ⏸（`src/scripts/modules/toc.ts`，`pageLoad`/`afterSwap` 生命周期）的**行为规格**，属硬性验收项（原则 2"实用"的基准要求）。
 
 ### 9.1 响应式形态
 

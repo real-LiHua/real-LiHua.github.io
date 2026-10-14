@@ -6,15 +6,15 @@
 
 ## Daily Commands
 
-| Action       | Command                                                                                                     |
-| ------------ | ----------------------------------------------------------------------------------------------------------- |
-| 查看任务状态 | `cat .agents/tasks/phase-X/N.progress` ⏸                                                                    |
-| 领取任务     | `pnpm exec tsx .agents/scripts/task-claim.ts 1.1 --assignee frontend-architect` ⏸                           |
-| 更新进度     | `pnpm exec tsx .agents/scripts/task-progress.ts 1.1 50 --msg "Implementing types"` ⏸                        |
-| 上报阻塞     | `pnpm exec tsx .agents/scripts/task-progress.ts 1.1 --blocked "Need schema" --help-from content-engineer` ⏸ |
-| 完成任务     | `pnpm exec tsx .agents/scripts/task-complete.ts 1.1` ⏸                                                      |
-| 跑质量门禁   | `pnpm exec tsx .agents/scripts/run-gate.ts frontend-architect` ⏸                                            |
-| 回归检查     | `pnpm exec tsx .agents/scripts/check-regression.ts HEAD~1` ⏸                                                |
+| Action       | Command                                                                                                   |
+| ------------ | --------------------------------------------------------------------------------------------------------- |
+| 查看任务状态 | `cat .agents/tasks/phase-X/N.progress`                                                                    |
+| 领取任务     | `pnpm exec tsx .agents/scripts/task-claim.ts 1.1 --assignee frontend-architect`                           |
+| 更新进度     | `pnpm exec tsx .agents/scripts/task-progress.ts 1.1 50 --msg "Implementing types"`                        |
+| 上报阻塞     | `pnpm exec tsx .agents/scripts/task-progress.ts 1.1 --blocked "Need schema" --help-from content-engineer` |
+| 完成任务     | `pnpm exec tsx .agents/scripts/task-complete.ts 1.1`                                                      |
+| 跑质量门禁   | `pnpm exec tsx .agents/scripts/run-gate.ts frontend-architect`                                            |
+| 回归检查     | `pnpm exec tsx .agents/scripts/check-regression.ts HEAD~1`                                                |
 
 ## Phase 执行流程
 
@@ -144,10 +144,10 @@ cat .agents/lifecycle/performance-frontend-architect-2026-10.md
 
 | 现象                         | 原因              | 解决                                      |
 | ---------------------------- | ----------------- | ----------------------------------------- |
-| `task-claim` 找不到任务      | 路径错误          | 检查 `.agents/tasks/phase-X/` ⏸           |
+| `task-claim` 找不到任务      | 路径错误          | 检查 `.agents/tasks/phase-X/`             |
 | `task-complete` 质量门禁挂起 | 端口占用/进程残留 | `pkill -f playwright; pkill -f cargo`     |
 | `check-regression` 报错      | git stash 冲突    | 手动 `git stash; git checkout <sha>; ...` |
-| 进度文件不更新               | 权限问题          | `chmod +x .agents/scripts/*.ts` ⏸         |
+| 进度文件不更新               | 权限问题          | `chmod +x .agents/scripts/*.ts`           |
 
 ## 联系人
 
@@ -166,7 +166,7 @@ cat .agents/lifecycle/performance-frontend-architect-2026-10.md
 
 ### Astro 7 Content Collections
 
-- **Glob Loader** (`astro/loaders`): `glob({ pattern: "**/*.{md,mdx}", base: "./src/posts" })` ⏸ — 支持 `generateId`、`retainBody` (v5.17+)、`pattern` 数组
+- **Glob Loader** (`astro/loaders`): `glob({ pattern: "**/*.{md,mdx}", base: "./src/posts" })` — 支持 `generateId`、`retainBody` (v5.17+)、`pattern` 数组
 - **Schema** (`astro/zod`): Zod 4 语法，`z.coerce.date()`、`z.array(z.string())`、`.optional()`、`.nullable()`，自动生成 TS 类型
 - **Markdown 处理器**: **Satteri** (`@astrojs/markdown-satteri`) 替代已弃用的 remark/rehype，提供 `MdastPlugin`/`HastPlugin` 插件系统（heading IDs、外链标记、Mermaid 渲染、日期自动填充、表格对齐）
 - **Render**: `render(entry)` → `{ Content, headings, remarkPluginFrontmatter }`，`Content` 为 Astro 组件
@@ -193,7 +193,7 @@ cat .agents/lifecycle/performance-frontend-architect-2026-10.md
 
 ### Middleware
 
-- `src/middleware/index.ts` ⏸ 导出 `onRequest(context, next)`，可读写 `context.locals` 跨组件共享
+- `src/middleware.ts` 导出 `onRequest(context, next)`，可读写 `context.locals` 跨组件共享
 - 预渲染时运行，按需渲染时每请求运行，Cookie/Headers 仅 SSR 可用
 
 ### Image Optimization

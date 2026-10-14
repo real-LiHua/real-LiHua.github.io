@@ -105,5 +105,5 @@ pnpm exec tgcloud webhook
 
 - `astro.config.ts` (adapter 配置)
 - `tgcloud.jsonc` (tgcloud 项目配置)
-- `src/integrations/build-hooks.ts` ⏸ (构建管线集成)
+- `src/integrations/build-pipeline.ts` (构建管线集成)
 - `CONTEXT.md` (术语: DeployTarget)

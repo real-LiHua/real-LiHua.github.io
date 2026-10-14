@@ -149,7 +149,7 @@ tests/
 
 > 工作区包含**完整文档 + 从零重写的源码设施**（[`REWRITE_PLAN.md`](../REWRITE_PLAN.md) W0–W10 已完成）。
 > `src/`、`.github/workflows/`、`.agents/scripts/`、`.agents/tasks/`、`handlers/`、`schema.js`、`tgcloud.jsonc`、`tests/` 均已就位；重写**未**从 git 恢复。
-> 文中 `⏸` 标注对应**尚未落地**的少量项（如草稿私有子模块、CSP、CI 中的 `pnpm audit`），以 [`PROJECT_STATUS.md`](../PROJECT_STATUS.md) 为准。
+> 文中 `⏸` 标注对应**尚未落地**的少量项（如草稿私有子模块、严格 CSP、学习脚本），以 [`PROJECT_STATUS.md`](../PROJECT_STATUS.md) 为准。
 
 因此，涉及 `src/` 的命令（`dev` / `check` / `build` / `preview` / `post:edit`）均可执行。
 

@@ -188,6 +188,6 @@ export function toggleTheme() {
 
 - `src/styles/global.css`
 
-- `src/scripts/theme-toggle.ts` ⏸
+- `src/scripts/modules/theme-toggle.ts`
 - docs/adr/0001-functional-architecture.md#33-theme-system-module
 - CONTEXT.md (术语: Theme, TailwindCSS4, DaisyUI5, TypographyPlugin)

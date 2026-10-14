@@ -100,15 +100,15 @@
 
 ## 9. tgcloud / Telegram
 
-| 现象                    | 原因                          | 修复                                                  |
-| ----------------------- | ----------------------------- | ----------------------------------------------------- |
-| `tgcloud` 未认证        | 未登录 / Token 失效           | 重新登录或配置 `TG_API_TOKEN`；`pnpm status` 查看状态 |
-| webhook 不生效          | URL 未同步 / 证书问题         | `pnpm exec tgcloud webhook sync`；确认 HTTPS 可达     |
-| Bot 401                 | Bot Token 错误                | 检查 `TELEGRAM_BOT_TOKEN` 配置                        |
-| Bot 403                 | 用户屏蔽 Bot                  | 标记用户不可用（预期行为）                            |
-| 429 Too Many Requests   | 触达限流                      | 指数退避重试                                          |
-| Endpoint 返回 400       | 输入非法 / `EndpointError`    | 检查 endpoint 参数与 `ctx.initData`                   |
-| `pnpm preview` 无法预览 | `tgcloud dev` 未安装/未配置 ⏸ | `pnpm install`；确认 `@tgcloud/cli` 存在              |
+| 现象                    | 原因                        | 修复                                                  |
+| ----------------------- | --------------------------- | ----------------------------------------------------- |
+| `tgcloud` 未认证        | 未登录 / Token 失效         | 重新登录或配置 `TG_API_TOKEN`；`pnpm status` 查看状态 |
+| webhook 不生效          | URL 未同步 / 证书问题       | `pnpm exec tgcloud webhook sync`；确认 HTTPS 可达     |
+| Bot 401                 | Bot Token 错误              | 检查 `TELEGRAM_BOT_TOKEN` 配置                        |
+| Bot 403                 | 用户屏蔽 Bot                | 标记用户不可用（预期行为）                            |
+| 429 Too Many Requests   | 触达限流                    | 指数退避重试                                          |
+| Endpoint 返回 400       | 输入非法 / `EndpointError`  | 检查 endpoint 参数与 `ctx.initData`                   |
+| `pnpm preview` 无法预览 | `tgcloud dev` 未安装/未配置 | `pnpm install`；确认 `@tgcloud/cli` 存在              |
 
 错误代码对照见 [`docs/tgcloud-sdk.md`](tgcloud-sdk.md#错误代码速查)。
 
@@ -116,12 +116,12 @@
 
 ## 10. Git / 其他
 
-| 现象                    | 原因           | 修复                                        |
-| ----------------------- | -------------- | ------------------------------------------- |
-| `git: cannot lock ref`  | 索引锁残留     | `rm -f .git/index.lock`                     |
-| `check-regression` 报错 | git stash 冲突 | 手动 `git stash; git checkout <sha>; ...` ⏸ |
-| 进度文件不更新          | 权限问题       | `chmod +x .agents/scripts/*.ts` ⏸           |
-| `task-claim` 找不到任务 | 路径错误       | 检查 `.agents/tasks/phase-X/` ⏸             |
+| 现象                    | 原因           | 修复                                      |
+| ----------------------- | -------------- | ----------------------------------------- |
+| `git: cannot lock ref`  | 索引锁残留     | `rm -f .git/index.lock`                   |
+| `check-regression` 报错 | git stash 冲突 | 手动 `git stash; git checkout <sha>; ...` |
+| 进度文件不更新          | 权限问题       | `chmod +x .agents/scripts/*.ts` ⏸         |
+| `task-claim` 找不到任务 | 路径错误       | 检查 `.agents/tasks/phase-X/`             |
 
 ---
 

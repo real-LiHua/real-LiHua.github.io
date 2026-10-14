@@ -1,6 +1,6 @@
 # SEO 与元数据 (SEO & Metadata)
 
-**Status**: Draft — 现状梳理 + 待办
+**Status**: Active — 站点级/文章级 SEO 已实现（canonical / OGP / JSON-LD / robots / RSS / sitemap），少数项见 §4、§6 的 `⏸`
 **Date**: 2026-10-09
 **适用范围**: 站点级与文章级 SEO、订阅、结构化数据
 **关系**:
@@ -28,8 +28,8 @@
 **多平台 = 重复内容风险**。同一篇文章会同时出现在 GitHub Pages、Codeberg Pages、IPFS 上，因此**每页必须输出指向主站的 `<link rel="canonical">`**，让搜索引擎收殻到唯一 URL。
 
 - canonical 基准应取 `Astro.site`（`astro.config.ts` 的 `site`）。
-- 逐页 canonical 由 `BaseLayout` ⏸ 输出（用 `Astro.url` 相对主站拼接）。
-- ⏸ 待确认：canonical 是否已实现、是否对受保护文章（`telegramAuth`）输出（受保护内容不应被索引，建议 `noindex`）。
+- 逐页 canonical 由 `BaseLayout` 输出（`Astro.url` 相对主站拼接，或 `canonical` prop 覆盖）。✅ 已实现。
+- 受保护文章（`telegramAuth`）输出 `<meta name="robots" content="noindex, nofollow">`，且正文不进初始 HTML（`BaseLayout` 的 `noindex` prop + 认证墙）。✅ 已实现。
 
 ```astro
 ---
@@ -56,7 +56,7 @@ integrations: [mdx(), sitemap(), minifyHtml(), buildPipelineIntegration()],
 | 产物     | `sitemap-index.xml` + 分片（`site` 必须配置，否则集成报错）                                                        |
 | 自动范围 | 所有生成路由；草稿不生成路由，故**不会**被收录                                                                     |
 | 可配置项 | `changefreq` / `priority` / `lastmod`、`filter` / `exclude`、`chunks`、命名空间排除（见 `SitemapGeneration` 术语） |
-| 待办     | ⏸ 待确认是否已排除认证/受保护路由；是否开启分片（`chunks`）                                                        |
+| 待办     | ⏸ 是否已排除认证/受保护路由；是否开启分片（`chunks`）                                                              |
 
 受保护文章路由（`/posts/[id]` 的认证墙版本）应评估是否从 sitemap 排除，避免索引无正文的页面。
 
@@ -64,13 +64,13 @@ integrations: [mdx(), sitemap(), minifyHtml(), buildPipelineIntegration()],
 
 ## 3. RSS（`@astrojs/rss`）
 
-| 项       | 说明                                                                                            |
-| -------- | ----------------------------------------------------------------------------------------------- |
-| 依赖     | `@astrojs/rss`（`package.json`）                                                                |
-| 端点     | `src/pages/rss.xml.ts`（已实现）                                                                |
-| 内容范围 | 仅**已发布**文章（`getPublishedPosts()`，排除 `drafts/`）                                       |
-| 校验     | `rssSchema` 强制必要字段（`title`、`pubDate` 等）                                               |
-| 自动发现 | 需在 `<head>` 输出 `<link rel="alternate" type="application/rss+xml" href="/rss.xml">` ⏸ 待确认 |
+| 项       | 说明                                                                                                        |
+| -------- | ----------------------------------------------------------------------------------------------------------- |
+| 依赖     | `@astrojs/rss`（`package.json`）                                                                            |
+| 端点     | `src/pages/rss.xml.ts`（已实现）                                                                            |
+| 内容范围 | 仅**已发布**文章（`getPublishedPosts()`，排除 `drafts/`）                                                   |
+| 校验     | `rssSchema` 强制必要字段（`title`、`pubDate` 等）                                                           |
+| 自动发现 | 已在 `<head>` 输出 `<link rel="alternate" type="application/rss+xml" title="LiHua.dev" href="/rss.xml">` ✅ |
 
 ```ts
 // 设计示意（src/pages/rss.xml.ts）
@@ -78,7 +78,7 @@ import rss from "@astrojs/rss";
 export async function GET(context) {
   const posts = await getPublishedPosts();
   return rss({
-    title: "李华的笔记本",
+    title: "LiHua.dev",
     description: "写代码、读书、记踩坑。",
     site: context.site,
     items: posts.map((post) => ({
@@ -94,60 +94,62 @@ export async function GET(context) {
 
 ---
 
-## 4. OGP / Twitter 卡片（经 BaseLayout ⏸）
+## 4. OGP / Twitter 卡片（经 BaseLayout）
 
 社交分享卡片由 `BaseLayout.astro` 的 `<head>` 统一注入，取值来自当前页 frontmatter：
 
-| Meta 属性                        | 取值来源                          | 备注                           |
-| -------------------------------- | --------------------------------- | ------------------------------ |
-| `og:title`                       | `title`                           |                                |
-| `og:description`                 | `description`                     | 缺省时可回退站点描述           |
-| `og:type`                        | `article`（文章）/ `website`      |                                |
-| `og:url`                         | canonical（主站）                 |                                |
-| `og:image`                       | `image`（**绝对 URL**）           | schema 要求 `z.string().url()` |
-| `og:site_name`                   | 站点名                            | `李华的笔记本`                 |
-| `twitter:card`                   | `summary_large_image` / `summary` | 有 `image` 用大图卡片          |
-| `twitter:title` / `:description` | 同 `og:*`                         |                                |
+| Meta 属性                        | 取值来源                          | 备注                               |
+| -------------------------------- | --------------------------------- | ---------------------------------- |
+| `og:title`                       | `title`                           | ✅                                 |
+| `og:description`                 | `description`                     | ✅ 缺省时可回退站点描述            |
+| `og:type`                        | `article`（文章）/ `website`      | ✅ 由 `publishDate` 是否存在推断   |
+| `og:url`                         | canonical（主站）                 | ✅                                 |
+| `og:image`                       | `image`（**绝对 URL**）           | ✅ schema 要求 `z.string().url()`  |
+| `og:site_name`                   | 站点名                            | ✅ `LiHua.dev`（见下方站点名说明） |
+| `twitter:card`                   | `summary_large_image` / `summary` | ✅ 有 `image` 用大图卡片           |
+| `twitter:title` / `:description` | 同 `og:*`                         | ✅                                 |
+| `keywords`                       | `tags`                            | ✅ 仅文章页输出                    |
 
-- ⏸ 待确认：是否输出 `og:locale`、页级 `og:image:alt`、Twitter 站点账号。
-- 缺 `image` 时需有**默认分享图**（否则卡片降级为纯文本）。
+- ⏸ 待确认：是否输出 `og:locale`、页级 `og:image:alt`、Twitter 站点账号（`twitter:site`）。
+- ⏸ 缺 `image` 时尚无**默认分享图**（否则卡片降级为纯文本）。
+
+> **站点名说明**：实现中的站点名为 `LiHua.dev`（`BaseLayout`、`Footer`、`navbar/Start`、`rss.xml.ts` 一致）。`docs/VISUAL_DESIGN_SPEC.md` 的「墨与朱」目标规范使用「李华的笔记本」，属**待评审的目标设计**（该规范 §11 待办）；实现与 SEO 元数据以 `LiHua.dev` 为准，改名时需同步元数据与 RSS。
 
 ---
 
 ## 5. robots.txt
 
-| 项       | 现状                                                              |
-| -------- | ----------------------------------------------------------------- |
-| 文件     | `public/robots.txt` ⏸ \*\*\*\*（当前 `public/` 仅 `favicon.svg`） |
-| 计划内容 | 允许全站抓取 + 指向 sitemap；屏蔽受保护/认证路由                  |
+| 项   | 现状                                                                   |
+| ---- | ---------------------------------------------------------------------- |
+| 文件 | `public/robots.txt` ✅ 已创建（构建时复制到 `dist/client/robots.txt`） |
+| 内容 | 允许全站抓取 + 指向 sitemap；屏蔽 `/api/`、`/drafts`                   |
 
 ```text
-# public/robots.txt ⏸ 待创建
+# public/robots.txt ✅
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /drafts
 
 Sitemap: https://real-lihua.github.io/sitemap-index.xml
 ```
 
-> ⏸ 待确认：站点 `<meta name="robots">` 的默认策略；受保护文章应 `noindex`。
+> 站点 `<meta name="robots">` 默认不输出（即允许索引）；受保护文章（`telegramAuth`）输出 `noindex, nofollow`（`BaseLayout` 的 `noindex` prop）。✅
 
 ---
 
-## 6. 结构化数据 (JSON-LD) ⏸
+## 6. 结构化数据 (JSON-LD)
 
-**当前状态：未实现**（无 JSON-LD 脚本，⏸ 待确认 `BaseLayout` ⏸ 重写后是否纳入）。
+**状态：已实现**（`BaseLayout.astro` 通过 `<script type="application/ld+json">` 注入；`<` 已转义，日期为 ISO 8601）。
 
-计划（草图，未落地）：
+| 类型             | 适用页面      | 主要字段                                                                                                      | 状态 |
+| ---------------- | ------------- | ------------------------------------------------------------------------------------------------------------- | ---- |
+| `WebSite`        | 首页类页面    | `name`、`url`、`description`                                                                                  | ✅   |
+| `BlogPosting`    | 文章页        | `headline`、`datePublished`、`dateModified`、`author`、`image`、`description`、`keywords`、`mainEntityOfPage` | ✅   |
+| `Person`         | 关于页 / 作者 | `name`、`url`、`sameAs`                                                                                       | ⏸    |
+| `BreadcrumbList` | 文章/标签页   | 面包屑层级                                                                                                    | ⏸    |
 
-| 类型             | 适用页面      | 主要字段                                                                                  |
-| ---------------- | ------------- | ----------------------------------------------------------------------------------------- |
-| `WebSite`        | 首页          | `name`、`url`、`potentialAction`（SearchAction，可选）                                    |
-| `Person`         | 关于页 / 作者 | `name`、`url`、`sameAs`                                                                   |
-| `BlogPosting`    | 文章页        | `headline`、`datePublished`、`dateModified`、`author`、`image`、`description`、`keywords` |
-| `BreadcrumbList` | 文章/标签页   | 面包屑层级                                                                                |
-
-应通过 `<script type="application/ld+json">` 注入，并用 `dates`（ISO 8601）对齐 frontmatter 的 `publishDate` / `updatedDate`。
+> 类型由 `publishDate` 是否存在推断：文章页输出 `BlogPosting`，其余输出 `WebSite`。`Person` / `BreadcrumbList` 尚未加入（见 `PROJECT_STATUS.md` §4）。
 
 ---
 
@@ -164,9 +166,9 @@ frontmatter → HTML meta 的对照（字段定义见 `docs/CONTENT_GUIDE.md` §
 | `updatedDate`    | `article:modified_time`、JSON-LD `dateModified`            |
 | `tags`           | `<meta name="keywords">`、JSON-LD `keywords`               |
 | `authors`        | `article:author`、JSON-LD `author`                         |
-| `telegramAuth`   | 受保护页 → 建议 `noindex`，并确保正文不进初始 HTML         |
+| `telegramAuth`   | 受保护页 → `noindex, nofollow`，且正文不进初始 HTML（✅）  |
 
-`<title>` 命名建议：`<文章标题> · 李华的笔记本`（站点名作后缀，龙首向左）。
+`<title>` 命名建议：`<文章标题> · LiHua.dev`（站点名作后缀；站点名见 §4 说明）。
 
 ---
 
@@ -175,10 +177,12 @@ frontmatter → HTML meta 的对照（字段定义见 `docs/CONTENT_GUIDE.md` §
 ### 8.1 构建与本地检查
 
 ```bash
-pnpm build                                    # ls dist/client/sitemap-index.xml              # ⏸ sitemap 产物
-ls dist/client/rss.xml                        # ⏸ RSS 产物
-ls dist/client/robots.txt                     # ⏸ 若创建了 public/robots.txt
-grep -r "rel=\"canonical\"" dist/client        # ⏸ 抽查 canonical
+pnpm build                                     # 构建（含 sitemap / RSS / robots 产物）
+ls dist/client/sitemap-index.xml               # sitemap 产物
+ls dist/client/rss.xml                         # RSS 产物
+ls dist/client/robots.txt                      # robots.txt 产物
+grep -r "rel=\"canonical\"" dist/client         # 抽查 canonical
+grep -r "application/ld+json" dist/client       # 抽查 JSON-LD
 pnpm exec oxlint . && pnpm exec oxfmt --check  # 静态检查
 ```
 
@@ -198,12 +202,12 @@ pnpm exec oxlint . && pnpm exec oxfmt --check  # 静态检查
 
 ## 9. 检查清单
 
-- [ ] 每页输出 `<link rel="canonical">`，指向主站 `https://real-lihua.github.io`
-- [ ] sitemap 生成于 `dist/client/`，且排除草稿与受保护路由
-- [ ] RSS 仅含已发布文章，条目为绝对 URL
-- [ ] `<head>` 输出 RSS `rel="alternate"` 自动发现链接
-- [ ] 每篇有 `og:title` / `og:description`；缺 `image` 时回退默认分享图
-- [ ] `robots.txt` 存在且 Sitemap 指令正确
-- [ ] 受保护文章 `noindex`，正文不进初始 HTML
-- [ ] JSON-LD（若实现）通过 Rich Results Test
-- [ ] 多平台部署时 canonical 仍指向主站
+- [x] 每页输出 `<link rel="canonical">`，指向主站 `https://real-lihua.github.io`
+- [ ] sitemap 生成于 `dist/client/`，且排除草稿与受保护路由（草稿已排除；受保护路由排除 ⏸）
+- [x] RSS 仅含已发布文章，条目为绝对 URL
+- [x] `<head>` 输出 RSS `rel="alternate"` 自动发现链接
+- [ ] 每篇有 `og:title` / `og:description`；缺 `image` 时回退默认分享图（默认分享图 ⏸）
+- [x] `robots.txt` 存在且 Sitemap 指令正确
+- [x] 受保护文章 `noindex`，正文不进初始 HTML
+- [x] JSON-LD（`WebSite` / `BlogPosting`）输出且可被 Rich Results Test 解析
+- [x] 多平台部署时 canonical 仍指向主站

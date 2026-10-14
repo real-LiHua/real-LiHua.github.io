@@ -106,7 +106,7 @@ pnpm exec tsx .agents/scripts/extract-learning.ts --output .agents/learning/extr
 
 ## 待办/改进
 
-- [ ] 将 daisyUI 5 迁移指南记入 `docs/DAISYUI_MIGRATION.md` ⏸
+- [x] 将 daisyUI 5 迁移指南记入 `docs/DAISYUI_MIGRATION.md`（已创建）
 - [ ] ThemeTokens 增加 `--color-focus` 变量供焦点态使用
 - [ ] 考虑引入 `astro:before-swap` 预加载优化
 

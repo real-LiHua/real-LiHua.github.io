@@ -148,13 +148,14 @@ const { search } = Astro.props;
 ```
 
 **3. 主题适配 CSS 变量映射**
-| Pagefind 变量 | 映射到 daisyUI Token |
-|--------------|---------------------|
-| `--pagefind-ui-primary` | `var(--color-primary)` |
-| `--pagefind-ui-background` | `var(--color-base-100)` |
-| `--pagefind-ui-text` | `var(--color-base-content)` |
-| `--pagefind-ui-border` | `var(--color-base-300)` |
-| `--pagefind-ui-tag` | `var(--color-primary)` |
+
+| Pagefind 变量                  | 映射到 daisyUI Token         |
+| ------------------------------ | ---------------------------- |
+| `--pagefind-ui-primary`        | `var(--color-primary)`       |
+| `--pagefind-ui-background`     | `var(--color-base-100)`      |
+| `--pagefind-ui-text`           | `var(--color-base-content)`  |
+| `--pagefind-ui-border`         | `var(--color-base-300)`      |
+| `--pagefind-ui-tag`            | `var(--color-primary)`       |
 | `--pagefind-ui-tag-background` | `var(--color-primary-focus)` |
 
 **4. 多站点合并索引**

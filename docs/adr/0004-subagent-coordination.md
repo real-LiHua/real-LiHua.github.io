@@ -267,14 +267,14 @@ pnpm build       # success
 
 **角色专属门禁**：
 
-| 角色                      | 专属命令                                                                          | 验收标准                            |
-| ------------------------- | --------------------------------------------------------------------------------- | ----------------------------------- |
-| frontend-architect        | `pnpm exec playwright test --project=chromium` ⏸ 需先补 `@playwright/test` 与配置 | 核心页面渲染、导航、主题切换通过    |
-| content-engineer          | `pnpm build && node -e "require('./dist/server/entry.mjs')"`                      | 无 Markdown 错误、RSS 有效          |
-| build-deploy-engineer     | `lychee dist/client && vnu --skip-non-html dist/client`                           | 0 broken links、0 vnu errors        |
-| cli-tool-engineer         | `cargo test && cargo clippy -p post-edit && cargo audit`                          | 全绿、0 warnings、0 vulnerabilities |
-| search-discovery-engineer | `pnpm build && ls dist/client/pagefind/*.json`                                    | 索引文件存在、搜索可用              |
-| quality-dx-guardian       | `pnpm exec playwright test` ⏸ 需先补 `@playwright/test` 与配置                    | 全套 E2E 通过                       |
+| 角色                      | 专属命令                                                     | 验收标准                            |
+| ------------------------- | ------------------------------------------------------------ | ----------------------------------- |
+| frontend-architect        | `pnpm exec playwright test --project=chromium`               | 核心页面渲染、导航、主题切换通过    |
+| content-engineer          | `pnpm build && node -e "require('./dist/server/entry.mjs')"` | 无 Markdown 错误、RSS 有效          |
+| build-deploy-engineer     | `lychee dist/client && vnu --skip-non-html dist/client`      | 0 broken links、0 vnu errors        |
+| cli-tool-engineer         | `cargo test && cargo clippy -p post-edit && cargo audit`     | 全绿、0 warnings、0 vulnerabilities |
+| search-discovery-engineer | `pnpm build && ls dist/client/pagefind/*.json`               | 索引文件存在、搜索可用              |
+| quality-dx-guardian       | `pnpm exec playwright test`                                  | 全套 E2E 通过                       |
 
 **门禁结果记录**：
 

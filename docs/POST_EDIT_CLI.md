@@ -12,9 +12,8 @@
 > [!NOTE] 设施状态（2026-10）
 > 项目正按 `REWRITE_PLAN.md` **从零重写**：`src/`、`.github/workflows/`、`.agents/scripts/`、`.agents/tasks/` 均已在工作区就位。
 > 文中 `⏸` 标注对应**尚未落地**的部分。`tgcloud/` 目录从未存在；Bot 源码为根级 `handlers/`、`schema.js`。
-
-> [!NOTE] 已实现
-> `src/post-edit/main.rs` 已落地；下表为**实际实现**的 flag，可用 `pnpm post:edit --help` 核对。未实现的设计项已在正文标注。
+>
+> **已实现**：`src/post-edit/main.rs` 已落地；下表为**实际实现**的 flag，可用 `pnpm post:edit --help` 核对。未实现的设计项已在正文标注。
 
 ---
 

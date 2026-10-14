@@ -168,7 +168,7 @@ pnpm dedupe              # 去重
 
 ### 7. 自动化守护
 
-**CI 新增 Job** (`.github/workflows/dependency-guard.yml` ⏸ 尚未落地)：
+**CI Job**（**已落地**：`.github/workflows/dependency-guard.yml`）。实际实现与下方草图略有差异：许可证检查按 `pnpm licenses list --json` 的**顶层键**（license 表达式）匹配，并额外包含 `cargo audit` 作业；体积对比步骤仍未接入（见下）：
 
 ```yaml
 name: Dependency Guard
@@ -267,12 +267,12 @@ jobs:
 
 ## Implementation Checklist
 
-- [ ] 创建 `scripts/check-dep-size.ts` (新增依赖体积对比)
-- [ ] 创建 `.github/workflows/dependency-guard.yml` ⏸
-- [ ] 更新 `.github/pull_request_template.md` 增加依赖变更清单
-- [ ] 创建 `docs/DEPENDENCY_EVALUATION_TEMPLATE.md` ⏸ (L1 对比表模板)
-- [ ] 更新 `AGENTS.md` Skill Usage Guide 增加触发词
-- [ ] 更新 `CONTEXT.md` 增加依赖相关术语
+- [ ] 创建 `scripts/check-dep-size.ts` (新增依赖体积对比) ⏸
+- [x] 创建 `.github/workflows/dependency-guard.yml`
+- [x] 更新 `.github/pull_request_template.md` 增加依赖变更清单
+- [x] 创建 `docs/DEPENDENCY_EVALUATION_TEMPLATE.md` (L1 对比表模板)
+- [x] 更新 `AGENTS.md` Skill Usage Guide 增加触发词
+- [x] 更新 `CONTEXT.md` 增加依赖相关术语
 
 ---
 

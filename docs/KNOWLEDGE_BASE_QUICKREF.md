@@ -243,7 +243,7 @@ import { ClientRouter } from "astro:transitions";
 ### Middleware
 
 ```typescript
-// src/middleware/index.ts
+// src/middleware.ts
 export async function onRequest(context, next) {
   context.locals.user = await getUser(context.cookies.get("session"));
   return next();

@@ -2,7 +2,7 @@
 
 **Status**: Draft — 待评审
 **Date**: 2026-10-09
-**适用范围**: `src/posts/*.md` / `*.mdx` ⏸ 的撰写、草稿管理、发布
+**适用范围**: `src/posts/*.md` / `*.mdx` 的撰写、草稿管理、发布
 **关系**:
 
 - 前置元数据 schema 的**唯一权威**是 `docs/SECURITY_WHITEPAPER.md` §4.2（Zod）
@@ -18,14 +18,14 @@
 
 ## 1. 文章存放与集合
 
-| 项       | 位置 / 说明                                                                        |
-| -------- | ---------------------------------------------------------------------------------- |
-| 已发布   | `src/posts/*.md` 或 `src/posts/*.mdx`                                              |
-| 草稿     | `src/posts/drafts/`                                                                |
-| 集合     | 全站仅一个集合 `blog`                                                              |
-| 加载器   | `glob({ base: "./src/posts", pattern: "**/*.md{,x}" })` ⏸（见 ADR 0001、ADR 0002） |
-| 处理链   | Markdown → Satteri（`@astrojs/markdown-satteri`）；MDX → `@astrojs/mdx`            |
-| 内容来源 | Git 即内容源，无 CMS；正文与前置元数据都随仓库版本管理                             |
+| 项       | 位置 / 说明                                                                      |
+| -------- | -------------------------------------------------------------------------------- |
+| 已发布   | `src/posts/*.md` 或 `src/posts/*.mdx`                                            |
+| 草稿     | `src/posts/drafts/`                                                              |
+| 集合     | 全站仅一个集合 `blog`                                                            |
+| 加载器   | `glob({ base: "./src/posts", pattern: "**/*.md{,x}" })`（见 ADR 0001、ADR 0002） |
+| 处理链   | Markdown → Satteri（`@astrojs/markdown-satteri`）；MDX → `@astrojs/mdx`          |
+| 内容来源 | Git 即内容源，无 CMS；正文与前置元数据都随仓库版本管理                           |
 
 ---
 
@@ -89,7 +89,7 @@ telegramAuth:
 
 ### 3.2 校验注意事项
 
-- **`image` 必须是绝对 URL**：`z.string().url()` 会拒绝相对路径。`AGENTS.md` 中示例的 `image: "/path/to/image.png"` 与当前 schema 冲突 → ⏸ 待确认（重写 schema 后复核，可能改为 `z.string()` 或图片优化管线）。
+- **`image` 为普通字符串**：当前 schema 是 `z.string().optional()`，接受相对路径（如 `AGENTS.md` 示例的 `image: "/path/to/image.png"`）；解析与回退由渲染层处理。
 - **未知字段**：Zod `z.object` 默认丢弃未声明的键，不会报错；不要依赖未定义字段。
 - **字符串强转**：`title` 用 `z.coerce.string()`，数字型标题会被转成字符串。
 - **日期强转**：`publishDate` / `updatedDate` 用 `z.coerce.date()`，字符串或时间戳都会尝试解析；非法值构建期报错。
@@ -227,7 +227,7 @@ graph TD
 
 1. 将文件从 `src/posts/drafts/` **移出**到 `src/posts/` 。
 2. 核对 frontmatter（对照 §3 表格）——尤其 `publishDate`、`tags`、`authors`。
-3. 本地验证：`pnpm check && pnpm build`（⏸ 依赖 `src/` 重写）。
+3. 本地验证：`pnpm check && pnpm build`。
 4. 使用约定式提交：`feat: publish <slug>` 或 `post: add <slug>`。
 5. push 到 `main` 触发多平台部署（`.github/workflows/deploy.yml`）。
 
@@ -251,7 +251,7 @@ pnpm post:edit            # = cargo run -p post-edit --
 - [ ] `pnpm build` 成功，文章路由生成
 - [ ] 所有图片有 alt 文本；封面 URL 可访问
 - [ ] Mermaid 图已渲染为 SVG（亮/暗主题各看一遍）
-- [ ] 外链可访问（`lychee` 无死链，CI ⏸ / 本地手动）
+- [ ] 外链可访问（`lychee` 无死链，构建管线内置）
 - [ ] 标签沿用既有词汇，无孤立新词
 - [ ] `authors` 语义正确（原创留空 → 触发水印）
 - [ ] 受保护文章的 `groupId`（含负号）与文案已确认

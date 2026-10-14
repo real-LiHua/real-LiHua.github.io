@@ -26,7 +26,7 @@ pnpm install     # 安装依赖
 pnpm dev         # 启动开发服务器 http://localhost:4321
 ```
 
-> ⏸ 依赖 `src/` 的命令（`dev` / `check` / `build` / `preview` / `post:edit`）在源码树重写前会失败。
+> 依赖 `src/` 的命令（`dev` / `check` / `build` / `preview` / `post:edit`）均可执行。
 
 tgcloud Bot 的本地命令：
 
@@ -86,7 +86,7 @@ PR 标题建议使用 `[component] Brief description` 格式。
 | --------------------- | ------------------------------------------ |
 | 新增术语              | `CONTEXT.md`（先加定义，再在其他文档使用） |
 | 接口 / 契约变更       | `.agents/contracts/*.json` 与相关任务卡    |
-| 文件移动 / 重命名     | 指针引用（`scan-pointers` 脚本 ⏸）         |
+| 文件移动 / 重命名     | 指针引用（`scan-pointers` 脚本）           |
 | 架构级决策            | 新建 / 更新 `docs/adr/` 下的 ADR           |
 | 模块边界 / 依赖图变化 | `docs/architecture-map.md` 与相关 ADR      |
 
@@ -109,7 +109,7 @@ PR 标题建议使用 `[component] Brief description` 格式。
 
 - 代码遵循项目约定：`oxlint` / `oxfmt` 无错误。
 - 类型正确：`pnpm check` 通过。
-- 新增功能有对应测试（`pnpm exec playwright test` ⏸ 需先补 `@playwright/test` 与配置）。
+- 新增功能有对应测试（`pnpm exec playwright test`）。
 - 知识库按影响清单同步更新。
 - 变更中不包含任何密钥或敏感数据。
 
