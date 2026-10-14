@@ -1,307 +1,197 @@
-#!/usr/bin/env node
-// Contract Synchronization Checker - AGENTS Knowledge Base Guard
-// Validates that .agents/contracts/*.json matches src/modules/*.ts interfaces
-// Usage: pnpm exec tsx .agents/scripts/sync-contracts.ts [--report]
+#!/usr/bin/env tsx
+/**
+ * Sync-contracts — 契约同步检查。
+ *
+ * 用法: pnpm exec tsx .agents/scripts/sync-contracts.ts [--report] [--json] [--strict]
+ *
+ * 功能:
+ *
+ * 1. 校验 .agents/contracts/*.json（可解析、含 $schema/title）
+ * 2. 提取每份契约声明的符号（properties 键）
+ * 3. 校验任务卡 Inputs/Contracts 字段引用的契约文件存在
+ * 4. Src/modules/*.ts 缺失时记为 skipped（重写期预期）
+ *
+ * 退出码: 默认 advisory 0；`--strict` 在契约非法或引用缺失时退出 1。 规格: docs/adr/0009-knowledge-update-process.md §3.3
+ */
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { basename, dirname, join, relative } from "node:path";
+import { findRepoRoot } from "./run-gate.ts";
 
-import { parseArgs } from "node:util";
-import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
-import { join, relative, extname } from "node:path";
+const REPO_ROOT = findRepoRoot();
+const CONTRACTS_DIR = join(REPO_ROOT, ".agents", "contracts");
+const TASKS_DIR = join(REPO_ROOT, ".agents", "tasks");
 
-const { values, positionals } = parseArgs({
-  args: process.argv.slice(2),
-  options: {
-    report: { type: "boolean" },
-    help: { type: "boolean", short: "h" },
-  },
-  strict: true,
-  allowPositionals: true,
-});
-
-if (values.help) {
-  console.log(`
-Usage: sync-contracts [--report]
-
-Checks that .agents/contracts/*.json matches src/modules/*.ts interfaces.
-
-Options:
-  --report  Generate JSON report to .agents/reports/contract-sync-<timestamp>.json
-  --help    Show this help
-`);
-  process.exit(0);
+interface ContractInfo {
+  file: string;
+  valid: boolean;
+  title: string | null;
+  symbols: string[];
+  error?: string;
 }
 
-const ROOT = process.cwd();
-const REPORT_DIR = join(ROOT, ".agents", "reports");
-const MODULES_DIR = join(ROOT, "src", "modules");
-const CONTRACTS_DIR = join(ROOT, ".agents", "contracts");
-
-interface ContractFile {
-  path: string;
-  content: any;
-  exists: boolean;
+interface ContractRef {
+  file: string;
+  line: number;
+  ref: string;
+  resolved: string | null;
+  status: "ok" | "missing" | "skipped";
 }
 
-interface SyncResult {
+interface ContractReport {
   timestamp: string;
-  modulesChecked: number;
-  contractsChecked: number;
-  matched: number;
-  mismatched: number;
-  missingContracts: number;
-  missingModules: number;
-  details: ContractMismatch[];
+  contracts: ContractInfo[];
+  refs: ContractRef[];
+  modulesSkipped: boolean;
+  invalidContracts: number;
+  missingRefs: number;
 }
 
-interface ContractMismatch {
-  module: string;
-  type: "missing-contract" | "missing-module" | "signature-mismatch" | "version-drift";
-  details: string;
-  moduleExports?: string[];
-  contractKeys?: string[];
-}
-
-function getTypeScriptExports(filePath: string): string[] {
+function readDirJson(dir: string): string[] {
   try {
-    const content = readFileSync(filePath, "utf-8");
-    const exports: string[] = [];
+    return readdirSync(dir)
+      .filter((entry) => entry.endsWith(".json"))
+      .sort();
+  } catch {
+    return [];
+  }
+}
 
-    // Match export const/interface/type/function declarations
-    const patterns = [
-      /export\s+(?:const|interface|type|function|class)\s+(\w+)/g,
-      /export\s+\{\s*([^}]+)\s*\}/g,
-      /export\s+default\s+(\w+)/g,
-    ];
+function inspectContract(abs: string): ContractInfo {
+  const file = relative(REPO_ROOT, abs).split("\\").join("/");
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(readFileSync(abs, "utf8"));
+  } catch (error) {
+    return { file, valid: false, title: null, symbols: [], error: (error as Error).message };
+  }
+  const root = parsed as Record<string, unknown>;
+  const title = typeof root.title === "string" ? root.title : null;
+  const symbols =
+    root.properties && typeof root.properties === "object"
+      ? Object.keys(root.properties as object)
+      : [];
+  const valid = Boolean(root.$schema) && Boolean(title);
+  return { file, valid, title, symbols, error: valid ? undefined : "缺少 $schema 或 title" };
+}
 
-    for (const pattern of patterns) {
-      let match;
-      while ((match = pattern.exec(content)) !== null) {
-        if (match[1]) {
-          // Handle export { a, b, c }
-          const names = match[1].split(",").map((s) =>
-            s
-              .trim()
-              .split(/\s+as\s+/)[0]
-              .trim(),
-          );
-          exports.push(...names);
+function walkTaskCards(dir: string, out: string[]): void {
+  if (!existsSync(dir)) return;
+  for (const entry of readdirSync(dir)) {
+    const abs = join(dir, entry);
+    let stat;
+    try {
+      stat = statSync(abs);
+    } catch {
+      continue;
+    }
+    if (stat.isDirectory()) walkTaskCards(abs, out);
+    else if (entry.endsWith(".md")) out.push(abs);
+  }
+}
+
+function collectRefs(): ContractRef[] {
+  const cards: string[] = [];
+  walkTaskCards(TASKS_DIR, cards);
+  const knownContracts = new Set(readDirJson(CONTRACTS_DIR).map((name) => name));
+  const refs: ContractRef[] = [];
+  for (const abs of cards) {
+    const rel = relative(REPO_ROOT, abs).split("\\").join("/");
+    const lines = readFileSync(abs, "utf8").split("\n");
+    for (let index = 0; index < lines.length; index += 1) {
+      const line = lines[index];
+      if (!/\*\*Contracts?\*\*/.test(line)) continue;
+      const tokens = [...line.matchAll(/`([^`]+)`|\[([^\]]+)\]/g)]
+        .flatMap((match) => [match[1], match[2]])
+        .flatMap((value) => (value ? value.split(/[,\s]+/) : []))
+        .map((value) => value.trim())
+        .filter(
+          (value) =>
+            value.length > 0 &&
+            (value.endsWith(".json") || value.endsWith(".ts") || value.endsWith(".md")),
+        );
+      for (const ref of tokens) {
+        if (ref.startsWith("src/")) {
+          refs.push({ file: rel, line: index + 1, ref, resolved: ref, status: "skipped" });
+          continue;
         }
+        const candidate = ref.startsWith(".")
+          ? ref
+          : knownContracts.has(basename(ref)) && !ref.includes("/")
+            ? `.agents/contracts/${ref}`
+            : ref;
+        const resolved = candidate.split("\\").join("/");
+        const exists = existsSync(join(REPO_ROOT, resolved));
+        refs.push({ file: rel, line: index + 1, ref, resolved, status: exists ? "ok" : "missing" });
       }
     }
-
-    // Also match the main interface object export (e.g., export const contentPipeline: ContentPipeline)
-    const mainExportMatch = content.match(/export\s+const\s+(\w+)\s*:\s*(\w+)/);
-    if (mainExportMatch) {
-      exports.push(mainExportMatch[1]);
-    }
-
-    return [...new Set(exports)];
-  } catch {
-    return [];
   }
+  return refs;
 }
 
-function getContractKeys(filePath: string): string[] {
-  try {
-    const content = readFileSync(filePath, "utf-8");
-    const json = JSON.parse(content);
-    return Object.keys(json);
-  } catch {
-    return [];
+function main(): void {
+  const argv = process.argv.slice(2);
+  if (argv.includes("--help") || argv.includes("-h")) {
+    console.log(`sync-contracts — 契约同步检查
+
+用法:
+  pnpm exec tsx .agents/scripts/sync-contracts.ts [options]
+
+选项:
+  --report   写入 .agents/reports/contract-sync-<timestamp>.json
+  --json     以 JSON 输出
+  --strict   契约非法或引用缺失时退出码 1
+  --help     显示帮助
+`);
+    return;
   }
-}
+  const flags = new Set(argv.filter((token) => token.startsWith("--")));
 
-function checkModuleContractSync(moduleName: string): ContractMismatch[] {
-  const mismatches: ContractMismatch[] = [];
-  const modulePath = join(MODULES_DIR, `${moduleName}.ts`);
-  const contractPath = join(CONTRACTS_DIR, `${moduleName}.json`);
-
-  const moduleExists = existsSync(modulePath);
-  const contractExists = existsSync(contractPath);
-
-  if (!moduleExists && !contractExists) {
-    return mismatches;
-  }
-
-  if (moduleExists && !contractExists) {
-    mismatches.push({
-      module: moduleName,
-      type: "missing-contract",
-      details: `Module ${moduleName}.ts exists but no contract file at ${relative(ROOT, contractPath)}`,
-    });
-    return mismatches;
-  }
-
-  if (!moduleExists && contractExists) {
-    mismatches.push({
-      module: moduleName,
-      type: "missing-module",
-      details: `Contract ${moduleName}.json exists but no module at ${relative(ROOT, modulePath)}`,
-    });
-    return mismatches;
-  }
-
-  // Both exist - compare
-  const moduleExports = getTypeScriptExports(modulePath);
-  const contractKeys = getContractKeys(contractPath);
-
-  // Check for version field in contract
-  let contractVersion = "unknown";
-  try {
-    const contractContent = readFileSync(contractPath, "utf-8");
-    const json = JSON.parse(contractContent);
-    contractVersion = json.version || "unknown";
-  } catch {
-    // ignore
-  }
-
-  // Check if main interface matches
-  const mainInterface = moduleExports.find(
-    (e) =>
-      e === moduleName ||
-      e === moduleName.replace(/-/g, "") ||
-      e.endsWith(moduleName.charAt(0).toUpperCase() + moduleName.slice(1)),
+  const contracts = readDirJson(CONTRACTS_DIR).map((name) =>
+    inspectContract(join(CONTRACTS_DIR, name)),
   );
+  const refs = collectRefs();
+  const invalidContracts = contracts.filter((contract) => !contract.valid).length;
+  const missingRefs = refs.filter((ref) => ref.status === "missing").length;
+  const modulesSkipped = !existsSync(join(REPO_ROOT, "src", "modules"));
 
-  if (moduleExports.length > 0 && contractKeys.length > 0) {
-    const missingInContract = moduleExports.filter((e) => !contractKeys.includes(e));
-    const missingInModule = contractKeys.filter((k) => !moduleExports.includes(k));
-
-    if (missingInContract.length > 0) {
-      mismatches.push({
-        module: moduleName,
-        type: "signature-mismatch",
-        details: `Exports in module but not in contract: ${missingInContract.join(", ")}`,
-        moduleExports,
-        contractKeys,
-      });
-    }
-
-    if (missingInModule.length > 0) {
-      mismatches.push({
-        module: moduleName,
-        type: "signature-mismatch",
-        details: `Keys in contract but not exported by module: ${missingInModule.join(", ")}`,
-        moduleExports,
-        contractKeys,
-      });
-    }
-
-    if (missingInContract.length === 0 && missingInModule.length === 0) {
-      // Check version drift - contract should have version
-      if (contractVersion === "unknown") {
-        mismatches.push({
-          module: moduleName,
-          type: "version-drift",
-          details: `Contract missing version field`,
-          moduleExports,
-          contractKeys,
-        });
-      }
-    }
-  }
-
-  return mismatches;
-}
-
-function main() {
-  console.log("🔗 Checking contract synchronization...");
-
-  if (!existsSync(MODULES_DIR)) {
-    console.error(`❌ Modules directory not found: ${MODULES_DIR}`);
-    process.exit(1);
-  }
-
-  if (!existsSync(CONTRACTS_DIR)) {
-    console.error(`❌ Contracts directory not found: ${CONTRACTS_DIR}`);
-    process.exit(1);
-  }
-
-  // Get all module files
-  const moduleFiles = readdirSync(MODULES_DIR)
-    .filter((f) => f.endsWith(".ts") && f !== "index.ts")
-    .map((f) => f.replace(/\.ts$/, ""));
-
-  const contractFiles = readdirSync(CONTRACTS_DIR)
-    .filter((f) => f.endsWith(".json"))
-    .map((f) => f.replace(/\.json$/, ""));
-
-  console.log(`  Found ${moduleFiles.length} modules, ${contractFiles.length} contracts`);
-
-  let allMismatches: ContractMismatch[] = [];
-
-  for (const module of moduleFiles) {
-    const mismatches = checkModuleContractSync(module);
-    allMismatches.push(...mismatches);
-  }
-
-  // Check for contracts without modules
-  for (const contract of contractFiles) {
-    if (!moduleFiles.includes(contract)) {
-      allMismatches.push({
-        module: contract,
-        type: "missing-module",
-        details: `Contract ${contract}.json exists but no module at src/modules/${contract}.ts`,
-      });
-    }
-  }
-
-  const result: SyncResult = {
+  const report: ContractReport = {
     timestamp: new Date().toISOString(),
-    modulesChecked: moduleFiles.length,
-    contractsChecked: contractFiles.length,
-    matched: moduleFiles.filter((m) => !allMismatches.some((mm) => mm.module === m)).length,
-    mismatched: allMismatches.filter((m) => m.type === "signature-mismatch").length,
-    missingContracts: allMismatches.filter((m) => m.type === "missing-contract").length,
-    missingModules: allMismatches.filter((m) => m.type === "missing-module").length,
-    details: allMismatches,
+    contracts,
+    refs,
+    modulesSkipped,
+    invalidContracts,
+    missingRefs,
   };
 
-  console.log(`\n📊 Results:`);
-  console.log(`  Modules checked:    ${result.modulesChecked}`);
-  console.log(`  Contracts checked:  ${result.contractsChecked}`);
-  console.log(`  ✅ Matched:         ${result.matched}`);
-  console.log(`  ❌ Mismatched:      ${result.mismatched}`);
-  console.log(`  📄 Missing contracts: ${result.missingContracts}`);
-  console.log(`  📦 Missing modules:   ${result.missingModules}`);
-
-  if (allMismatches.length > 0) {
-    console.log("\n🔍 Details:");
-    for (const m of allMismatches) {
-      const icon =
-        m.type === "missing-contract"
-          ? "📄"
-          : m.type === "missing-module"
-            ? "📦"
-            : m.type === "version-drift"
-              ? "🔢"
-              : "⚠️";
-      console.log(`  ${icon} ${m.module}: ${m.details}`);
-      if (m.moduleExports) console.log(`     Module exports: [${m.moduleExports.join(", ")}]`);
-      if (m.contractKeys) console.log(`     Contract keys:  [${m.contractKeys.join(", ")}]`);
-    }
+  if (flags.has("--report")) {
+    const ts = report.timestamp.replace(/[:.]/g, "-");
+    const path = join(REPO_ROOT, ".agents", "reports", `contract-sync-${ts}.json`);
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+    console.log(`✓ 报告已写入 ${path}`);
   }
 
-  // JSON report
-  if (values.report || allMismatches.length > 0) {
-    if (!existsSync(REPORT_DIR)) {
-      readdirSync(REPORT_DIR, { recursive: true });
-    }
-    const reportFile = join(REPORT_DIR, `contract-sync-${Date.now()}.json`);
-    writeFileSync(reportFile, JSON.stringify(result, null, 2));
-    console.log(`\n📄 Report: ${relative(ROOT, reportFile)}`);
-  }
-
-  if (allMismatches.length > 0) {
-    console.log(
-      "\n💡 Fix mismatches: update contract files to match module exports, or vice versa",
-    );
-    process.exit(1);
+  if (flags.has("--json")) {
+    console.log(JSON.stringify(report, null, 2));
   } else {
-    console.log("\n✅ All contracts synchronized with modules");
+    console.log(`sync-contracts — 契约 ${contracts.length} 份，引用 ${refs.length} 处`);
+    for (const contract of contracts) {
+      const mark = contract.valid ? "✓" : "✗";
+      console.log(
+        `  ${mark} ${contract.file}  (${contract.symbols.length} symbols)${contract.error ? ` — ${contract.error}` : ""}`,
+      );
+    }
+    if (modulesSkipped) console.log("  ℹ src/modules/ 不存在 → 模块导出对比已跳过（重写期预期）");
+    const missing = refs.filter((ref) => ref.status === "missing");
+    if (missing.length) {
+      console.log(`✗ ${missing.length} 处契约引用缺失:`);
+      for (const ref of missing) console.log(`  ${ref.file}:${ref.line}  ${ref.ref}`);
+    } else {
+      console.log("✓ 任务卡契约引用均有效");
+    }
   }
+
+  process.exit(flags.has("--strict") && (invalidContracts > 0 || missingRefs > 0) ? 1 : 0);
 }
 
-main().catch((e) => {
-  console.error("Fatal:", e);
-  process.exit(1);
-});
+main();

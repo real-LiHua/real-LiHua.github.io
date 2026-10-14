@@ -22,12 +22,22 @@ description: >-
       assistant: "I'll use the role-assigner agent to define the role hierarchy and permission mappings for the analytics dashboard."
     </example>
 mode: subagent
-permission:
-  bash: deny
-  edit: deny
-  glob: deny
-  grep: deny
-  lsp: deny
+permissions:
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: glob
+    resource: "*"
+    effect: deny
+  - action: grep
+    resource: "*"
+    effect: deny
+  - action: lsp
+    resource: "*"
+    effect: deny
 ---
 
 You are a Role Assignment Specialist with deep expertise in identity and access management (IAM), role-based access control (RBAC), and attribute-based access control (ABAC). You design, validate, and maintain role structures that balance security, usability, and compliance.

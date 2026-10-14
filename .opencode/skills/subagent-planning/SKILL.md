@@ -6,18 +6,14 @@ description: 协作规划辅助 - 依赖拓扑、并行度计算、里程碑分�
 
 ## 任务分解命令
 
-### `split-tasks <epic-id> [--granularity fine|coarse]`
-
-将大任务拆解为可并行的子任务卡
+### `split-tasks <epic-id> [--granularity fine|coarse]` 将大任务拆解为可并行的子任务卡
 
 ```bash
 node .agents/scripts/split-tasks.ts phase-1 --granularity fine
 # 输出：生成 1.1 ~ 1.5 任务卡到 .agents/tasks/phase-1/
 ```
 
-### `compute-parallelism <phase-dir>`
-
-计算最大并行度，识别关键路径
+### `compute-parallelism <phase-dir>` 计算最大并行度，识别关键路径
 
 ```bash
 node .agents/scripts/compute-parallelism.ts .agents/tasks/phase-1/
@@ -27,9 +23,7 @@ node .agents/scripts/compute-parallelism.ts .agents/tasks/phase-1/
 # Independent: 1.2, 1.3, 1.5
 ```
 
-### `generate-milestone <phase-dir>`
-
-生成里程碑时间线
+### `generate-milestone <phase-dir>` 生成里程碑时间线
 
 ```bash
 node .agents/scripts/generate-milestone.ts .agents/tasks/phase-1/

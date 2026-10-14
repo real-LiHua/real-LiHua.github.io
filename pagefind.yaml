@@ -1,2 +1,21 @@
+# Pagefind — post-build search index configuration.
+#
+# The `pagefind` CLI auto-loads a `pagefind.yml` / `pagefind.yaml` from the
+# current working directory (see https://pagefind.app/docs/config/). The
+# BuildPipeline runs Pagefind after `astro build`; see docs/SEARCH_TUNING.md §1
+# and docs/adr/0006-pagefind-ui-approach.md.
+#
+# The index is written to `<site>/pagefind/` (default output subdirectory), i.e.
+# `dist/client/pagefind/`, and consumed at runtime by the declarative
+# `<pagefind-config bundle-path="/pagefind/">` component.
+#
+# NOTE: the current BuildPipeline invokes Pagefind with `--site <dist>` and
+# `cwd: dist/client`, so this file is only picked up when Pagefind is run from
+# the repository root. Kept here as the single source of Pagefind configuration
+# per the rewrite spec (REWRITE_PLAN.md W3); wiring is tracked separately.
+
+# Directory scanned for HTML (Astro node-standalone client output).
 site: "dist/client"
+
+# Scope the index to published post pages; listing/tag/about pages are excluded.
 glob: "posts/**/*.html"

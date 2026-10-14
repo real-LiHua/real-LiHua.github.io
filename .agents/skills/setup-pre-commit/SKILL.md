@@ -34,9 +34,7 @@ npx husky init
 
 This creates `.husky/` dir and adds `prepare: "husky"` to package.json.
 
-### 4. Create `.husky/pre-commit`
-
-Write this file (no shebang needed for Husky v9+):
+### 4. Create `.husky/pre-commit` Write this file (no shebang needed for Husky v9+):
 
 ```
 npx lint-staged
@@ -80,9 +78,7 @@ Only create if no Prettier config exists. Use these defaults:
 
 ### 8. Commit
 
-Stage all changed/created files and commit with message: `Add pre-commit hooks (husky + lint-staged + prettier)`
-
-This will run through the new pre-commit hooks: a good smoke test that everything works.
+Stage all changed/created files and commit with message: `Add pre-commit hooks (husky + lint-staged + prettier)` This will run through the new pre-commit hooks: a good smoke test that everything works.
 
 ## Notes
 

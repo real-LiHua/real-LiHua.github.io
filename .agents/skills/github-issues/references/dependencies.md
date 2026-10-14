@@ -92,7 +92,11 @@ mutation {
 
 Task-list tracking relationships are available via GraphQL as read-only fields:
 
-- `trackedIssues(first: N)` - issues tracked in this issue's task list
-- `trackedInIssues(first: N)` - issues whose task lists reference this issue
+- `trackedIssues(first: N)`
+
+- issues tracked in this issue's task list
+- `trackedInIssues(first: N)`
+
+- issues whose task lists reference this issue
 
 These are set automatically when issues are referenced in task lists (`- [ ] #123`). There are no mutations to manage them.

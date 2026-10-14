@@ -1,20 +1,30 @@
-# Deployment Procedures — 4-Target Deployment Process
+# Deployment Procedures — Multi-Target Deployment Process
 
-**Date:** 2026-09-02  
-**Tags:** deployment, ci-cd, cloudflare-workers, codeberg-pages, github-pages, ipfs, pinata, github-actions
+**Date:** 2026-09-02
+**Last Updated:** 2026-10
+
+**Tags:** deployment, ci-cd, tgcloud, codeberg-pages, github-pages, ipfs, pinata, github-actions
+
+> [!NOTE] 设施状态（2026-10）
+> 项目正按 `REWRITE_PLAN.md` **从零重写**：`src/`、`.github/workflows/`、`.agents/scripts/`、`.agents/tasks/` 均已在工作区就位。
+> 文中 `⏸` 标注对应**尚未落地**的部分。`tgcloud/` 目录从未存在；Bot 源码为根级 `handlers/`、`schema.js`。
 
 ---
 
 ## Overview
 
-The project deploys to **four platforms in parallel** via a single GitHub Actions workflow (`.github/workflows/deploy.yml`) triggered on push to `main`. Each job is independent and runs the full build pipeline.
+项目部署到 **四个目标**，其中静态站点由 `.github/workflows/deploy.yml`在 push 到 `main` 时并行构建，tgcloud Telegram Bot 走独立部署通道。
 
-| Target                 | URL                            | Method                  | Job Name     |
-| ---------------------- | ------------------------------ | ----------------------- | ------------ |
-| **Cloudflare Workers** | `https://<worker>.pages.dev`   | Wrangler deploy         | `cloudflare` |
-| **Codeberg Pages**     | `https://lihua.codeberg.page`  | SSH bare repo push      | `codeberg`   |
-| **GitHub Pages**       | `https://real-LiHua.github.io` | `actions/deploy-pages`  | `github`     |
-| **IPFS (Pinata)**      | Via Pinata gateway             | `ipfs add` + Pinata pin | `ipfs`       |
+| Target             | URL                            | Method                        | Job Name   |
+| ------------------ | ------------------------------ | ----------------------------- | ---------- |
+| **tgcloud**        | Telegram Mini App              | `pnpm deploy`（tgcloud push） | `tgcloud`  |
+| **Codeberg Pages** | `https://lihua.codeberg.page`  | SSH bare repo push            | `codeberg` |
+| **GitHub Pages**   | `https://real-LiHua.github.io` | `actions/deploy-pages`        | `github`   |
+| **IPFS (Pinata)**  | Via Pinata gateway             | `ipfs add` + Pinata pin       | `ipfs`     |
+
+> **历史说明**：本项目曾部署到 **Cloudflare Workers**（`wrangler.jsonc`
+
+- `cloudflare/wrangler-action`）。自 `ci: migrate from Cloudflare Workers to tgcloud` 起，Cloudflare Workers 已退役，`wrangler.jsonc`、`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`、`CF_PAGES_URL` 均不再使用。详见 `docs/adr/0012-tgcloud-migration.md`。
 
 ---
 
@@ -22,10 +32,10 @@ The project deploys to **four platforms in parallel** via a single GitHub Action
 
 ```yaml
 jobs:
-  cloudflare: # Runs on ubuntu-latest
+  tgcloud: # Runs on ubuntu-latest
   codeberg: # Runs on ubuntu-latest
   github: # Runs on ubuntu-latest, uses github-pages environment
-  ipfs: # Runs on ubuntu-latest
+  ipfs: # Runs on ubuntu-latest, currently disabled (if: false)
 ```
 
 All jobs:
@@ -40,29 +50,32 @@ All jobs:
 
 ## Job Details
 
-### 1. Cloudflare Workers (`cloudflare`)
+### 1. tgcloud (`tgcloud`)
 
-**Purpose:** Edge deployment via Cloudflare Workers
+**Purpose:** Telegram Mini App + Bot 后端托管（V8 isolates）
 
 **Steps:**
 
 1. Checkout + pnpm setup
-2. Install lychee
-3. Build with `SITE_URL` from `CF_PAGES_URL` var or fallback
-4. Deploy via `cloudflare/wrangler-action@v4`
+2. `pnpm build`
+3. `pnpm deploy`（等同 `tgcloud push`）
+4. `pnpm exec tgcloud migrate`（应用 DB schema）
+5. `pnpm exec tgcloud webhook`（同步 Bot webhook）
 
 **Required Secrets:**
 
-- `CLOUDFLARE_ACCOUNT_ID`
-- `CLOUDFLARE_API_TOKEN`
+- `TG_API_TOKEN`（tgcloud API token）
+- `TELEGRAM_BOT_TOKEN`（Bot API 调用）
+- `JWT_SECRET`（TelegramAuth JWT 签名）
 
-**Config:** `wrangler.jsonc` (compatibility_date, entry point)
+**Config:** `tgcloud.jsonc`
 
-```yaml
-- uses: cloudflare/wrangler-action@v4
-  with:
-    accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-    apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+```bash
+# 本地/CI 部署命令
+pnpm deploy                    # tgcloud push
+pnpm exec tgcloud migrate      # DB schema 迁移
+pnpm exec tgcloud webhook      # webhook 校验/同步
+pnpm status                    # 本地 vs 云端状态
 ```
 
 ---
@@ -78,9 +91,7 @@ All jobs:
 3. Build with `SITE_URL: https://lihua.codeberg.page`
 4. Remove `dist/server` (static only)
 5. Setup SSH key from `CODEBERG_PAGES` secret
-6. Clone bare repo, commit, force-push to `main`
-
-**Required Secrets:**
+6. Clone bare repo, commit, force-push to `main` **Required Secrets:**
 
 - `CODEBERG_PAGES` (SSH private key)
 
@@ -107,10 +118,8 @@ All jobs:
 
 1. Checkout + pnpm setup
 2. Install lychee
-3. Use `withastro/action@v6.1.1` for build + deploy
-4. Deploy via `actions/deploy-pages@v5`
-
-**Required:**
+3. Use `withastro/action` for build + deploy
+4. Deploy via `actions/deploy-pages` **Required:**
 
 - `GITHUB_TOKEN` (automatic via `permissions.pages: write`)
 - Environment: `github-pages` (for protection rules)
@@ -127,7 +136,7 @@ All jobs:
 
 ---
 
-### 4. IPFS via Pinata (`ipfs`)
+### 4. IPFS via Pinata (`ipfs`) — 当前禁用
 
 **Purpose:** Decentralized hosting via IPFS, pinned to Pinata
 
@@ -156,9 +165,11 @@ All jobs:
     ipfs pin remote add --service=pinata --background --name="${pin_name}" $CID
 ```
 
+> `if: false` 暂时禁用，等待 Pinata 配置与成本评估（见 `docs/adr/0003-deployment-strategy.md`）。
+
 ---
 
-## Build Pipeline (Shared by All Jobs)
+## Build Pipeline (Shared by Static Jobs)
 
 ```bash
 pnpm build
@@ -172,7 +183,7 @@ pnpm build
 
 **Output Structure:**
 
-```
+```text
 dist/
 ├── client/          # Static assets (deployed to Pages targets)
 │   ├── _astro/
@@ -180,32 +191,33 @@ dist/
 │   ├── posts/
 │   ├── tags/
 │   └── index.html
-├── server/          # Server bundle (Cloudflare Workers only)
-│   └── entry.mjs
-└── _worker.js       # Worker entry (if applicable)
+└── server/          # Server bundle (Node standalone adapter → tgcloud)
+    └── entry.mjs
 ```
 
 ---
 
 ## Environment Variables
 
-| Variable                | Description                    | Required For      |
-| ----------------------- | ------------------------------ | ----------------- |
-| `SITE_URL`              | Base URL for sitemap, RSS, OGP | All builds        |
-| `CF_PAGES_URL`          | Fallback for Cloudflare        | Cloudflare job    |
-| `CLOUDFLARE_ACCOUNT_ID` | CF account ID                  | Cloudflare deploy |
-| `CLOUDFLARE_API_TOKEN`  | CF API token                   | Cloudflare deploy |
-| `CODEBERG_PAGES`        | SSH private key                | Codeberg deploy   |
-| `PINATA_JWT_TOKEN`      | Pinata API JWT                 | IPFS deploy       |
+| Variable             | Description                    | Required For    |
+| -------------------- | ------------------------------ | --------------- |
+| `SITE_URL`           | Base URL for sitemap, RSS, OGP | All builds      |
+| `TG_API_TOKEN`       | tgcloud API token              | tgcloud deploy  |
+| `TELEGRAM_BOT_TOKEN` | Telegram Bot API               | tgcloud runtime |
+| `JWT_SECRET`         | TelegramAuth JWT 签名          | tgcloud runtime |
+| `CODEBERG_PAGES`     | SSH private key                | Codeberg deploy |
+| `PINATA_JWT_TOKEN`   | Pinata API JWT                 | IPFS deploy     |
+
+> **Legacy（已退役）**：`CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_API_TOKEN`、`CF_PAGES_URL` — 随 Cloudflare Workers 迁移至 tgcloud 后不再使用。
 
 ---
 
 ## Local Preview Commands
 
 ```bash
-# Cloudflare Workers simulation
+# Build + local preview (tgcloud dev)
 pnpm preview
-# → astro build && wrangler dev
+# → astro build && pnpm exec tgcloud dev
 
 # Static preview (any static server)
 npx serve dist/client
@@ -215,25 +227,27 @@ npx serve dist/client
 
 ## Related Files
 
-| File                              | Purpose                              |
-| --------------------------------- | ------------------------------------ |
-| `.github/workflows/deploy.yml`    | Main CI/CD workflow                  |
-| `wrangler.jsonc`                  | Cloudflare Workers config            |
-| `astro.config.ts`                 | Astro config (adapter, integrations) |
-| `src/integrations/build-hooks.ts` | Pagefind, lychee, vnu hooks          |
-| `package.json`                    | Build scripts, dependencies          |
-| `pagefind.yaml`                   | Pagefind config                      |
+| File                                 | Purpose                              |
+| ------------------------------------ | ------------------------------------ |
+| `.github/workflows/deploy.yml`       | Main CI/CD workflow                  |
+| `tgcloud.jsonc`                      | tgcloud project config               |
+| `astro.config.ts`                    | Astro config (adapter, integrations) |
+| `src/integrations/build-hooks.ts` ⏸  | Pagefind, lychee, vnu hooks          |
+| `package.json`                       | Build scripts, dependencies          |
+| `pagefind.yaml`                      | Pagefind config                      |
+| `docs/adr/0012-tgcloud-migration.md` | Cloudflare → tgcloud 迁移决策        |
+| `docs/DEPLOYMENT.md`                 | 权威部署指南                         |
 
 ---
 
 ## Prevention Rules / Checklist
 
-- [ ] **All 4 jobs must pass** — Merge blocked if any deployment fails
-- [ ] **Secrets rotation** — Rotate SSH keys, API tokens periodically
-- [ ] **Build reproducibility** — Ensure `pnpm build` passes locally before pushing
-- [ ] **Monitor deploy URLs** — Verify all 4 targets serve content correctly post-deploy
-- [ ] **IPFS pin verification** — Check Pinata dashboard for successful pins
-- [ ] **wrangler.jsonc compatibility_date** — Update weekly (automate via cron)
-- [ ] **lychee link check** — Must pass (0 broken links) in all jobs
-- [ ] **vnu validation** — Must pass (0 errors after filterfile) in all jobs
-- [ ] **SITE_URL correctness** — Each job uses correct canonical URL for its target
+- [ ] **Critical jobs must pass** — Static deploy 与 tgcloud deploy 任一失败即阻断合并
+- [ ] **Secrets rotation** — 定期轮换 SSH keys、`TG_API_TOKEN`、`JWT_SECRET`
+- [ ] **Build reproducibility** — 确保 `pnpm build` 本地通过后再 push
+- [ ] **Monitor deploy URLs** — 校验各目标部署后可访问
+- [ ] **IPFS pin verification** — 启用后检查 Pinata dashboard 成功 pin
+- [ ] **tgcloud status** — `pnpm status` 确认本地与云端一致
+- [ ] **lychee link check** — 0 broken links
+- [ ] **vnu validation** — 0 errors（按 filterfile 过滤）
+- [ ] **SITE_URL correctness** — 每个 job 使用对应目标的 canonical URL

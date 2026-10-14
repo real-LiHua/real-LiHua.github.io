@@ -2,3 +2,6 @@ cache = false
 root_dir = "dist/client"
 user_agent = "catgirl"
 offline = true
+
+# Exclude 404 page canonical URL and self-referencing links
+exclude = ["404\\.html$", "^/404/?$", "dist/client/404$"]

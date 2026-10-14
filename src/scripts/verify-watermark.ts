@@ -1,87 +1,58 @@
-import { readFile, readdir, stat } from "node:fs/promises";
+// Watermark verifier (pnpm verify:watermark).
+//
+// Walks the built `dist/client/**/*.html` post pages and asserts every one
+// carries at least one zero-width watermark character injected by the build
+// pipeline. Exits non-zero when a page is missing its watermark.
+
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
-const ZERO_WIDTH_CHARS = ["\u200B", "\u200C", "\u200D", "\uFEFF"] as const;
+const distDir = path.resolve(import.meta.dirname, "../../dist/client");
+const ZERO_WIDTH = /\u200B|\u200C|\u200D|\uFEFF/u;
 
-const findHtmlFiles = async (dir: string): Promise<string[]> => {
-  const files: string[] = [];
+const walk = async (dir: string): Promise<string[]> => {
   const entries = await readdir(dir, { withFileTypes: true });
-
+  const files: string[] = [];
   for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
+    const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      files.push(...(await findHtmlFiles(fullPath)));
+      files.push(...(await walk(full)));
     } else if (entry.name.endsWith(".html")) {
-      files.push(fullPath);
+      files.push(full);
     }
   }
-
   return files;
 };
 
-const countWatermarks = (content: string): number => {
-  let count = 0;
-  for (const char of ZERO_WIDTH_CHARS) {
-    const regex = new RegExp(char, "g");
-    const matches = content.match(regex);
-    if (matches) {
-      count += matches.length;
-    }
-  }
-  return count;
-};
-
 const main = async (): Promise<void> => {
-  const distDir = path.resolve("./dist/client");
-
-  if (!(await stat(distDir).catch(() => false))) {
-    console.error("Error: dist/client directory not found. Run 'pnpm build' first.");
-    process.exit(1);
+  let files: string[];
+  try {
+    files = await walk(distDir);
+  } catch {
+    console.error(`[verify-watermark] No build found at ${distDir}. Run \`pnpm build\` first.`);
+    process.exitCode = 1;
+    return;
   }
 
-  console.log("Scanning for watermarks in built HTML files...\n");
-
-  const htmlFiles = await findHtmlFiles(distDir);
-  let totalWatermarked = 0;
-  let totalFiles = 0;
-  let postFiles = 0;
-
-  for (const htmlFile of htmlFiles) {
-    const content = await readFile(htmlFile, "utf-8");
-    const relativePath = path.relative(distDir, htmlFile);
-    const isPostPage = relativePath.startsWith("posts/") && relativePath !== "posts/index.html";
-
-    if (isPostPage) {
-      postFiles++;
-      const watermarkCount = countWatermarks(content);
-      const hasWm = watermarkCount > 0;
-
-      if (hasWm) {
-        totalWatermarked++;
-        console.log(`✓ WATERMARKED: ${relativePath} (${watermarkCount} zero-width chars)`);
-      } else {
-        console.log(`✗ NO WATERMARK: ${relativePath}`);
-      }
+  const postPages = files.filter((file) => path.relative(distDir, file).startsWith("posts/"));
+  const missing: string[] = [];
+  for (const file of postPages) {
+    const html = await readFile(file, "utf-8");
+    if (!ZERO_WIDTH.test(html)) {
+      missing.push(path.relative(distDir, file));
     }
-
-    totalFiles++;
   }
 
-  console.log(`\n--- Summary ---`);
-  console.log(`Total HTML files: ${totalFiles}`);
-  console.log(`Post pages scanned: ${postFiles}`);
-  console.log(`Watermarked posts: ${totalWatermarked}`);
-  console.log(`Non-watermarked posts: ${postFiles - totalWatermarked}`);
-
-  if (totalWatermarked === 0 && postFiles > 0) {
-    console.log("\n⚠ Warning: No watermarks found in any post pages.");
-    process.exit(1);
-  } else if (totalWatermarked > 0) {
-    console.log("\n✓ Verification passed: Watermarks detected in original articles.");
+  if (missing.length > 0) {
+    console.error(`[verify-watermark] ${missing.length} page(s) missing a watermark:`);
+    for (const file of missing) {
+      console.error(`  - ${file}`);
+    }
+    process.exitCode = 1;
+    return;
   }
+
+  console.info(`[verify-watermark] OK — ${postPages.length} post page(s) watermarked.`);
 };
 
-main().catch((error) => {
-  console.error("Verification failed:", error);
-  process.exit(1);
-});
+await main();

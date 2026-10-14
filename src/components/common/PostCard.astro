@@ -1,64 +1,44 @@
 ---
-import type { CollectionEntry } from "astro:content";
+// Post card — supports `grid` (default surface) and `list` (compact, side) layouts.
+import type { PostCardProps } from "@/modules/types";
+import { uiComponents } from "@/modules/ui-components";
+import { formatDate } from "@/utils/date";
 import Tag from "./Tag.astro";
-import { formatDate } from "../../utils/date";
 
-interface Props {
-  post: CollectionEntry<"blog">["data"] & { id: string };
-  variant?: "grid" | "list";
-}
-
-const { post, variant = "grid" } = Astro.props,
-
-  formattedDate = formatDate(post.publishDate),
-  dateISO = formatDate(post.publishDate, "full"),
-  hasTags = post.tags && post.tags.length > 0,
-  isTelegramProtected = post.telegramAuth?.enabled === true;
+const props = Astro.props as PostCardProps;
+const entry = props.post;
+const { title, description, tags, publishDate, image } = entry.data;
+const href = uiComponents.postHref(entry.id);
+const isList = props.variant === "list";
+const revealIndex = props.variant === "grid" ? (props.revealIndex ?? 0) : 0;
 ---
 
-{
-  variant === "grid" ? (
-    <article class="group tilt-card">
-      <div class="card card-border bg-base-100 border-base-200 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 h-full block">
-        <div class="card-body">
-          <div class="flex items-center justify-between mb-2">
-            {post.publishDate ? (<time class="text-xs font-mono opacity-40" datetime={dateISO}>{formattedDate}</time>) : null}
-            {isTelegramProtected && (
-              <span class="badge badge-xs badge-ghost gap-1" title="需要 Telegram 群组成员权限">
-                <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-              </span>
-            )}
-          </div>
-          <h2 class="card-title text-lg mt-1">
-            <a href={`/posts/${post.id}`} class="group-hover:text-primary transition-colors">{post.title}</a>
-          </h2>
-          {post.description && <p class="text-sm opacity-70 line-clamp-3">{post.description}</p>}
-          {hasTags && (
-            <div class="card-actions mt-4 pt-3 border-t border-base-200 flex flex-wrap gap-1.5">
-              {post.tags!.map((tag) => <Tag tag={tag} />)}
-            </div>
-          )}
-        </div>
-      </div>
-    </article>
-  ) : (
-    <article class="group">
-      <div class="flex items-baseline gap-4 p-4 -mx-4 rounded-xl hover:bg-base-200/50 transition-all duration-300">
-        {post.publishDate ? (<time class="text-sm font-mono opacity-40 shrink-0 w-20 text-right" datetime={dateISO}>{formattedDate}</time>) : null}
-        <div class="flex-1">
-          <div class="flex items-center gap-2">
-            <h2 class="text-lg font-medium">
-              <a href={`/posts/${post.id}`} class="group-hover:text-primary transition-colors">{post.title}</a>
-            </h2>
-            {isTelegramProtected && (
-              <span class="badge badge-xs badge-ghost gap-1" title="需要 Telegram 群组成员权限">
-                <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-              </span>
-            )}
-          </div>
-          {post.description && <p class="text-sm opacity-60 mt-1 line-clamp-1">{post.description}</p>}
-        </div>
-      </div>
-    </article>
-  )
-}
+<article
+  class:list={[
+    "card bg-base-100 shadow-sm transition-shadow hover:shadow-md",
+    isList ? "card-side" : "h-full",
+  ]}
+  data-reveal
+  data-reveal-index={String(revealIndex)}
+  data-tilt={isList ? undefined : "true"}
+>
+  {
+    image && (
+      <figure class={isList ? "w-40 shrink-0" : ""}>
+        <img src={image} alt={title} loading="lazy" class="h-full w-full object-cover" />
+      </figure>
+    )
+  }
+  <div class="card-body">
+    <h2 class="card-title text-lg">
+      <a href={href} class="link link-hover">{title}</a>
+    </h2>
+    {description && <p class="line-clamp-3 text-sm text-base-content/70">{description}</p>}
+    <div class="mt-auto flex flex-wrap items-center gap-2 pt-2">
+      <time class="text-xs text-base-content/60" datetime={publishDate?.toISOString()}>
+        {formatDate(publishDate)}
+      </time>
+      {tags?.map((tag: string) => <Tag tag={tag} size="xs" />)}
+    </div>
+  </div>
+</article>

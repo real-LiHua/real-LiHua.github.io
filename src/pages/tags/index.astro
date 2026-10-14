@@ -1,33 +1,27 @@
 ---
-import { getPublishedPosts } from "../../utils/content";
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import Tag from "../../components/common/Tag.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Tag from "@/components/common/Tag.astro";
+import { contentPipeline } from "@/modules/content-pipeline";
 
-const blogPosts = await getPublishedPosts(),
- allTags = new Set<string>();
-for (const post of blogPosts) {
+const posts = await contentPipeline.getPublishedPosts();
+const counts = new Map<string, number>();
+for (const post of posts) {
   for (const tag of post.data.tags ?? []) {
-    allTags.add(tag);
+    counts.set(tag, (counts.get(tag) ?? 0) + 1);
   }
 }
-const tags = [...allTags].toSorted();
+const tags = [...counts.entries()].toSorted((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 ---
 
-<BaseLayout title="标签">
-  <div class="max-w-6xl mx-auto px-4 py-24">
-    <div class="max-w-2xl mx-auto">
-      <div class="mb-12 reveal">
-        <div>
-          <h1 class="text-3xl font-medium">标签</h1>
-          <p class="text-sm opacity-50 mt-1">Tags</p>
-        </div>
-      </div>
-      <div class="flex flex-wrap gap-3 reveal reveal-delay-1">
-        {tags.map((tag) => <Tag tag={tag} size="md" />)}
-      </div>
-    </div>
+<BaseLayout title="标签" description="按标签浏览文章。" pagefind={true}>
+  <h1 class="text-3xl font-bold">标签</h1>
+  <p class="mt-2 text-sm text-base-content/60">共 {tags.length} 个标签</p>
+
+  <div class="mt-8 flex flex-wrap gap-3">
+    {
+      tags.map(([tag, count]) => (
+        <Tag tag={`${tag} (${count})`} href={`/tags/${encodeURIComponent(tag)}/`} size="md" />
+      ))
+    }
   </div>
-  <script>
-    import "../../scripts/scroll-reveal";
-  </script>
 </BaseLayout>

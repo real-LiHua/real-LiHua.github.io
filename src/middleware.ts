@@ -1,30 +1,15 @@
+// Middleware — baseline security headers for on-demand responses.
+// (docs/SECURITY_WHITEPAPER.md)
+
 import { defineMiddleware } from "astro:middleware";
 
-const corsOrigin = new Set([
-    "https://lihua.codeberg.page",
-    "https://real-lihua.github.io",
-    ...(import.meta.env.DEV ? ["http://localhost:4321"] : []),
-  ]),
-  SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+export const onRequest = defineMiddleware(async (_context, next) => {
+  const response = await next();
 
-export const onRequest = defineMiddleware((context, next) => {
-  const { request } = context;
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 
-  if (SAFE_METHODS.has(request.method)) {
-    return next();
-  }
-
-  const origin = request.headers.get("origin") ?? "";
-  if (!corsOrigin.has(origin)) {
-    return new Response("", { status: 403 });
-  }
-
-  const userAgent = request.headers.get("user-agent");
-  if (userAgent === null || userAgent.toLowerCase() !== "catgirl") {
-    return new Response("Only catgirls may use this teapot, nya~", {
-      status: 418,
-    });
-  }
-
-  return next();
+  return response;
 });

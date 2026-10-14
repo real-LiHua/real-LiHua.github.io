@@ -1,239 +1,125 @@
 @import "tailwindcss";
-@import "animate.css";
+@import "./theme-tokens.css";
 
 @plugin "@tailwindcss/typography";
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: false;
+}
 
+/* Light theme (default) — maps daisyUI semantics onto the palette tokens. */
 @plugin "daisyui/theme" {
   name: "light";
   default: true;
   prefersdark: false;
-  color-scheme: "light";
+  color-scheme: light;
 
-  --color-base-100: #faf6f0;
-  --color-base-200: #f0eae0;
-  --color-base-300: #e4dcce;
-  --color-base-content: #2d2418;
-  --color-primary: #c4953e;
-  --color-primary-content: #faf6f0;
-  --color-secondary: #8b5e3c;
-  --color-secondary-content: #faf6f0;
-  --color-accent: #6b8fbe;
-  --color-accent-content: #faf6f0;
-  --color-neutral: #2d2418;
-  --color-neutral-content: #f0eae0;
-  --color-info: #6b8fbe;
-  --color-info-content: #faf6f0;
-  --color-success: #5b8c5a;
-  --color-success-content: #faf6f0;
-  --color-warning: #c4953e;
-  --color-warning-content: #faf6f0;
-  --color-error: #b84a4a;
-  --color-error-content: #faf6f0;
-  --radius-selector: 0.5rem;
-  --radius-field: 0.375rem;
-  --radius-box: 0.75rem;
-  --size-selector: 0.125rem;
-  --size-field: 0.125rem;
+  --color-primary: var(--palette-brand-500);
+  --color-primary-content: var(--palette-brand-50);
+  --color-secondary: var(--palette-brand-300);
+  --color-secondary-content: var(--palette-slate-900);
+  --color-accent: var(--palette-accent-500);
+  --color-accent-content: var(--palette-brand-50);
+  --color-neutral: var(--palette-slate-800);
+  --color-neutral-content: var(--palette-slate-50);
+  --color-base-100: var(--palette-slate-50);
+  --color-base-200: var(--palette-slate-100);
+  --color-base-300: var(--palette-slate-200);
+  --color-base-content: var(--palette-slate-900);
+  --color-info: var(--palette-sky-500);
+  --color-info-content: var(--palette-slate-50);
+  --color-success: var(--palette-emerald-500);
+  --color-success-content: var(--palette-slate-50);
+  --color-warning: var(--palette-amber-500);
+  --color-warning-content: var(--palette-slate-900);
+  --color-error: var(--palette-rose-500);
+  --color-error-content: var(--palette-slate-50);
+
+  --radius-selector: 1rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
   --border: 1px;
-  --depth: 0;
+  --depth: 1;
   --noise: 0;
 }
 
+/* Dark theme — same mappings, palette overridden by [data-theme="dark"]. */
 @plugin "daisyui/theme" {
   name: "dark";
   default: false;
   prefersdark: true;
-  color-scheme: "dark";
+  color-scheme: dark;
 
-  --color-base-100: #1c1814;
-  --color-base-200: #2a2420;
-  --color-base-300: #3a322c;
-  --color-base-content: #e8ddd0;
-  --color-primary: #d4a853;
-  --color-primary-content: #1c1814;
-  --color-secondary: #a67b5b;
-  --color-secondary-content: #1c1814;
-  --color-accent: #7ba0c9;
-  --color-accent-content: #1c1814;
-  --color-neutral: #e8ddd0;
-  --color-neutral-content: #1c1814;
-  --color-info: #7ba0c9;
-  --color-info-content: #1c1814;
-  --color-success: #6b9b6a;
-  --color-success-content: #1c1814;
-  --color-warning: #d4a853;
-  --color-warning-content: #1c1814;
-  --color-error: #c95a5a;
-  --color-error-content: #1c1814;
-  --radius-selector: 0.5rem;
-  --radius-field: 0.375rem;
-  --radius-box: 0.75rem;
-  --size-selector: 0.125rem;
-  --size-field: 0.125rem;
+  --color-primary: var(--palette-brand-500);
+  --color-primary-content: var(--palette-slate-950);
+  --color-secondary: var(--palette-brand-300);
+  --color-secondary-content: var(--palette-slate-950);
+  --color-accent: var(--palette-accent-500);
+  --color-accent-content: var(--palette-slate-950);
+  --color-neutral: var(--palette-slate-800);
+  --color-neutral-content: var(--palette-slate-950);
+  --color-base-100: var(--palette-slate-50);
+  --color-base-200: var(--palette-slate-100);
+  --color-base-300: var(--palette-slate-200);
+  --color-base-content: var(--palette-slate-900);
+  --color-info: var(--palette-sky-500);
+  --color-info-content: var(--palette-slate-950);
+  --color-success: var(--palette-emerald-500);
+  --color-success-content: var(--palette-slate-950);
+  --color-warning: var(--palette-amber-500);
+  --color-warning-content: var(--palette-slate-950);
+  --color-error: var(--palette-rose-500);
+  --color-error-content: var(--palette-slate-950);
+
+  --radius-selector: 1rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
   --border: 1px;
-  --depth: 0;
+  --depth: 1;
   --noise: 0;
 }
 
-[data-theme="light"] {
-  transition:
-    background-color 0.5s,
-    color 0.5s,
-    border-color 0.5s;
-}
-
-[data-theme="dark"] {
-  transition:
-    background-color 0.5s,
-    color 0.5s,
-    border-color 0.5s;
-
-  --tw-prose-body: #e8ddd0;
-  --tw-prose-headings: #f0eae0;
-  --tw-prose-lead: #e0d5c5;
-  --tw-prose-links: #d4a853;
-  --tw-prose-bold: #f0eae0;
-  --tw-prose-counters: #a09080;
-  --tw-prose-bullets: #a09080;
-  --tw-prose-hr: #3a322c;
-  --tw-prose-quotes: #e8ddd0;
-  --tw-prose-quote-borders: #5a4a3a;
-  --tw-prose-captions: #a09080;
-  --tw-prose-code: #e8ddd0;
-  --tw-prose-pre-code: #2a2420;
-  --tw-prose-pre-bg: #3a322c;
-  --tw-prose-th-borders: #5a4a3a;
-  --tw-prose-td-borders: #3a322c;
-}
-
-html {
-  transition:
-    background-color 0.5s,
-    color 0.5s;
-  scroll-behavior: smooth;
-}
-
-.prose pre {
-  overflow-x: auto;
-  font-size: 0.875rem;
-  line-height: 1.7;
-}
-
-.prose code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
-
-.prose blockquote {
-  border-left: 3px solid oklch(70% 0 0deg);
-  padding-left: 1rem;
-  opacity: 0.8;
-}
-
-.prose table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.prose th,
-.prose td {
-  padding: 0.75rem;
-  border: 1px solid oklch(90% 0 0deg);
-}
-
-.dark .prose th,
-.dark .prose td {
-  border-color: oklch(30% 0 0deg);
-}
-
-.prose img {
-  max-width: 100%;
-  height: auto;
-}
-
-:root {
-  --tw-prose-body: #2d2418;
-  --tw-prose-headings: #1c1814;
-  --tw-prose-lead: #3a322c;
-  --tw-prose-links: #c4953e;
-  --tw-prose-bold: #1c1814;
-  --tw-prose-counters: #6a5a4a;
-  --tw-prose-bullets: #6a5a4a;
-  --tw-prose-hr: #e4dcce;
-  --tw-prose-quotes: #2d2418;
-  --tw-prose-quote-borders: #c4953e;
-  --tw-prose-captions: #6a5a4a;
-  --tw-prose-code: #2d2418;
-  --tw-prose-pre-code: #f0eae0;
-  --tw-prose-pre-bg: #2d2418;
-  --tw-prose-th-borders: #e4dcce;
-  --tw-prose-td-borders: #e4dcce;
-}
-
-.reveal {
-  opacity: 0;
-  translate: 0 1.5rem;
-  transition:
-    opacity 0.6s ease-out,
-    translate 0.6s ease-out;
-}
-
-.reveal.revealed {
-  opacity: 1;
-  translate: 0 0;
-}
-
-.reveal-delay-1 {
-  transition-delay: 0.1s;
-}
-
-.reveal-delay-2 {
-  transition-delay: 0.2s;
-}
-
-.reveal-delay-3 {
-  transition-delay: 0.3s;
-}
-
-.reveal-delay-4 {
-  transition-delay: 0.4s;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal {
-    opacity: 1;
-    translate: 0 0;
-    transition: none;
-  }
-
+@layer base {
   html {
-    scroll-behavior: auto;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100dvh;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
   }
 }
 
-a[data-external="true"] {
-  position: relative;
+/* Reading progress bar driven by the reading-progress client module. */
+#reading-progress {
+  transform: scaleX(var(--reading-progress, 0));
+  transform-origin: left;
 }
 
-a[data-external="true"]::after {
-  content: "↗";
-  margin-left: 0.25rem;
-  opacity: 0.7;
-  font-size: 0.75em;
-  vertical-align: super;
-  color: var(--color-base-content);
+/* Scroll reveal — initial state; the client module flips data-revealed. */
+[data-reveal]:not([data-revealed]) {
+  opacity: 0;
+  translate: 0 1rem;
 }
 
-[data-theme="light"] a[data-external="true"]::after {
-  color: var(--color-base-content);
-}
-
-[data-theme="dark"] a[data-external="true"]::after {
-  color: var(--color-base-content);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  a[data-external="true"]::after {
-    transition: none;
-  }
+[data-reveal] {
+  transition:
+    opacity 0.5s ease,
+    translate 0.5s ease;
 }

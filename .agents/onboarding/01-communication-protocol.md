@@ -1,24 +1,29 @@
 # 通信协议手册
 
-**适用**：所有子智能体  
-**版本**：1.0  
-**依据**：ADR 0003 `subagent-communication` 技能
+**适用**：所有子智能体
+**版本**：1.0
+**依据**：ADR 0004 `subagent-communication` 技能
+
+> [!NOTE] 设施状态（2026-10）
+> 项目正按 `REWRITE_PLAN.md` **从零重写**：`src/`、`.github/workflows/`、`.agents/scripts/`、`.agents/tasks/` 均已在工作区就位。
+> 文中 `⏸` 标注对应**尚未落地**的部分。`tgcloud/` 目录从未存在；Bot 源码为根级 `handlers/`、`schema.js`。
 
 ---
 
 ## 1. 核心命令
 
-| 命令 | 用途 | 关键参数 |
-|------|------|----------|
-| `task-claim` | 领取任务，创建进度文件 | `--assignee <role>` |
+| 命令            | 用途                       | 关键参数                                      |
+| --------------- | -------------------------- | --------------------------------------------- |
+| `task-claim`    | 领取任务，创建进度文件     | `--assignee <role>`                           |
 | `task-progress` | 更新进度/上报阻塞/请求协助 | `<percent>` `--msg` `--blocked` `--help-from` |
-| `task-complete` | 完成任务，自动跑质量门禁 | `--skip-gate` (仅紧急) |
+| `task-complete` | 完成任务，自动跑质量门禁   | `--skip-gate` (仅紧急)                        |
 
 ---
 
 ## 2. 文件约定
 
 ### 进度文件 (`.progress`)
+
 ```json
 {
   "taskId": "1.1",
@@ -32,13 +37,14 @@
 }
 ```
 
-| 字段 | 说明 |
-|------|------|
-| `status` | `pending` \| `in_progress` \| `blocked` \| `done` |
-| `blocker` | 阻塞描述，非空即标记为 blocked |
-| `helpFrom` | 请求协助的角色 ID |
+| 字段       | 说明                                              |
+| ---------- | ------------------------------------------------- |
+| `status`   | `pending` \| `in_progress` \| `blocked` \| `done` |
+| `blocker`  | 阻塞描述，非空即标记为 blocked                    |
+| `helpFrom` | 请求协助的角色 ID                                 |
 
 ### 上下文传递 (`.context.json`)
+
 ```json
 {
   "fromTask": "1.5",
@@ -63,32 +69,38 @@
 ## 4. 典型场景
 
 ### 领取任务
+
 ```bash
 pnpm exec tsx .agents/scripts/task-claim.ts 1.1 --assignee content-engineer
 ```
 
 ### 正常进度更新
+
 ```bash
 pnpm exec tsx .agents/scripts/task-progress.ts 1.1 50 --msg "Exported PostFrontmatter type"
 ```
 
 ### 上报阻塞并请求协助
+
 ```bash
 pnpm exec tsx .agents/scripts/task-progress.ts 1.1 --blocked "Zod import error" --help-from quality-dx-guardian
 ```
 
 ### 解除阻塞继续
+
 ```bash
 pnpm exec tsx .agents/scripts/task-progress.ts 1.1 60 --msg "Resolved: fixed import path"
 ```
 
 ### 完成任务
+
 ```bash
 pnpm exec tsx .agents/scripts/task-complete.ts 1.1
 # 自动运行：tsc, oxlint, oxfmt, build + 角色专属门禁
 ```
 
 ### 紧急跳过门禁（仅限阻塞无法解决）
+
 ```bash
 pnpm exec tsx .agents/scripts/task-complete.ts 1.1 --skip-gate
 # ⚠️ 会记录 gate.failure.json，需补门禁
@@ -99,6 +111,7 @@ pnpm exec tsx .agents/scripts/task-complete.ts 1.1 --skip-gate
 ## 5. 协作模式
 
 ### 跨角色协助
+
 ```bash
 # A 角色卡住，请求 B 角色协助
 pnpm exec tsx .agents/scripts/task-progress.ts 2.1 --blocked "Need schema types" --help-from content-engineer
@@ -108,7 +121,9 @@ pnpm exec tsx .agents/scripts/task-progress.ts 1.5 100 --msg "Exported types for
 ```
 
 ### 上下文传递
+
 任务完成时在 `.context.json` 声明输出：
+
 ```json
 {
   "fromTask": "1.5",
@@ -122,19 +137,19 @@ pnpm exec tsx .agents/scripts/task-progress.ts 1.5 100 --msg "Exported types for
 
 ## 6. 反模式（禁止）
 
-| ❌ 反模式 | ✅ 正确做法 |
-|----------|------------|
-| 默默卡住 1 小时不报 | 15min 必须 `--blocked` |
-| 完成任务不跑门禁 | `task-complete` 自动跑门禁 |
-| 任务卡只看标题不读全文 | 执行前完整阅读 `.md` |
-| 进度文件不更新 | 每 30min 必须 `task-progress` |
-| 完成前不声明输出文件 | `Outputs` 字段必须填写 |
+| ❌ 反模式              | ✅ 正确做法                   |
+| ---------------------- | ----------------------------- |
+| 默默卡住 1 小时不报    | 15min 必须 `--blocked`        |
+| 完成任务不跑门禁       | `task-complete` 自动跑门禁    |
+| 任务卡只看标题不读全文 | 执行前完整阅读 `.md`          |
+| 进度文件不更新         | 每 30min 必须 `task-progress` |
+| 完成前不声明输出文件   | `Outputs` 字段必须填写        |
 
 ---
 
-## 6. 文件位置
+## 7. 文件位置
 
-```
+```text
 .agents/
 ├── scripts/
 │   ├── task-claim.ts
@@ -148,14 +163,14 @@ pnpm exec tsx .agents/scripts/task-progress.ts 1.5 100 --msg "Exported types for
 
 ---
 
-## 7. 常见问题
+## 8. 常见问题
 
-| 问题 | 解决 |
-|------|------|
-| `task-claim` 提示任务不存在 | 检查 `.agents/tasks/phase-X/` 路径拼写 |
-| `task-complete` 门禁挂起 | `pkill -f playwright; pkill -f cargo` 后重试 |
-| 进度文件权限拒绝 | `chmod +x .agents/scripts/*.ts` |
-| 进度卡在 100% 但状态非 done | `task-progress <id> 100` 会自动置为 done |
+| 问题                        | 解决                                         |
+| --------------------------- | -------------------------------------------- |
+| `task-claim` 提示任务不存在 | 检查 `.agents/tasks/phase-X/` ⏸ 路径拼写     |
+| `task-complete` 门禁挂起    | `pkill -f playwright; pkill -f cargo` 后重试 |
+| 进度文件权限拒绝            | `chmod +x .agents/scripts/*.ts` ⏸            |
+| 进度卡在 100% 但状态非 done | `task-progress <id> 100` 会自动置为 done     |
 
 ---
 

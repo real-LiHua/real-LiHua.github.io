@@ -26,12 +26,13 @@ subagent-onboard setup --role search-discovery-engineer
 
 ```
 .agents/onboarding/
-├── 00-project-overview.md        # 项目全景
-├── 01-team-structure.md          # 团队结构与协作模式
-├── 02-communication-protocol.md  # 通信协议
-├── 03-quality-gates.md           # 质量门禁
-├── 04-task-workflow.md           # 任务流程
-├── 05-tools-access.md            # 工具权限说明
+├── 00-project-overview.md        # 项目全景（含团队结构与协作模式）
+├── 01-communication-protocol.md  # 通信协议
+├── 02-quality-gates.md           # 质量门禁
+├── 03-task-workflow.md           # 任务流程
+├── 04-tools-access.md            # 工具权限说明
+├── 05-best-practices.md          # 最佳实践
+├── 06-faq.md                     # FAQ 手册
 └── role-specific/
     ├── search-discovery-engineer.md  # 角色专属指南
     └── mentorship-plan.md            # 导师计划
@@ -89,8 +90,8 @@ result: "通过 / 延长试用期 / 不通过"
 ## 知识库维护
 
 - 入职文档随项目演进更新（ADR 变更时同步）
-- 维护 FAQ：`.agents/onboarding/FAQ.md`
-- 记录最佳实践：`.agents/onboarding/best-practices.md`
+- 维护 FAQ：`.agents/onboarding/06-faq.md`
+- 记录最佳实践：`.agents/onboarding/05-best-practices.md`
 
 ## 命令
 

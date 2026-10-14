@@ -1,27 +1,21 @@
-import { getPublishedPosts } from "../utils/content";
 import rss from "@astrojs/rss";
+import type { APIRoute } from "astro";
+import { contentPipeline } from "@/modules/content-pipeline";
 
-export const GET = async (context: { site: string }): Promise<Response> => {
-  const posts = await getPublishedPosts(),
-    sorted = posts.toSorted(
-      (prev, next) =>
-        new Date(next.data.publishDate ?? 0).getTime() -
-        new Date(prev.data.publishDate ?? 0).getTime(),
-    );
+export const GET: APIRoute = async (context) => {
+  const posts = await contentPipeline.getPublishedPosts();
 
   return rss({
-    customData: `<language>zh-cn</language>\n<atom:link rel="self" href="${context.site}rss.xml"/>`,
-    description: "Li Hua 的个人博客",
-    items: sorted.map((post) => ({
-      categories: post.data.tags ?? [],
+    title: "LiHua.dev",
+    description: "个人博客：记录文章、笔记与技术实验。",
+    site: context.site ?? "https://real-lihua.github.io",
+    customData: "<language>zh-cn</language>",
+    items: posts.map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.publishDate ?? new Date(),
       description: post.data.description ?? "",
       link: `/posts/${post.id}/`,
-      pubDate: post.data.publishDate ?? new Date(),
-      title: post.data.title,
+      categories: post.data.tags ?? [],
     })),
-    site: context.site,
-    title: "李华的博客",
-    trailingSlash: true,
-    xmlns: { atom: "http://www.w3.org/2005/Atom" },
   });
 };

@@ -1,3 +1,23 @@
+# deploy.yml — multi-target deployment pipeline.
+#
+# Build once, deploy to multiple targets (docs/adr/0003-deployment-strategy.md,
+# docs/DEPLOYMENT.md):
+#   - codeberg  Codeberg Pages (SSH force-push of dist/client)
+#   - github    GitHub Pages (withastro/action + actions/deploy-pages)
+#   - ipfs      IPFS via Pinata (DISABLED via `if: false` pending cost/config)
+#   - tgcloud   Telegram Bot / Mini App backend (independent pipeline)
+#
+# Static jobs (codeberg/ipfs) build with `pnpm build`, which runs the
+# BuildPipeline hooks: Pagefind index, lychee link check, vnu HTML validation
+# (see docs/SEARCH_TUNING.md, .agents/knowledge/deployment-procedures.md).
+#
+# The `e2e` job gates the static deploys (`needs: e2e`): Playwright Chromium
+# runs against the built standalone server and must pass before publishing
+# (docs/TESTING.md §4.5). tgcloud deploys independently.
+#
+# Quoting rule (SECURITY_WHITEPAPER §10): env values and variable references in
+# `run:` are double-quoted.
+
 name: deploy
 
 on:
@@ -11,23 +31,80 @@ on:
       - "Cargo.toml"
   workflow_dispatch:
 
+# Least privilege (SECURITY_WHITEPAPER §5.1): read for checkout, OIDC + Pages
+# write for the GitHub Pages deployment.
 permissions:
-  id-token: write
+  contents: read
   pages: write
+  id-token: write
 
 jobs:
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install lychee
+        run: |
+          curl -sSfL https://github.com/lycheeverse/lychee/releases/latest/download/lychee-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz --strip-components=1 lychee-x86_64-unknown-linux-gnu/lychee
+          sudo install lychee /usr/local/bin/
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build
+        env:
+          TELEGRAM_BOT_TOKEN: "${{ secrets.TELEGRAM_BOT_TOKEN }}"
+        run: pnpm build
+
+      - name: Run E2E tests
+        run: pnpm exec playwright test --project=chromium
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 30
+
   codeberg:
     name: codeberg
+    needs: e2e
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: pnpm/setup@v1
+      - uses: pnpm/action-setup@v4
         with:
-          runtime: node@24
-          cache: true
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Install lychee
         run: |
@@ -37,8 +114,8 @@ jobs:
 
       - name: Build
         env:
-          SITE_URL: https://lihua.codeberg.page
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          SITE_URL: "https://lihua.codeberg.page"
+          TELEGRAM_BOT_TOKEN: "${{ secrets.TELEGRAM_BOT_TOKEN }}"
         run: |
           pnpm build
           rm -vr "./dist/server"
@@ -68,12 +145,13 @@ jobs:
 
   github:
     name: github
+    needs: e2e
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -85,10 +163,10 @@ jobs:
 
       - uses: withastro/action@v6.1.1
         env:
-          SITE_URL: https://real-LiHua.github.io
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          SITE_URL: "https://real-LiHua.github.io"
+          TELEGRAM_BOT_TOKEN: "${{ secrets.TELEGRAM_BOT_TOKEN }}"
         with:
-          out-dir: dist/client
+          out-dir: "dist/client"
 
       - name: Deploy to GitHub Pages
         id: deployment
@@ -96,16 +174,26 @@ jobs:
 
   ipfs:
     name: ipfs
+    # Disabled per docs/adr/0003-deployment-strategy.md (Pinata config/cost
+    # pending). Remove this guard to enable.
+    if: false
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: pnpm/setup@v1
+      - uses: pnpm/action-setup@v4
         with:
-          runtime: node@24
-          cache: true
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Install lychee
         run: |
@@ -115,7 +203,7 @@ jobs:
 
       - name: Build
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_TOKEN: "${{ secrets.TELEGRAM_BOT_TOKEN }}"
         run: |
           pnpm build
           rm -vr "./dist/server"
@@ -138,6 +226,39 @@ jobs:
       - name: Pin CID to Pinata
         run: |
           CID=$(ipfs add --cid-version 1 --chunker size-1048576 -Q -r .)
-          ipfs pin remote service add pinata "https://api.pinata.cloud/psa" ${{ secrets.PINATA_JWT_TOKEN }}
-          ipfs pin remote add --service=pinata --background --name="${pin_name}" $CID
-          echo "Pinned CID ${CID} to Pinata" >> $GITHUB_STEP_SUMMARY
+          ipfs pin remote service add pinata "https://api.pinata.cloud/psa" "${{ secrets.PINATA_JWT_TOKEN }}"
+          ipfs pin remote add --service=pinata --background --name="${pin_name}" "$CID"
+          echo "Pinned CID ${CID} to Pinata" >> "$GITHUB_STEP_SUMMARY"
+
+  tgcloud:
+    name: tgcloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy bot, migrate schema, sync webhook
+        env:
+          # The tgcloud CLI authenticates non-interactively via TGCLOUD_TOKEN;
+          # map the GitHub secret TG_API_TOKEN onto it.
+          TGCLOUD_TOKEN: "${{ secrets.TG_API_TOKEN }}"
+          # JWT_SECRET is a tgcloud Secret (runtime), not a GitHub secret — see
+          # .env.example. Keep it in the platform secret store.
+          TELEGRAM_BOT_TOKEN: "${{ secrets.TELEGRAM_BOT_TOKEN }}"
+        run: |
+          pnpm run deploy
+          pnpm exec tgcloud migrate --yes
+          pnpm exec tgcloud webhook sync

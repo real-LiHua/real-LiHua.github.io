@@ -1,34 +1,38 @@
 # 角色指南：构建部署工程师
 
-**角色 ID**：`build-deploy-engineer`  
-**类型**：Platform  
+**角色 ID**：`build-deploy-engineer`
+**类型**：Platform
 **核心职责**：BuildPipeline 统一管线、Pagefind 索引、Astro 集成、CI/CD 多平台部署、链接/HTML 验证
+
+> [!NOTE] 设施状态（2026-10）
+> 项目正按 `REWRITE_PLAN.md` **从零重写**：`src/`、`.github/workflows/`、`.agents/scripts/`、`.agents/tasks/` 均已在工作区就位。
+> 文中 `⏸` 标注对应**尚未落地**的部分。`tgcloud/` 目录从未存在；Bot 源码为根级 `handlers/`、`schema.js`。
 
 ---
 
 ## 1. 核心领域
 
-| 领域 | 关键文件 | 关注点 |
-|------|----------|--------|
-| **BuildPipeline** | `src/modules/build-pipeline.ts` | 5阶段串行、FileWalker 复用、错误聚合 |
-| **Astro 集成** | `src/integrations/build-hooks.ts` | `astro:build:done`、`astro:build:start` 钩子 |
-| **Pagefind** | `src/integrations/build-hooks.ts` | 索引生成、模块化 UI 配置 |
-| **链接/HTML 验证** | `build-hooks.ts` | `lychee`、`vnu-jar` 配置与阈值 |
-| **CI/CD** | `.github/workflows/deploy.yml` | 4平台并行、OIDC、Secret 管理 |
-| **Mermaid/Watermark** | `src/integrations/mermaid-compile-time.ts`、`watermark.ts` | 构建时渲染、零宽水印 |
+| 领域                  | 关键文件                                                     | 关注点                                       |
+| --------------------- | ------------------------------------------------------------ | -------------------------------------------- |
+| **BuildPipeline**     | `src/modules/build-pipeline.ts`                              | 5阶段串行、FileWalker 复用、错误聚合         |
+| **Astro 集成**        | `src/integrations/build-hooks.ts` ⏸                          | `astro:build:done`、`astro:build:start` 钩子 |
+| **Pagefind**          | `src/integrations/build-hooks.ts` ⏸                          | 索引生成、模块化 UI 配置                     |
+| **链接/HTML 验证**    | `build-hooks.ts` ⏸                                           | `lychee`、`vnu-jar` 配置与阈值               |
+| **CI/CD**             | `.github/workflows/deploy.yml`                               | 4平台并行、OIDC、Secret 管理                 |
+| **Mermaid/Watermark** | `src/integrations/mermaid-compile-time.ts`、`watermark.ts` ⏸ | 构建时渲染、零宽水印                         |
 
 ---
 
 ## 2. 必读文档
 
-| 文档 | 重点章节 |
-|------|----------|
-| `AGENTS.md` | Technical Reference → BuildPipeline、Image Optimization、Oxlint/Oxfmt |
-| `docs/adr/0001-functional-architecture.md` | 3.2 BuildPipeline Module、C4 Container 视图 |
-| `docs/adr/0003-subagent-responsibilities-controls.md` | 角色定义、CI/CD 守护 |
-| `docs/adr/0005-knowledge-update-process.md` | L0-L3 触发层、自动化守护脚本 |
-| `docs/SECURITY_WHITEPAPER.md` | 5. 构建与部署管线安全、命令参数引号规范 |
-| `docs/architecture-map.md` | 构建时数据流、模块依赖图 |
+| 文档                                        | 重点章节                                                              |
+| ------------------------------------------- | --------------------------------------------------------------------- |
+| `AGENTS.md`                                 | Technical Reference → BuildPipeline、Image Optimization、Oxlint/Oxfmt |
+| `docs/adr/0001-functional-architecture.md`  | 3.2 BuildPipeline Module、C4 Container 视图                           |
+| `docs/adr/0004-subagent-coordination.md`    | 角色定义、CI/CD 守护                                                  |
+| `docs/adr/0009-knowledge-update-process.md` | L0-L3 触发层、自动化守护脚本                                          |
+| `docs/SECURITY_WHITEPAPER.md`               | 5. 构建与部署管线安全、命令参数引号规范                               |
+| `docs/architecture-map.md`                  | 构建时数据流、模块依赖图                                              |
 
 ---
 
@@ -37,10 +41,9 @@
 ```bash
 # 本地预跑
 pnpm exec tsx .agents/scripts/run-gate.ts build-deploy-engineer
-
 # 等价于
-pnpm tsc -b && pnpm oxlint && pnpm oxfmt --check && pnpm build
-lychee dist/client && vnu --skip-non-html dist/client
+pnpm exec tsc -b && pnpm exec oxlint . && pnpm exec oxfmt --check && pnpm build
+lychee dist/client && vnu --skip-non-html dist/client  # ⏸ lychee 未安装
 ```
 
 **通过标准**：0 broken links、0 vnu errors、构建产物完整。
@@ -49,20 +52,22 @@ lychee dist/client && vnu --skip-non-html dist/client
 
 ## 4. 核心交付物
 
-| 交付物 | 位置 | 验收标准 |
-|--------|------|----------|
-| **BuildPipeline 核心** | `src/modules/build-pipeline.ts` | `execute(distDir)`、`registerStage()`、5阶段串行、错误聚合 |
-| **Astro 集成** | `src/integrations/build-hooks.ts` | `astro:build:start` 清理、`astro:build:done` 执行管线 |
-| **Pagefind 集成** | `build-hooks.ts` + `PagefindSearch.astro` | 索引生成、模块化 UI、CSS 变量主题适配 |
-| **CI/CD 工作流** | `.github/workflows/deploy.yml` | 4平台并行、OIDC、Secret 隔离、依赖审计 |
-| **知识库守护** | `.github/workflows/knowledge-guard.yml` | pointers/terms/contracts/regression 并行检查 |
-| **知识库脚本** | `.agents/scripts/scan-pointers.ts` 等 | `--fix`、`--report`、CI 注释 |
+| 交付物                 | 位置                                        | 验收标准                                                   |
+| ---------------------- | ------------------------------------------- | ---------------------------------------------------------- |
+| **BuildPipeline 核心** | `src/modules/build-pipeline.ts`             | `execute(distDir)`、`registerStage()`、5阶段串行、错误聚合 |
+| **Astro 集成**         | `src/integrations/build-hooks.ts` ⏸         | `astro:build:start` 清理、`astro:build:done` 执行管线      |
+| **Pagefind 集成**      | `build-hooks.ts` + `PagefindSearch.astro` ⏸ | 索引生成、模块化 UI、CSS 变量主题适配                      |
+| **CI/CD 工作流**       | `.github/workflows/deploy.yml`              | 4平台并行、OIDC、Secret 隔离、依赖审计                     |
+| **知识库守护**         | `.github/workflows/knowledge-guard.yml`     | pointers/terms/contracts/regression 并行检查               |
+| **知识库脚本**         | `.agents/scripts/scan-pointers.ts` 等       | `--fix`、`--report`、CI 注释                               |
 
 ---
 
-## 6. 核心开发模式
+## 5. 核心开发模式
 
-### 6.1 BuildPipeline 核心
+> ⏸ 本节代码示例引用的 `src/` 与 `.github/workflows/` 路径已从仓库移除，保留原设计待重写。
+
+### 5.1 BuildPipeline 核心
 
 ```typescript
 // src/modules/build-pipeline.ts
@@ -87,7 +92,7 @@ const stages: BuildStage[] = [
 ];
 ```
 
-### 6.2 Astro 集成钩子
+### 5.2 Astro 集成钩子
 
 ```typescript
 // src/integrations/build-hooks.ts
@@ -102,18 +107,18 @@ export const buildHooksIntegration = (): AstroIntegration => ({
       // 1. Pagefind 索引
       logger.info("Running Pagefind indexing...");
       await runPagefind(dir);
-      
+
       // 2. 链接检查
       logger.info("Running link checker...");
       await runLychee(dir);
-      
+
       // 3. HTML 验证
       logger.info("Running HTML validator...");
       await runVnu(dir);
-      
+
       // 4. Mermaid 渲染
       await runMermaid(dir);
-      
+
       // 5. 水印注入
       await runWatermark(dir);
     },
@@ -121,7 +126,7 @@ export const buildHooksIntegration = (): AstroIntegration => ({
 });
 ```
 
-### 6.3 文件遍历复用
+### 5.3 文件遍历复用
 
 ```typescript
 // src/integrations/utils/file-utils.ts
@@ -130,7 +135,7 @@ export async function findHtmlFiles(dir: URL): Promise<URL[]> {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const fullPath = new URL(entry.name, dir);
     if (entry.isDirectory()) {
-      files.push(...await findHtmlFiles(fullPath));
+      files.push(...(await findHtmlFiles(fullPath)));
     } else if (entry.name.endsWith(".html")) {
       files.push(fullPath);
     }
@@ -139,7 +144,7 @@ export async function findHtmlFiles(dir: URL): Promise<URL[]> {
 }
 ```
 
-### 6.4 CI/CD 部署配置
+### 5.4 CI/CD 部署配置
 
 ```yaml
 # .github/workflows/deploy.yml 关键片段
@@ -149,7 +154,7 @@ permissions:
   id-token: write
 
 jobs:
-  cloudflare:
+  tgcloud:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -157,13 +162,16 @@ jobs:
       - run: pnpm build
         env:
           SITE_URL: "${{ secrets.SITE_URL }}"
-          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
-          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
-      - uses: cloudflare/wrangler-action@v3
+      - run: pnpm deploy # tgcloud push
+        env:
+          TG_API_TOKEN: "${{ secrets.TG_API_TOKEN }}"
+      - run: pnpm exec tgcloud migrate
+        env:
+          TG_API_TOKEN: "${{ secrets.TG_API_TOKEN }}"
 
   codeberg:
     # SSH bare repo push
-  
+
   github:
     uses: withastro/action@v2
 
@@ -173,45 +181,47 @@ jobs:
 
 ---
 
-## 5. 专属质量门禁细则
+## 6. 专属质量门禁细则
 
-| 检查项 | 工具 | 标准 |
-|--------|------|------|
-| **链接检查** | `lychee dist/client` | 0 broken links（除显式排除） |
-| **HTML 验证** | `vnu --skip-non-html dist/client` | 0 errors |
-| **构建** | `pnpm build` | success |
-| **类型/格式** | `pnpm tsc -b && pnpm oxlint && pnpm oxfmt --check` | 0 errors/diffs |
-
----
-
-## 6. 常见任务类型
-
-| 任务类型 | 典型触发 | 关键产出 |
-|----------|----------|----------|
-| **BuildPipeline 阶段增/删** | 新增验证步骤 | 新增 Stage + 注册 + 超时配置 |
-| **CI/CD 平台新增/变更** | 新部署目标 | 新 Job + Secret + OIDC 配置 |
-| **Pagefind 配置调整** | 搜索体验优化 | `bundlePath`、`ranking`、`mergeIndex` |
-| **Mermaid/Watermark 调优** | 性能/准确度 | 超时配置、选择器优化 |
-| **知识库守护脚本** | 新增检查项 | 新脚本 + CI 集成 + PR 注释 |
+| 检查项        | 工具                                                                | 标准                         |
+| ------------- | ------------------------------------------------------------------- | ---------------------------- |
+| **链接检查**  | `lychee dist/client`                                                | 0 broken links（除显式排除） |
+| **HTML 验证** | `vnu --skip-non-html dist/client`                                   | 0 errors                     |
+| **构建**      | `pnpm build`                                                        | success                      |
+| **类型/格式** | `pnpm exec tsc -b && pnpm exec oxlint . && pnpm exec oxfmt --check` | 0 errors/diffs               |
 
 ---
 
-## 7. 常见坑与规避
+## 7. 常见任务类型
 
-| 坑 | 症状 | 规避 |
-|----|------|------|
-| **构建阶段超时** | 阶段卡死、CI 超时 | 每阶段设 `timeout: 60000`、分批处理大文件 |
-| **lychee 误报** | 内部链接/锚点报错 | `--exclude-mail`、`--exclude` 排除规则 |
-| **vnu 误报** | 无关 HTML 规则报错 | `--filterfile` 排除已知误报 |
-| **Pagefind 索引过大** | 构建慢、体积大 | 分片索引、增量更新 |
-| **Secret 泄露** | CI 日志输出 Secret | 所有 `env:` 值双引号包裹、不在 `run:` 直接引用 |
-| **多平台部署不一致** | 内容差异 | SHA-256 对比 `dist/client` 校验 |
+| 任务类型                    | 典型触发     | 关键产出                              |
+| --------------------------- | ------------ | ------------------------------------- |
+| **BuildPipeline 阶段增/删** | 新增验证步骤 | 新增 Stage + 注册 + 超时配置          |
+| **CI/CD 平台新增/变更**     | 新部署目标   | 新 Job + Secret + OIDC 配置           |
+| **Pagefind 配置调整**       | 搜索体验优化 | `bundlePath`、`ranking`、`mergeIndex` |
+| **Mermaid/Watermark 调优**  | 性能/准确度  | 超时配置、选择器优化                  |
+| **知识库守护脚本**          | 新增检查项   | 新脚本 + CI 集成 + PR 注释            |
 
 ---
 
-## 8. 关键文件清单
+## 8. 常见坑与规避
 
-```
+| 坑                    | 症状               | 规避                                           |
+| --------------------- | ------------------ | ---------------------------------------------- |
+| **构建阶段超时**      | 阶段卡死、CI 超时  | 每阶段设 `timeout: 60000`、分批处理大文件      |
+| **lychee 误报**       | 内部链接/锚点报错  | `--exclude-mail`、`--exclude` 排除规则         |
+| **vnu 误报**          | 无关 HTML 规则报错 | `--filterfile` 排除已知误报                    |
+| **Pagefind 索引过大** | 构建慢、体积大     | 分片索引、增量更新                             |
+| **Secret 泄露**       | CI 日志输出 Secret | 所有 `env:` 值双引号包裹、不在 `run:` 直接引用 |
+| **多平台部署不一致**  | 内容差异           | SHA-256 对比 `dist/client` 校验                |
+
+---
+
+## 9. 关键文件清单
+
+> ⏸ 下列目录树为原设计，`.github/workflows/`、`src/`、`.agents/scripts/` 均已从仓库移除，待重写。
+
+```text
 .github/workflows/
 ├── deploy.yml              # 4平台部署
 └── knowledge-guard.yml     # 知识库守护
@@ -240,28 +250,28 @@ src/
 
 ---
 
-## 9. 协作接口
+## 10. 协作接口
 
-| 依赖角色 | 协作内容 | 接口 |
-|----------|----------|------|
-| `frontend-architect` | Pagefind UI 组件、CSS 变量 | `searchModule.SearchComponentProps`、`themeSystem` |
-| `content-engineer` | 构建产物源数据 | `contentPipeline.getPublishedPosts()` |
-| `search-discovery-engineer` | 索引生成配置 | `searchModule.generateIndex()` |
-| `quality-dx-guardian` | 门禁配置、CI 守护 | `run-gate.ts`、`knowledge-guard.yml` |
-| `cli-tool-engineer` | 发布脚本集成 | CI Job 依赖 |
+| 依赖角色                    | 协作内容                   | 接口                                               |
+| --------------------------- | -------------------------- | -------------------------------------------------- |
+| `frontend-architect`        | Pagefind UI 组件、CSS 变量 | `searchModule.SearchComponentProps`、`themeSystem` |
+| `content-engineer`          | 构建产物源数据             | `contentPipeline.getPublishedPosts()`              |
+| `search-discovery-engineer` | 索引生成配置               | `searchModule.generateIndex()`                     |
+| `quality-dx-guardian`       | 门禁配置、CI 守护          | `run-gate.ts`、`knowledge-guard.yml`               |
+| `cli-tool-engineer`         | 发布脚本集成               | CI Job 依赖                                        |
 
 ---
 
-## 10. 学习资源
+## 11. 学习资源
 
-| 资源 | 链接 |
-|------|------|
+| 资源               | 链接                                             |
+| ------------------ | ------------------------------------------------ |
 | Astro Integrations | https://docs.astro.build/en/guides/integrations/ |
-| GitHub Actions | https://docs.github.com/en/actions |
-| Cloudflare Workers | https://developers.cloudflare.com/workers/ |
-| Pagefind | https://pagefind.app/ |
-| lychee | https://github.com/lycheeverse/lychee |
-| vnu-jar | https://github.com/validator/validator |
+| GitHub Actions     | https://docs.github.com/en/actions               |
+| tgcloud            | https://tgcloud.dev/                             |
+| Pagefind           | https://pagefind.app/                            |
+| lychee             | https://github.com/lycheeverse/lychee            |
+| vnu-jar            | https://github.com/validator/validator           |
 
 ---
 

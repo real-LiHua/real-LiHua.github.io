@@ -1,303 +1,353 @@
-#!/usr/bin/env node
-// Pointer Scanner - AGENTS Knowledge Base Guard
-// Scans all markdown files for relative path references and validates they exist
-// Usage: pnpm exec tsx .agents/scripts/scan-pointers.ts [--fix] [--report]
+#!/usr/bin/env tsx
+/**
+ * Scan-pointers — 扫描 AGENTS.md / docs / .agents 中的相对路径引用，验证其有效性。
+ *
+ * 用法: pnpm exec tsx .agents/scripts/scan-pointers.ts [--fix] [--report] [--json] [--strict]
+ *
+ * 扫描范围:
+ *
+ * - 根目录 *.md 与 AGENTS.md
+ * - Docs/**.md
+ * - .agents/**.md（排除 .agents/skills/） 跳过:
+ *   .opencode/**、node_modules/**、dist/**、.astro/**、target/**、playwright-report/**
+ *
+ * 提取:
+ *
+ * - Markdown 链接 [text](relative/path) → 相对当前文件解析
+ * - 行内代码 `path/to/file.ts` → 相对仓库根解析 跳过含 `⏸`（待重写设施）的行与围栏代码块。
+ *
+ * 规格: docs/adr/0009-knowledge-update-process.md §3.1
+ */
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { dirname, extname, join, relative, resolve, sep } from "node:path";
+import { findRepoRoot } from "./run-gate.ts";
 
-import { parseArgs } from "node:util";
-import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from "node:fs";
-import { join, relative, resolve, extname } from "node:path";
-import { execSync } from "node:child_process";
+const REPO_ROOT = findRepoRoot();
 
-const { values, positionals } = parseArgs({
-  args: process.argv.slice(2),
-  options: {
-    fix: { type: "boolean" },
-    report: { type: "boolean" },
-    help: { type: "boolean", short: "h" },
-  },
-  strict: true,
-  allowPositionals: true,
-});
+const SKIP_DIRS = new Set([
+  "node_modules",
+  ".git",
+  "dist",
+  ".astro",
+  "target",
+  "playwright-report",
+  "test-results",
+  "coverage",
+  ".cache",
+  ".pnpm-store",
+]);
 
-if (values.help) {
-  console.log(`
-Usage: scan-pointers [--fix] [--report]
-
-Scans AGENTS.md, ADRs, task cards for relative path references and validates existence.
-
-Options:
-  --fix     Attempt to auto-fix broken pointers using git history
-  --report  Generate JSON report to .agents/reports/pointer-scan-<timestamp>.json
-  --help    Show this help
-
-Examples:
-  scan-pointers
-  scan-pointers --fix
-  scan-pointers --report
-`);
-  process.exit(0);
-}
-
-const ROOT = process.cwd();
-const REPORT_DIR = join(ROOT, ".agents", "reports");
-const TARGET_EXTS = [".md", ".ts"];
-
-// Patterns that indicate a relative path reference
-const POINTER_PATTERNS = [
-  // Markdown links: [text](./path) or [text](../path)
-  /\[([^\]]+)\]\((\.?\.?\/[^)]+)\)/g,
-  // Bare relative paths in backticks: \`./path\` or \`../path\`
-  /`(\.?\.?\/[^`]+)`/g,
-  // AGENTS.md style: "text → \`path\`"
-  /→\s*`(\.?\.?\/[^`]+)`/g,
-  // Specs/Contracts fields in task cards: `path`
-  /(?:Specs|Contracts):\s*\[?\s*`([^`]+\.md)`/g,
-];
+const PATH_EXT = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".mjs",
+  ".cjs",
+  ".astro",
+  ".md",
+  ".mdx",
+  ".json",
+  ".css",
+  ".html",
+  ".yml",
+  ".yaml",
+  ".rs",
+  ".toml",
+  ".sh",
+  ".txt",
+]);
 
 interface Pointer {
   file: string;
   line: number;
-  column: number;
+  kind: "link" | "code";
   raw: string;
   target: string;
   resolved: string;
   exists: boolean;
-  pattern: string;
 }
 
-interface ScanResult {
+interface ScanReport {
   timestamp: string;
-  totalFiles: number;
-  totalPointers: number;
-  validPointers: number;
-  brokenPointers: number;
+  scannedFiles: number;
+  total: number;
+  broken: number;
   pointers: Pointer[];
-  fixed: number;
+  fixable: { file: string; line: number; from: string; to: string }[];
 }
 
-function getAllFiles(dir: string, exts: string[]): string[] {
+function walkMarkdown(dir: string, out: string[]): void {
+  let entries: string[];
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    if (entry.startsWith(".") && entry !== ".agents") {
+      // 允许进入 .agents 根，其余隐藏目录跳过
+      if (dir !== REPO_ROOT) continue;
+    }
+    const abs = join(dir, entry);
+    let stat;
+    try {
+      stat = statSync(abs);
+    } catch {
+      continue;
+    }
+    if (stat.isDirectory()) {
+      if (SKIP_DIRS.has(entry)) continue;
+      if (abs === join(REPO_ROOT, ".agents", "skills")) continue;
+      if (abs === join(REPO_ROOT, ".opencode")) continue;
+      walkMarkdown(abs, out);
+    } else if (stat.isFile() && entry.endsWith(".md")) {
+      out.push(abs);
+    }
+  }
+}
+
+function collectScanFiles(): string[] {
   const files: string[] = [];
-  function walk(d: string) {
-    for (const entry of readdirSync(d, { withFileTypes: true })) {
-      const full = join(d, entry.name);
-      if (entry.isDirectory()) {
-        if (
-          !entry.name.startsWith(".") &&
-          entry.name !== "node_modules" &&
-          entry.name !== "dist" &&
-          entry.name !== ".astro"
-        ) {
-          walk(full);
-        }
-      } else if (exts.includes(extname(entry.name))) {
-        files.push(full);
-      }
-    }
+  // 根级 Markdown
+  for (const entry of readdirSync(REPO_ROOT)) {
+    if (entry.endsWith(".md")) files.push(join(REPO_ROOT, entry));
   }
-  walk(dir);
-  return files;
+  walkMarkdown(join(REPO_ROOT, "docs"), files);
+  walkMarkdown(join(REPO_ROOT, ".agents"), files);
+  return [...new Set(files)].sort();
 }
 
-function extractPointers(content: string, file: string): Pointer[] {
+function normalizeRelative(baseDir: string, target: string): string | null {
+  const cleaned = target.split("#")[0].trim();
+  if (!cleaned) return null;
+  if (/^(https?:|mailto:|tel:|data:|\/\/)/i.test(cleaned)) return null;
+  if (cleaned.startsWith("#") || cleaned.startsWith("/") || cleaned.startsWith("~")) return null;
+  if (/[*?[\]{}<>|$="'`\\]/.test(cleaned)) return null;
+  if (cleaned.startsWith("@")) return null; // npm scope，非仓库路径
+  const abs = resolve(baseDir, cleaned);
+  return relative(REPO_ROOT, abs);
+}
+
+function isPathLike(token: string): boolean {
+  if (token.length < 3 || !token.includes("/")) {
+    // 允许单文件名，但必须有被认可的扩展名
+    const ext = extname(token);
+    return ext.length > 1 && PATH_EXT.has(ext);
+  }
+  if (/[*?[\]{}<>|$="'`\\]/.test(token)) return false;
+  return /\.[A-Za-z][A-Za-z0-9]*$/.test(token) || token.endsWith("/");
+}
+
+function scanFile(abs: string): Pointer[] {
+  let content: string;
+  try {
+    content = readFileSync(abs, "utf8");
+  } catch {
+    return [];
+  }
+  const rel = relative(REPO_ROOT, abs);
+  const baseDir = dirname(abs);
   const pointers: Pointer[] = [];
+  let inFence = false;
+
   const lines = content.split("\n");
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (/^\s*(```|~~~)/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) continue;
+    if (line.includes("⏸")) continue;
 
-  for (const pattern of POINTER_PATTERNS) {
-    let match;
-    pattern.lastIndex = 0;
-    while ((match = pattern.exec(content)) !== null) {
-      const target = match[1];
-      // Skip absolute URLs, anchors, and non-relative paths
-      if (target.startsWith("http") || target.startsWith("#") || !target.startsWith(".")) {
-        continue;
-      }
-
-      // Find line/column
-      const beforeMatch = content.slice(0, match.index);
-      const line = beforeMatch.split("\n").length;
-      const column = beforeMatch.split("\n").pop()!.length + 1;
-
-      // Resolve relative to file's directory
-      const fileDir = join(ROOT, relative(ROOT, file).replace(/[^/]*$/, ""));
-      const resolved = resolve(fileDir, target);
-      const relativeToRoot = relative(ROOT, resolved);
-      const exists = existsSync(resolved);
-
+    const record = (kind: "link" | "code", target: string): void => {
+      const resolved = normalizeRelative(kind === "link" ? baseDir : REPO_ROOT, target);
+      if (resolved === null) return;
+      const exists = existsSync(join(REPO_ROOT, resolved));
       pointers.push({
-        file: relative(ROOT, file),
-        line,
-        column,
-        raw: match[0],
-        target,
-        resolved: relativeToRoot,
+        file: rel,
+        line: index + 1,
+        kind,
+        raw: target,
+        target: target.split("#")[0],
+        resolved: resolved.split(sep).join("/"),
         exists,
-        pattern: pattern.source,
       });
+    };
+
+    // Markdown links
+    const linkRe = /\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+    let match: RegExpExecArray | null;
+    while ((match = linkRe.exec(line)) !== null) {
+      record("link", match[1]);
+    }
+
+    // Inline code
+    const codeRe = /`([^`]+)`/g;
+    while ((match = codeRe.exec(line)) !== null) {
+      for (const token of match[1].split(/\s+/)) {
+        const trimmed = token.replace(/[.,;:)]+$/, "");
+        if (isPathLike(trimmed)) record("code", trimmed);
+      }
     }
   }
-
   return pointers;
 }
 
-function tryAutoFix(pointer: Pointer): string | null {
-  if (pointer.exists) return null;
-
-  const targetPath = join(ROOT, pointer.resolved);
-  const targetDir = join(targetPath, "..");
-  const targetBase = pointer.resolved.split("/").pop();
-
-  if (!targetBase) return null;
-
-  try {
-    // Use git log --follow to find renames/moves
-    const result = execSync(
-      `git log --follow --name-only --oneline -- "${targetPath}" 2>/dev/null | head -20`,
-      {
-        encoding: "utf-8",
-        cwd: ROOT,
-        stdio: ["ignore", "pipe", "ignore"],
-      },
-    );
-
-    const lines = result.trim().split("\n");
-    for (const line of lines) {
-      if (line.includes(targetBase) && existsSync(join(ROOT, line.trim()))) {
-        return line.trim();
-      }
-    }
-  } catch {
-    // git not available or no history
-  }
-
-  // Try fuzzy match in same directory
-  try {
-    const dirEntries = readdirSync(targetDir);
-    for (const entry of dirEntries) {
-      if (entry.toLowerCase().includes(targetBase.toLowerCase().replace(/\.[^.]+$/, ""))) {
-        return join(relative(ROOT, targetDir), entry);
-      }
-    }
-  } catch {
-    // directory doesn't exist
-  }
-
-  return null;
-}
-
-function generateReport(result: ScanResult): string {
-  const lines = [
-    `# Pointer Scan Report`,
-    `**Timestamp:** ${result.timestamp}`,
-    `**Files Scanned:** ${result.totalFiles}`,
-    `**Total Pointers:** ${result.totalPointers}`,
-    `**Valid:** ${result.validPointers}`,
-    `**Broken:** ${result.brokenPointers}`,
-    `**Auto-fixed:** ${result.fixed}`,
-    "",
-    "## Broken Pointers",
-    "",
-  ];
-
-  if (result.brokenPointers === 0) {
-    lines.push("✅ All pointers valid!");
-  } else {
-    const byFile = new Map<string, Pointer[]>();
-    for (const p of result.pointers) {
-      if (!p.exists) {
-        if (!byFile.has(p.file)) byFile.set(p.file, []);
-        byFile.get(p.file)!.push(p);
-      }
-    }
-
-    for (const [file, ptrs] of byFile) {
-      lines.push(`### ${file}`);
-      for (const p of ptrs) {
-        lines.push(`- Line ${p.line}: \`${p.target}\` → resolves to \`${p.resolved}\` (NOT FOUND)`);
-      }
-      lines.push("");
-    }
-  }
-
-  return lines.join("\n");
-}
-
-async function main() {
-  console.log("🔍 Scanning for pointers...");
-
-  const files = getAllFiles(ROOT, TARGET_EXTS).filter(
-    (f) => !f.includes("node_modules") && !f.includes(".git"),
+/** Git 重命名映射：old path → new path。 */
+function renameMap(): Map<string, string> {
+  const map = new Map<string, string>();
+  const result = spawnSync(
+    "git",
+    ["log", "--diff-filter=R", "-M", "--name-status", "--pretty=format:", "-z"],
+    { cwd: REPO_ROOT, encoding: "utf8" },
   );
-  console.log(`  Scanning ${files.length} files...`);
-
-  let allPointers: Pointer[] = [];
-  for (const file of files) {
-    const content = readFileSync(file, "utf-8");
-    const pointers = extractPointers(content, file);
-    allPointers.push(...pointers);
+  if (result.status !== 0 || !result.stdout) return map;
+  const records = result.stdout.split("\0").filter(Boolean);
+  for (let index = 0; index < records.length; index += 1) {
+    const status = records[index];
+    if (!/^R\d+$/.test(status)) continue;
+    const oldPath = records[index + 1];
+    const newPath = records[index + 2];
+    if (oldPath && newPath) map.set(oldPath, newPath);
+    index += 2;
   }
+  return map;
+}
 
-  console.log(`  Found ${allPointers.length} pointers`);
+interface ParsedArgs {
+  positionals: string[];
+  flags: Record<string, string | boolean>;
+}
 
-  let fixed = 0;
-  if (values.fix) {
-    console.log("  Attempting auto-fix...");
-    for (const pointer of allPointers) {
-      if (!pointer.exists) {
-        const fix = tryAutoFix(pointer);
-        if (fix) {
-          // Would need to actually edit files here - for now just report
-          console.log(`    Would fix: ${pointer.file}:${pointer.line} ${pointer.target} → ${fix}`);
-          fixed++;
-        }
+function parseArgs(argv: string[]): ParsedArgs {
+  const positionals: string[] = [];
+  const flags: Record<string, string | boolean> = {};
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (token.startsWith("--")) {
+      const key = token.slice(2);
+      const next = argv[index + 1];
+      if (next !== undefined && !next.startsWith("--")) {
+        flags[key] = next;
+        index += 1;
+      } else {
+        flags[key] = true;
       }
+    } else {
+      positionals.push(token);
     }
   }
+  return { positionals, flags };
+}
 
-  const result: ScanResult = {
+function printHelp(): void {
+  console.log(`scan-pointers — 扫描并验证相对路径引用
+
+用法:
+  pnpm exec tsx .agents/scripts/scan-pointers.ts [options]
+
+选项:
+  --fix      基于 git 重命名映射自动修复失效引用
+  --report   写入 .agents/reports/pointer-scan-<timestamp>.json
+  --json     以 JSON 输出报告
+  --strict   存在失效引用时退出码 1（默认 advisory 退出 0）
+  --help     显示帮助
+`);
+}
+
+function applyFixes(
+  broken: Pointer[],
+  renames: Map<string, string>,
+  fixable: ScanReport["fixable"],
+): Set<string> {
+  const touched = new Set<string>();
+  const perFile = new Map<string, Pointer[]>();
+  for (const pointer of broken) {
+    const list = perFile.get(pointer.file) ?? [];
+    list.push(pointer);
+    perFile.set(pointer.file, list);
+  }
+  for (const [file, pointers] of perFile) {
+    const abs = join(REPO_ROOT, file);
+    let content = readFileSync(abs, "utf8");
+    let changed = false;
+    for (const pointer of pointers) {
+      const renamed = renames.get(pointer.resolved);
+      if (!renamed) continue;
+      const newTarget =
+        pointer.kind === "link"
+          ? relative(dirname(abs), join(REPO_ROOT, renamed)).split(sep).join("/")
+          : renamed;
+      const original = pointer.target;
+      if (!content.includes(original)) continue;
+      content = content.split(original).join(newTarget);
+      fixable.push({ file, line: pointer.line, from: original, to: newTarget });
+      changed = true;
+    }
+    if (changed) {
+      writeFileSync(abs, content, "utf8");
+      touched.add(file);
+    }
+  }
+  return touched;
+}
+
+function main(): void {
+  const argv = process.argv.slice(2);
+  if (argv.includes("--help") || argv.includes("-h")) {
+    printHelp();
+    return;
+  }
+  const { flags } = parseArgs(argv);
+  const files = collectScanFiles();
+  const pointers: Pointer[] = [];
+  for (const file of files) pointers.push(...scanFile(file));
+  const broken = pointers.filter((pointer) => !pointer.exists);
+
+  const fixable: ScanReport["fixable"] = [];
+  if (flags.fix && broken.length > 0) {
+    const touched = applyFixes(broken, renameMap(), fixable);
+    for (const file of touched) console.log(`✓ 已修复 ${file}`);
+    if (fixable.length === 0) console.log("  无可用 git 重命名映射，未修改文件");
+  }
+
+  const report: ScanReport = {
     timestamp: new Date().toISOString(),
-    totalFiles: files.length,
-    totalPointers: allPointers.length,
-    validPointers: allPointers.filter((p) => p.exists).length,
-    brokenPointers: allPointers.filter((p) => !p.exists).length,
-    pointers: allPointers,
-    fixed,
+    scannedFiles: files.length,
+    total: pointers.length,
+    broken: broken.length,
+    pointers,
+    fixable,
   };
 
-  // Console summary
-  console.log(`\n📊 Results:`);
-  console.log(`  Valid:   ${result.validPointers}`);
-  console.log(`  Broken:  ${result.brokenPointers}`);
-  if (values.fix) console.log(`  Fixed:   ${result.fixed}`);
+  if (flags.report) {
+    const ts = report.timestamp.replace(/[:.]/g, "-");
+    const path = join(REPO_ROOT, ".agents", "reports", `pointer-scan-${ts}.json`);
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+    console.log(`✓ 报告已写入 ${path}`);
+  }
 
-  if (result.brokenPointers > 0) {
-    console.log("\n❌ Broken pointers:");
-    for (const p of allPointers.filter((p) => !p.exists)) {
-      console.log(`  ${p.file}:${p.line} → ${p.target}`);
+  if (flags.json) {
+    console.log(JSON.stringify(report, null, 2));
+  } else {
+    console.log(`scan-pointers — 扫描 ${files.length} 个文件，发现 ${pointers.length} 个引用`);
+    if (broken.length === 0) {
+      console.log("✓ 无失效引用");
+    } else {
+      console.log(`✗ ${broken.length} 个失效引用:`);
+      for (const pointer of broken.slice(0, 100)) {
+        console.log(
+          `  ${pointer.file}:${pointer.line}  [${pointer.kind}] ${pointer.raw} → ${pointer.resolved}`,
+        );
+      }
+      if (broken.length > 100) console.log(`  ... 其余 ${broken.length - 100} 个见报告`);
     }
   }
 
-  // JSON report
-  if (values.report || result.brokenPointers > 0) {
-    if (!existsSync(REPORT_DIR)) {
-      readdirSync(REPORT_DIR, { recursive: true }); // force create via writeFileSync
-    }
-    const reportFile = join(REPORT_DIR, `pointer-scan-${Date.now()}.json`);
-    writeFileSync(reportFile, JSON.stringify(result, null, 2));
-    console.log(`\n📄 Report: ${relative(ROOT, reportFile)}`);
-
-    // Also write markdown summary
-    const mdReport = join(REPORT_DIR, `pointer-scan-${Date.now()}.md`);
-    writeFileSync(mdReport, generateReport(result));
-    console.log(`📄 Markdown: ${relative(ROOT, mdReport)}`);
-  }
-
-  if (result.brokenPointers > 0 && !values.fix) {
-    console.log("\n💡 Run with --fix to attempt auto-repair");
-    process.exit(1);
-  }
+  process.exit(flags.strict && broken.length > 0 ? 1 : 0);
 }
 
-main().catch((e) => {
-  console.error("Fatal:", e);
-  process.exit(1);
-});
+main();

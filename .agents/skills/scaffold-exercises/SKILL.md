@@ -18,9 +18,15 @@ Create exercise directory structures that pass `pnpm ai-hero-cli internal lint`,
 
 Each exercise needs at least one of these subfolders:
 
-- `problem/` - student workspace with TODOs
-- `solution/` - reference implementation
-- `explainer/` - conceptual material, no TODOs
+- `problem/`
+
+- student workspace with TODOs
+- `solution/`
+
+- reference implementation
+- `explainer/`
+
+- conceptual material, no TODOs
 
 When stubbing, default to `explainer/` unless the plan specifies otherwise.
 

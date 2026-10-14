@@ -22,12 +22,22 @@ description: >-
       assistant: "I'll launch the role-definer agent to create a comprehensive role documentation."
     </example>
 mode: subagent
-permission:
-  bash: deny
-  edit: deny
-  glob: deny
-  grep: deny
-  lsp: deny
+permissions:
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: glob
+    resource: "*"
+    effect: deny
+  - action: grep
+    resource: "*"
+    effect: deny
+  - action: lsp
+    resource: "*"
+    effect: deny
 ---
 
 You are a Role Definition Specialist with deep expertise in organizational design, access control systems, and team structure optimization. You excel at creating clear, actionable role definitions that eliminate ambiguity and enable effective collaboration.

@@ -1,6 +1,7 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "agent": {
+  "instructions": ["CONTRIBUTING.md", "CONTEXT.md", "docs/*.md"],
+  "agents": {
     "communication-clerk": {
       "description": "通信协调员 - 子智能体间消息路由、上下文同步、冲突调解、协作编排",
       "mode": "primary"
@@ -28,19 +29,39 @@
     "quality-dx-guardian": {
       "description": "质量与 DX 守护者 - oxlint/oxfmt、TypeScript、Playwright、pre-commit、技术债、质量度量仪表盘、AI 代码审查",
       "mode": "subagent"
+    },
+    "role-architect": {
+      "description": "Use this agent when you need to design, structure, or define roles for systems, organizations, or projects. This includes creating role hierarchies, defining responsibilities and permissions, establishing role boundaries, designing role-based access control (RBAC) systems, or mapping roles to workflows.",
+      "mode": "subagent"
+    },
+    "role-assigner": {
+      "description": "Use this agent when you need to assign, validate, or manage user roles and permissions within a system. This includes mapping users to appropriate roles based on their responsibilities, validating role assignments against business rules, handling role inheritance and hierarchies, and ensuring least-privilege access principles are maintained.",
+      "mode": "subagent"
+    },
+    "role-definer": {
+      "description": "Use this agent when you need to define, document, or manage roles and responsibilities within a project, team, or system. This includes creating role definitions, mapping permissions, establishing role hierarchies, documenting role responsibilities, or designing role-based access control (RBAC) structures.",
+      "mode": "subagent"
+    },
+    "role-designer": {
+      "description": "Use this agent when you need to design, define, or refine role specifications for agents, team members, or system components. This includes creating new role definitions from scratch, improving existing role clarity, establishing role boundaries and responsibilities, defining role interaction patterns, or documenting role requirements for onboarding or governance.",
+      "mode": "subagent"
+    },
+    "role-manager": {
+      "description": "Use this agent when you need to design, validate, or manage role-based access control (RBAC) systems, define permission matrices, create role hierarchies, or audit role assignments in applications. This agent excels at translating business requirements into structured role definitions, identifying privilege escalation risks, and ensuring least-privilege principles are enforced.",
+      "mode": "subagent"
     }
   },
-  "skills": {
-    "subagent-communication": ".opencode/skills/subagent-communication",
-    "subagent-handoff": ".opencode/skills/subagent-handoff",
-    "subagent-shared-context": ".opencode/skills/subagent-shared-context",
-    "subagent-quality-gate": ".opencode/skills/subagent-quality-gate",
-    "subagent-planning": ".opencode/skills/subagent-planning",
-    "subagent-recruitment": ".opencode/skills/subagent-recruitment",
-    "subagent-onboarding": ".opencode/skills/subagent-onboarding",
-    "subagent-lifecycle": ".opencode/skills/subagent-lifecycle",
-    "subagent-performance": ".opencode/skills/subagent-performance",
-    "subagent-team-composition": ".opencode/skills/subagent-team-composition",
-    "role-architect": ".opencode/skills/role-architect"
-  }
+  "skills": [
+    ".opencode/skills/subagent-communication",
+    ".opencode/skills/subagent-handoff",
+    ".opencode/skills/subagent-shared-context",
+    ".opencode/skills/subagent-quality-gate",
+    ".opencode/skills/subagent-planning",
+    ".opencode/skills/subagent-recruitment",
+    ".opencode/skills/subagent-onboarding",
+    ".opencode/skills/subagent-lifecycle",
+    ".opencode/skills/subagent-performance",
+    ".opencode/skills/subagent-team-composition",
+    ".opencode/skills/role-architect"
+  ]
 }

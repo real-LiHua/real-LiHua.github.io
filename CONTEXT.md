@@ -1,10 +1,10 @@
-# Context: 个人博客系统
+# Context: 个人博客系统术语表
 
-## Glossary
+## 核心术语 (49 个)
 
 **Post** — 一篇博客文章，包含前置元数据与 Markdown/MDX 正文。唯一标识为 `id`（基于文件路径生成的 slug）。
 
-**Draft** — 位于 `src/posts/drafts/` 下的 Post，仅在开发环境可见，构建产物中不生成路由。
+**Draft** — 位于 `src/posts/drafts/`下的 Post，仅在开发环境可见，构建产物中不生成路由。
 
 **Frontmatter** — Post 文件头部的 YAML 元数据，经 Zod schema 验证后成为类型安全的 `PostFrontmatter`。
 
@@ -36,7 +36,7 @@
 
 **Sitemap** — `@astrojs/sitemap` 生成的 `sitemap-index.xml` 与分片文件。
 
-**DeployTarget** — 四大部署目标：Cloudflare Workers / Codeberg Pages / GitHub Pages / IPFS (Pinata)。
+**DeployTarget** — 四大部署目标：Codeberg Pages / GitHub Pages / IPFS (Pinata) / tgcloud。
 
 **GlobLoader** — Astro 5.0+ 引入的 `glob()` 加载器，用于从文件系统按模式匹配加载 Markdown/MDX/JSON/YAML/TOML 文件，支持 `pattern`、`base`、`generateId`、`retainBody` 选项。
 
@@ -52,7 +52,7 @@
 
 **Middleware** — Astro 中间件，拦截请求/响应，可在预渲染和按需渲染时运行，提供 `locals` 对象跨组件共享请求级数据。
 
-**ImageOptimization** — Astro 图片优化管线，默认使用 Sharp 服务，支持 `passthroughImageService()` 绕过处理（适配 Cloudflare 等边缘环境），配置 `image.service` 与 `image.endpoint`。
+**ImageOptimization** — Astro 图片优化管线，默认使用 Sharp 服务，支持 `passthroughImageService()` 绕过处理（适配 tgcloud 等无 Node 原生依赖环境），配置 `image.service` 与 `image.endpoint`。
 
 **RSSGeneration** — `@astrojs/rss` 包生成 RSS 2.0/Atom 订阅，支持 `pagesGlobToRssItems()` 从 `import.meta.glob` 生成条目，`rssSchema` 强制前置字段。
 
@@ -76,6 +76,88 @@
 
 **TypeAwareLinting** — Oxlint 类型感知模式，依赖 `tsgolint` (Go 实现的 TypeScript 语义分析)，需 `oxlint-tsgolint` 配合，规则前缀 `typescript/`。
 
-**PrivateSubmodule** — 草稿隔离方案：私有 Git 仓库作为子模块挂载到 `src/posts/drafts/`，CI 通过 Deploy Key 只读拉取，物理隔离防泄露。
+**PrivateSubmodule** — 草稿隔离方案：私有 Git 仓库作为子模块挂载到 `src/posts/drafts/` ⏸，CI 通过 Deploy Key 只读拉取，物理隔离防泄露。
 
 **Satteri** — 替代 remark/rehype 的新一代 Markdown 处理器（`@astrojs/markdown-satteri`），提供 `MdastPlugin`/`HastPlugin` 插件系统，配合 `satteri` 核心库实现构建时 Markdown/MDX AST 转换（heading IDs、外链标记、Mermaid 渲染、日期自动填充、表格对齐）
+
+**DependencyEvaluation** — 依赖评估流程，三层模型：L1 必要性 (原生 API/现有依赖/轻量实现替代) → L2 质量安全 (维护状态/安全记录/许可证/体积/TS 支持) → L3 集成验证 (类型检查/构建/测试)。架构级依赖需创建 ADR 记录选型理由与退出策略。
+
+**SupplyChainSecurity** — 供应链安全基线：`pnpm audit`/`cargo audit` 每次构建运行，高危阻断；GitHub Dependabot 周度扫描；`pnpm audit signatures` 验证包签名；恶意包监控纳入 CI。
+
+**LicenseCompliance** — 许可证合规策略：白名单 MIT/Apache-2.0/BSD-3/ISC；禁止 GPL/AGPL/强 Copyleft/商业/未知许可证；CI 自动扫描拦截 (`pnpm licenses list`
+
+- `cargo deny check licenses`)。
+
+**BundleSizeBudget** — 包体积预算：工具库 <10KB gzip、UI 库 <50KB、必须支持 tree-shaking (ESM 入口、`sideEffects: false`)；超预算需 L2 评估记录理由并获批；`bundlephobia`/`cargo bloat` 自动化检查。
+
+**TransitiveDependency** — 传递依赖风险控制：直接依赖数建议 <20、传递深度 ≤4、单一维护者包标黄；`pnpm dedupe --check` / `cargo tree -d` 定期去重；依赖图可视化 (`madge`) 季度审查。
+
+**NativeApiFirst** — 原生 API 优先原则：引入任何依赖前，必须在 L1 阶段评估浏览器原生 API (如 `crypto.subtle`、`Intl`、`IntersectionObserver`)、Node.js 内置模块 (如 `crypto`、`fs/promises`)、Rust 标准库是否已满足需求；能用原生绝不引入依赖。
+
+**AgentLearning** — Agent 学习机制，三层捕获模型：L1 即时捕获 (源码 `@learning:*` 注释标记坑点/决策/模式) → L2 会话捕获 (任务完成时结构化复盘：问题/根因/解决/耗时/决策/模式) → L3 知识沉淀 (月度聚合高频标签 → ADR/CONTEXT.md/技能文档更新)。两种模式：主动标记 (开发者驱动) + 任务复盘 (结构化)。
+
+**LearningMarker** — 学习标记语法，源码注释形式：`// @learning:pitfall|decision|pattern|gotcha|todo|ref [JSON属性] 内容`。六大类型：pitfall(坑点)、decision(决策)、pattern(模式)、gotcha(易错点)、todo(待办)、ref(引用)。可选 JSON 属性记录 impact/tags/adr 等元数据。
+
+**SessionRetro** — 会话复盘文档，任务完成时生成 (`.agents/learning/sessions/YYYY-MM/session-<task>.md`)。结构：任务信息、遇到的问题表格(现象/根因/解决/耗时)、决策记录表格(决策/理由/替代方案/ADR)、可复用模式表格(模式/适用场景)、标签、改进项。
+
+**KnowledgeAggregation** — 知识聚合流程：月度运行 `aggregate-learning.ts` ⏸ 聚合 L2 会话 → 统计高频标签/坑点/决策/模式 → 人工审核识别架构级模式 → 产出 L3: 更新 `docs/LESSONS_LEARNED.md`、创建/更新 ADR、更新 CONTEXT.md、更新技能文档最佳实践。
+
+---
+
+## 使用约束
+
+| 规则           | 说明                                                                   |
+| -------------- | ---------------------------------------------------------------------- |
+| **单一源头**   | 所有术语定义仅在本文件，其他文档引用时**不再重复定义**，直接使用术语名 |
+| **首次出现**   | 可加 `#术语` 锚点链接至本文件对应行                                    |
+| **代码同名**   | 代码中导出同名类型/接口，文档引用保持一致                              |
+| **新增术语**   | 先更新本文件 → 再在别处使用                                            |
+| **重命名术语** | 本文件改名 + 全库搜索替换 + ADR 记录重命名原因                         |
+
+---
+
+## 术语分类索引
+
+### 内容域
+
+- Post, Draft, Frontmatter, Collection, GlobLoader, ZodSchema, RenderFunction, ContentCollections
+
+### 构建/部署域
+
+- BuildPipeline, DeployTarget, AstroIntegration, Watermark, MermaidDiagram, PrivateSubmodule, Satteri
+
+### 运行时/客户端域
+
+- ClientRouter, ViewTransitions, ClientModule, Theme, SearchIndex, PagefindModularUI, PagefindConfig, PagefindCSSVars
+
+### UI/组件域
+
+- PostCard, Navbar, PagefindSearch, DaisyUI5, TailwindCSS4, TypographyPlugin
+
+### 数据/SEO域
+
+- RSSFeed, RSSGeneration, Sitemap, SitemapGeneration, ImageOptimization
+
+### 质量/工具域
+
+- Oxlint, Oxfmt, TypeAwareLinting, Middleware, TelegramAuth
+
+### 学习/知识域
+
+- AgentLearning (Agent 学习机制: L1 即时标记 @learning:\* → L2 会话复盘 → L3 月度归纳)
+- LearningMarker (学习标记: @learning:pitfall/decision/pattern/gotcha/todo/ref)
+- SessionRetro (会话复盘: 任务完成时结构化记录坑点/决策/模式/耗时)
+- KnowledgeAggregation (知识聚合: 月度高频标签 → ADR/CONTEXT.md/技能文档更新)
+
+### 依赖管理域
+
+- DependencyEvaluation (依赖评估流程: L1 必要性 → L2 质量/安全 → L3 集成验证)
+- SupplyChainSecurity (供应链安全: 审计、许可证、恶意包监控)
+- LicenseCompliance (许可证合规: MIT/Apache-2.0/BSD 白名单, GPL/AGPL 禁止)
+- BundleSizeBudget (包体积预算: 工具库 <10KB gzip, UI 库 <50KB, tree-shaking 必须)
+- TransitiveDependency (传递依赖: 直接依赖数、深度、单一维护者风险)
+- NativeApiFirst (原生 API 优先: 引入依赖前必须评估浏览器/Node/Rust 原生能力)
+
+### Telegram Bot 域
+
+- (tgcloud 相关术语在 `docs/tgcloud-sdk.md` 定义)

@@ -62,9 +62,7 @@ it("gets user by id", () => {
 });
 ```
 
-### `as Type` → `fromPartial()`
-
-Before:
+### `as Type` → `fromPartial()` Before:
 
 ```ts
 getUser({ body: { id: "123" } } as Request);
@@ -78,9 +76,7 @@ import { fromPartial } from "@total-typescript/shoehorn";
 getUser(fromPartial({ body: { id: "123" } }));
 ```
 
-### `as unknown as Type` → `fromAny()`
-
-Before:
+### `as unknown as Type` → `fromAny()` Before:
 
 ```ts
 getUser({ body: { id: 123 } } as unknown as Request); // wrong type on purpose
@@ -111,8 +107,13 @@ getUser(fromAny({ body: { id: 123 } }));
 
 2. **Install and migrate**:
    - [ ] Install: `npm i @total-typescript/shoehorn`
-   - [ ] Find test files with `as` assertions: `grep -r " as [A-Z]" --include="*.test.ts" --include="*.spec.ts"`
-   - [ ] Replace `as Type` with `fromPartial()`
-   - [ ] Replace `as unknown as Type` with `fromAny()`
-   - [ ] Add imports from `@total-typescript/shoehorn`
-   - [ ] Run type check to verify
+
+- [ ] Find test files with `as` assertions: `grep -r " as [A-Z]" --include="*.test.ts" --include="*.spec.ts"`
+
+- [ ] Replace `as Type` with `fromPartial()`
+
+- [ ] Replace `as unknown as Type` with `fromAny()`
+
+- [ ] Add imports from `@total-typescript/shoehorn`
+
+- [ ] Run type check to verify

@@ -22,12 +22,22 @@ description: >-
       assistant: "I'll use the role-designer agent to create a detailed DevOps engineer role specification with responsibilities, required skills, and success metrics."
     </example>
 mode: subagent
-permission:
-  bash: deny
-  edit: ask
-  glob: deny
-  grep: deny
-  lsp: deny
+permissions:
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "*"
+    effect: ask
+  - action: glob
+    resource: "*"
+    effect: deny
+  - action: grep
+    resource: "*"
+    effect: deny
+  - action: lsp
+    resource: "*"
+    effect: deny
 ---
 
 You are a Role Designer, an expert in organizational architecture and role engineering. You specialize in creating precise, actionable, and well-bounded role definitions that eliminate ambiguity, prevent overlap, and enable effective collaboration.

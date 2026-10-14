@@ -1,3 +1,30 @@
-This document appears to be written in English.*
+# vnu (`--filterfile`) suppressions.
+#
+# One regular expression per line; a line starting with `#` is a comment
+# (https://github.com/validator/validator/wiki/Message-filtering). Each pattern
+# is matched against the full Nu checker message (including the file path), and
+# a match suppresses that message. Keep every pattern narrow: each line hides a
+# specific *known* false positive — never a class of real errors.
+#
+# Used by the BuildPipeline vnu stage:
+#   vnu --skip-non-html --filterfile message-filters.txt dist/client
+# See `.agents/knowledge/mermaid-svg-fix.md` and docs/adr/0001 §3.2.
+
+# Mermaid emits SVG with empty `stroke-`-prefixed attributes, e.g. `stroke-=""`,
+# which the checker rejects ("Attribute \"stroke-\" not allowed on element …").
+# Known upstream issue in mermaid / mermaid-wasm-renderer SVG output.
 .*stroke-.*
+
+# Sparse text blocks (e.g. code-only or generated pages) trip vnu's heuristic
+# language detection even though the document language is declared.
+This document appears to be written in English.*
+
+# Heading-level jump (h1 -> h3) produced by generated markup: Mermaid diagrams
+# and the table-of-contents widget insert an h3 without an intervening h2.
 The heading .h3. \(with computed level 3\) follows the heading .h1. \(with computed level 1\), skipping 1 heading level.*
+
+# TODO(assumption): IMPLEMENTATION_PROGRESS.md also records vnu false positives
+# for Tailwind's `@apply` directive and strict <meta> tag validation. No exact
+# regex is documented for either, so no filter is added here (the vnu stage is
+# non-blocking anyway, per SEARCH_TUNING.md §1). Add a narrow pattern per
+# occurrence once the real message text is captured.

@@ -1,5 +1,9 @@
 # Architecture Decision Record: 草稿隔离 - 私有 Git 子模块方案
 
+> [!NOTE] 设施状态（2026-10）
+> 项目正按 `REWRITE_PLAN.md` **从零重写**：`src/`、`.github/workflows/`、`.agents/scripts/`、`.agents/tasks/` 均已在工作区就位。
+> 文中 `⏸` 标注对应**尚未落地**的部分。`tgcloud/` 目录从未存在；Bot 源码为根级 `handlers/`、`schema.js`。
+
 ## Status
 
 Accepted
@@ -18,7 +22,9 @@ Accepted
 
 采用 **私有 Git 子模块** 方案：
 
-```
+> ⏸ 以下目录结构为设计方案，私有草稿子模块尚未落地。
+
+```text
 real-LiHua.github.io (公开仓库)
 ├── src/posts/
 │   ├── *.md          # 已发布文章
@@ -32,13 +38,11 @@ private-drafts-repo (私有仓库，仅作者访问)
 
 **实施细节**：
 
-1. `git submodule add git@github.com:real-LiHua/private-drafts.git src/posts/drafts`
-2. `.gitignore` 添加 `src/posts/drafts/` (防止子模块内容被父仓库跟踪)
+1. `git submodule add git@github.com:real-LiHua/private-drafts.git src/posts/drafts` ⏸
+2. `.gitignore` 添加 `src/posts/drafts/` ⏸ (防止子模块内容被父仓库跟踪)
 3. CI 构建步骤前：`git submodule update --init --recursive`
 4. 子模块仓库配置 **Deploy Key (只读)**，仅 CI 环境可拉取
-5. 本地开发：作者手动 `git submodule update --init` 或配置 `git clone --recurse-submodules`
-
-**Astro Content Collections 配置不变**：
+5. 本地开发：作者手动 `git submodule update --init` 或配置 `git clone --recurse-submodules` **Astro Content Collections 配置不变**：
 
 ```typescript
 loader: glob({ base: "./src/posts", pattern: "**/*.md{,x}" });
@@ -59,7 +63,7 @@ loader: glob({ base: "./src/posts", pattern: "**/*.md{,x}" });
 
 - **初始化成本**：新环境需 `--recurse-submodules` 或手动 `submodule update`
 - **CI 复杂度**：增加 `git submodule update` 步骤，需配置 Deploy Key
-- **冲突处理**：子模块指针更新需 `git add src/posts/drafts` 提交到父仓库
+- **冲突处理**：子模块指针更新需 `git add src/posts/drafts` ⏸ 提交到父仓库
 - **大文件**：草稿含大图片时，私有仓库体积增长 (可配合 Git LFS)
 
 ## Alternatives Considered
@@ -71,15 +75,16 @@ loader: glob({ base: "./src/posts", pattern: "**/*.md{,x}" });
 
 ## Related ADRs
 
-- 0001-functional-architecture.md (内容管道模块边界)
-- 待创建：0003-git-submodule-workflow.md (子模块操作规范)
+- docs/adr/0001-functional-architecture.md (内容管道模块边界)
+- 待创建：docs/adr/0012-git-submodule-workflow.md (子模块操作规范)
 
 ## Implementation Checklist
 
 - [ ] 创建私有仓库 `private-drafts`
-- [ ] `git submodule add` 挂载到 `src/posts/drafts`
+- [ ] `git submodule add` 挂载到 `src/posts/drafts` ⏸
 - [ ] 父仓库 `.gitignore` 忽略 `src/posts/drafts/`
+
 - [ ] 配置私有仓库 Deploy Key (只读) 到 GitHub Actions Secrets
 - [ ] CI workflow 增加 `git submodule update --init --recursive` 步骤
 - [ ] 文档化：`docs/adr/0002-draft-isolation-submodule.md` (本文件)
-- [ ] 团队/个人操作手册：`docs/GIT_SUBMODULE_WORKFLOW.md`
+- [ ] 团队/个人操作手册：`docs/GIT_SUBMODULE_WORKFLOW.md` ⏸

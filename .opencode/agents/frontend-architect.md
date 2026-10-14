@@ -1,14 +1,25 @@
 ---
 description: 前端架构师 - 负责组件体系、设计系统、性能优化、可访问性、daisyUI 集成
 mode: subagent
-permission:
-  read: allow
-  write: ask
-  edit: ask
-  glob: allow
-  grep: allow
-  bash: deny
-  task: allow
+permissions:
+  - action: read
+    resource: "*"
+    effect: allow
+  - action: edit
+    resource: "*"
+    effect: ask
+  - action: glob
+    resource: "*"
+    effect: allow
+  - action: grep
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "*"
+    effect: allow
 ---
 
 # 前端架构师
@@ -19,10 +30,18 @@ permission:
 
 ## 职责范围
 
-- `src/components/**` - 所有 Astro 组件（静态 UI）
-- `src/layouts/**` - 布局组件
-- `src/styles/**` - 全局样式、Tailwind + daisyUI 配置
-- `src/scripts/**` - 客户端交互脚本
+- `src/components/**`
+
+- 所有 Astro 组件（静态 UI）
+- `src/layouts/**`
+
+- 布局组件
+- `src/styles/**`
+
+- 全局样式、Tailwind + daisyUI 配置
+- `src/scripts/**`
+
+- 客户端交互脚本
 - 组件设计系统、主题系统、响应式布局
 - 性能优化（代码分割、懒加载、动画性能）
 - 可访问性（a11y）合规
@@ -47,14 +66,30 @@ permission:
 
 ## 关键文件
 
-- `src/styles/global.css` - 主题变量、daisyUI 配置、工具类
-- `src/layouts/BaseLayout.astro` - 唯一布局、主题初始化、ClientRouter
-- `src/components/navbar/` - 导航栏模块化组件
-- `src/scripts/theme-toggle.ts` - 主题切换核心逻辑
-- `src/scripts/tilt-card.ts` - 3D 倾斜卡片
-- `src/scripts/scroll-reveal.ts` - 滚动渐入
-- `src/scripts/reading-progress.ts` - 阅读进度条
-- `src/scripts/toc.ts` - 目录高亮与拖拽
+- `src/styles/global.css`
+
+- 主题变量、daisyUI 配置、工具类
+- `src/layouts/BaseLayout.astro`
+
+- 唯一布局、主题初始化、ClientRouter
+- `src/components/navbar/`
+
+- 导航栏模块化组件
+- `src/scripts/theme-toggle.ts`
+
+- 主题切换核心逻辑
+- `src/scripts/tilt-card.ts`
+
+- 3D 倾斜卡片
+- `src/scripts/scroll-reveal.ts`
+
+- 滚动渐入
+- `src/scripts/reading-progress.ts`
+
+- 阅读进度条
+- `src/scripts/toc.ts`
+
+- 目录高亮与拖拽
 
 ## 工作模式
 
@@ -199,9 +234,15 @@ inbound_messages:
 
 ## Component Updates
 
-- [NEW] `ReadingProgress` - article scroll indicator
-- [REFACTOR] `PostCard` - extracted `PostMeta` sub-component
-- [DEPRECATED] `OldNavbar` - removed, migrated to modular `navbar/`
+- [NEW] `ReadingProgress`
+
+- article scroll indicator
+- [REFACTOR] `PostCard`
+
+- extracted `PostMeta` sub-component
+- [DEPRECATED] `OldNavbar`
+
+- removed, migrated to modular `navbar/`
 
 ## Accessibility
 
@@ -217,6 +258,9 @@ inbound_messages:
 
 ## Learning
 
-- `astro:page-load` + `viewTransitions` enables SPA-like nav without JS router
+- `astro:page-load`
+
+* `viewTransitions` enables SPA-like nav without JS router
+
 - `lightningcss` CSS nesting reduces 15% stylesheet size
 ```

@@ -2,8 +2,12 @@
 
 **项目**：real-LiHua 个人博客
 **版本**：1.1
-**日期**：2026-10-07
+**日期**：2026-10-05
 **分级**：公开
+
+> [!NOTE] 设施状态（2026-10）
+> 项目正按 `REWRITE_PLAN.md` **从零重写**：`src/`、`.github/workflows/`、`.agents/scripts/`、`.agents/tasks/` 均已在工作区就位。
+> 文中 `⏸` 标注对应**尚未落地**的部分。`tgcloud/` 目录从未存在；Bot 源码为根级 `handlers/`、`schema.js`。
 
 ---
 
@@ -24,12 +28,22 @@
 | **草稿文章**                 | **私有子模块仓库**  | **高** | **高** | **中** | **物理隔离于公开仓库，仅构建时挂载，杜绝泄露** |
 | Telegram 群组 ID / Bot Token | 环境变量            | 高     | 高     | 高     | 仅 CI/CD 注入，不入仓库                        |
 | 构建产物                     | 部署制品            | 低     | 高     | 高     | 多平台分发，需防篡改                           |
-| 访问日志 / 分析数据          | 第三方服务          | 中     | 中     | 中     | tgcloud Analytics 等                        |
+| 访问日志 / 分析数据          | 第三方服务          | 中     | 中     | 中     | tgcloud Analytics 等                           |
 | 用户会话 (Telegram JWT)      | 客户端 localStorage | 高     | 高     | 中     | 短期有效，含群组成员身份证明                   |
 
 ### 1.2 合规基线
 
-- **OWASP Top 10 2021** 全项覆盖
+- **OWASP Top 10 2025** 全项覆盖
+  - A01:2025 失效的访问控制
+  - A02:2025 安全配置错误
+  - A03:2025 软件供应链失败
+  - A04:2025 加密失效
+  - A05:2025 注入
+  - A06:2025 不安全的设计
+  - A07:2025 身份认证失败
+  - A08:2025 软件和数据完整性失败
+  - A09:2025 安全日志和监控失败
+  - A10:2025 异常条件处理不当
 - **CSP Level 3** 严格模式
 - **Referrer-Policy: strict-origin-when-cross-origin**
 - **Permissions-Policy** 最小权限
@@ -94,6 +108,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 - `'wasm-unsafe-eval'`：Pagefind WASM 搜索索引加载所需
 - `'unsafe-inline'` style：daisyUI/Tailwind 运行时注入、主题切换内联样式
 - `connect-src` Telegram Bot API + WebSocket 长轮询
+- **Mini App 需求**：若启用 Telegram Mini App，需调整 `frame-ancestors 'self' https://t.me` 允许在 Telegram 内嵌
 - 所有外部资源显式白名单，无 `*` 通配
 
 ### 3.3 安全响应头
@@ -143,26 +158,31 @@ const blog = defineCollection({
 });
 ```
 
-- **草稿物理隔离**：草稿存放于**私有 Git 子模块仓库** (`git submodule add <private-repo> src/posts/drafts`)，构建时挂载，公开仓库零草稿文件，彻底消除泄露风险
+- **草稿物理隔离**：草稿存放于**私有 Git 子模块仓库** (`git submodule add <private-repo> src/posts/drafts` ⏸)，构建时挂载，公开仓库零草稿文件，彻底消除泄露风险
 - **路径遍历防护**：`glob` loader 限制 `base` 目录，ID 由文件路径生成
 - **XSS 防护**：Markdown 渲染经 satteri + Shiki，无用户输入直接插入 HTML
 - **MDX 安全**：`@astrojs/mdx` 默认不执行任意 JSX，仅允许注册组件
 
 ### 4.3 Telegram 认证授权
 
-```
+```text
 ┌─────────────┐     1. 用户点击「在 Telegram 中打开」      ┌─────────────┐
 │   博客前端   │ ─────────────────────────────────────────▶ │ Telegram App │
 └─────────────┘  深度链接: t.me/bot?start=auth_{postId}    └──────┬──────┘
-                                                                    │
-                                                    2. Bot 验证群成员身份
-                                                                    │
-                                                    3. 签发短期 JWT (15min)
-                                                                    ▼
+                                                                     │
+                                                         2. Bot 验证群成员身份
+                                                                     │
+                                                         3. 签发短期 JWT (15min)
+                                                                     ▼
 ┌─────────────┐     4. 前端轮询验证状态 ◀────────────────────── ┌─────────────┐
 │   博客前端   │ ──────────────────────────────────────────────▶ │  Telegram   │
 └─────────────┘  本地存储 JWT，后续访问携带 Authorization       │    Bot      │
-                                                    (Grammy)     └─────────────┘
+                                                    (tgcloud)     └─────────────┘
+                                                         │
+                                                         ▼
+                                                 5. AJAX 请求受保护内容
+                                                 GET /api/posts/[id]/protected
+                                                 Authorization: Bearer <JWT>
 ```
 
 **安全控制点**：
@@ -171,8 +191,69 @@ const blog = defineCollection({
 - **JWT**：HS256 签名，载荷 `{ postId, userId, groupId, exp }`，15 分钟过期
 - **前端轮询**：最大 5 分钟，指数退避，失败不阻塞页面其他功能
 - **群组 ID 校验**：正则 `^-?\d+$` 防注入
+- **受保护内容隔离**：文章完整内容**不在初始 HTML 中**，仅通过 `GET /api/posts/[id]/protected` (需 JWT) 动态加载
+- **CSP**：`connect-src 'self' https://api.telegram.org wss://*.telegram.org`
 
-### 4.4 盲水印溯源
+### 4.4 受保护内容路由
+
+**独立保护路由**：`GET /api/posts/[id]/protected`
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  GET /api/posts/[id]/protected                              │
+│  Headers: Authorization: Bearer <JWT>                       │
+├─────────────────────────────────────────────────────────────┤
+│  1. 验证 JWT 签名、过期时间、postId 匹配                    │
+│  2. 从 JWT 解析 userId                                       │
+│  3. 查询群成员表验证用户身份                                 │
+│  4. 通过 → 返回文章完整 HTML (含水印、Mermaid 等)           │
+│  5. 失败 → 401/403，不返回内容                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**实现位置**：`tgcloud/endpoints/getPostContent.js` ⏸
+
+```javascript
+// tgcloud/endpoints/getPostContent.js
+import { db, EndpointError } from "sdk";
+import { eq } from "sdk/db";
+import { posts, groupMembers } from "../schema.js";
+import { verifyJWT } from "../utils/jwt.js";
+
+export default async function (input, ctx) {
+  // 1. 验证 JWT
+  const auth = ctx.request.headers.get("Authorization");
+  const payload = await verifyJWT(auth?.replace("Bearer ", ""));
+  if (!payload || payload.postId !== input.id) {
+    throw new EndpointError("Invalid token", { code: "INVALID_TOKEN", status: 401 });
+  }
+
+  // 2. 验证群成员身份
+  const isMember = await db
+    .select()
+    .from(groupMembers)
+    .where(eq(groupMembers.userId, payload.userId))
+    .get();
+  if (!isMember) {
+    throw new EndpointError("Forbidden", { code: "FORBIDDEN", status: 403 });
+  }
+
+  // 3. 返回文章内容 (已渲染含水印的 HTML)
+  const post = await db.select().from(posts).where(eq(posts.id, input.id)).get();
+  if (!post) throw new EndpointError("Not found", { code: "NOT_FOUND", status: 404 });
+
+  return { html: post.renderedHtml }; // 构建时预渲染的完整 HTML
+}
+```
+
+**安全特性**：
+
+- **内容隔离**：完整文章内容**不在初始 HTML 中**，仅通过认证路由动态加载
+- **双重验证**：JWT 签名 + 群成员身份双重校验
+- **最小权限**：仅返回该文章内容，无其他数据泄露
+- **防重放**：JWT 15 分钟过期，单次验证后可撤销
+
+### 4.5 盲水印溯源
 
 ```typescript
 // src/integrations/watermark.ts - 零宽字符水印
@@ -182,9 +263,9 @@ const ZERO_WIDTH_CHARS = ["\u200B", "\u200C", "\u200D", "\uFEFF"] as const;
 
 - **仅原创文章**：`authors` 字段为空或 `[]` 视为原创
 - **不可感知**：零宽字符不影响渲染，复制粘贴保留
-- **验证工具**：`pnpm verify:watermark` 离线校验
+- **验证工具**：`pnpm verify:watermark` ⏸ 离线校验
 
-### 4.5 客户端脚本安全
+### 4.6 客户端脚本安全
 
 | 脚本              | 权限                 | 沙箱隔离   | 完整性校验     |
 | ----------------- | -------------------- | ---------- | -------------- |
@@ -213,7 +294,7 @@ permissions:
   id-token: write # OIDC 认证部署
 
 jobs:
-  cloudflare:
+  tgcloud:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -222,8 +303,6 @@ jobs:
         run: pnpm build
         env:
           SITE_URL: "${{ secrets.SITE_URL }}"
-          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
-          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
       - name: Deploy
         uses: tgcloud/tgcloud-action@v1
         # 无需额外 secret，使用 OIDC
@@ -278,13 +357,13 @@ jobs:
 
 ### 6.1 个人数据处理
 
-| 数据类型          | 来源                 | 存储位置                      | 保留期限        | 法律依据                |
-| ----------------- | -------------------- | ----------------------------- | --------------- | ----------------------- |
-| Telegram User ID  | Bot 验证             | JWT 载荷 (客户端)             | 15 分钟         | 合同履行 (访问控制)     |
-| 群组成员身份      | Bot API              | 不持久化                      | 即时            | 合同履行                |
-| 访问日志 (IP、UA) | tgcloud Analytics | tgcloud 边缘               | 30 天           | 合法利益 (安全分析)     |
-| 主题偏好          | 用户选择             | localStorage                  | 永久 (用户控制) | 同意                    |
-| **草稿内容**      | **作者编写**         | **私有子模块仓库 (加密存储)** | **作者控制**    | **合同履行 (创作过程)** |
+| 数据类型          | 来源              | 存储位置                      | 保留期限        | 法律依据                |
+| ----------------- | ----------------- | ----------------------------- | --------------- | ----------------------- |
+| Telegram User ID  | Bot 验证          | JWT 载荷 (客户端)             | 15 分钟         | 合同履行 (访问控制)     |
+| 群组成员身份      | Bot API           | 不持久化                      | 即时            | 合同履行                |
+| 访问日志 (IP、UA) | tgcloud Analytics | tgcloud 边缘                  | 30 天           | 合法利益 (安全分析)     |
+| 主题偏好          | 用户选择          | localStorage                  | 永久 (用户控制) | 同意                    |
+| **草稿内容**      | **作者编写**      | **私有子模块仓库 (加密存储)** | **作者控制**    | **合同履行 (创作过程)** |
 
 **最小化原则**：不收集姓名、邮箱、Cookie、指纹、行为追踪。**草稿物理隔离于公开部署管线，仅作者可见**。
 
@@ -301,7 +380,7 @@ jobs:
 
 ### 7.1 响应流程
 
-```
+```text
 发现事件
     │
     ├─▶ 确认严重级 (P0/P1/P2)
@@ -336,7 +415,7 @@ jobs:
 | 角色            | 联系方式                 | 职责                 |
 | --------------- | ------------------------ | -------------------- |
 | 站点所有者      | GitHub Issues / Telegram | 决策、对外沟通       |
-| tgcloud 支持 | tgcloud Dashboard     | WAF/边缘配置紧急变更 |
+| tgcloud 支持    | tgcloud Dashboard        | WAF/边缘配置紧急变更 |
 | GitHub 支持     | GitHub Support Portal    | Actions/Secrets 事件 |
 | Codeberg 管理员 | Codeberg 实例管理        | Pages 部署异常       |
 
@@ -348,11 +427,11 @@ jobs:
 
 ```bash
 # 每次 PR 运行（参数均按引号规范书写）
-pnpm check          # TypeScript + Astro 类型检查
-pnpm oxlint         # 静态代码分析 (安全规则集)
-pnpm oxfmt --check  # 格式一致性
-pnpm build          # 完整构建 + Pagefind + lychee + vnu
-pnpm playwright test  # E2E: CSP 生效、认证流程、水印验证
+pnpm check              # TypeScript + Astro 类型检查
+pnpm exec oxlint .      # 静态代码分析 (安全规则集)
+pnpm exec oxfmt --check # 格式一致性
+pnpm build              # 完整构建 + Pagefind + lychee + vnu
+pnpm exec playwright test  # E2E: CSP 生效、认证流程、水印验证（⏸ 需先补 @playwright/test 与配置）
 ```
 
 > **注意**：所有命令参数均遵循 [第 10 节引号规范](#10-命令参数引号规范)。CI 中含变量/路径的命令必须用双引号包裹，详见 `10.3 CI/CD 中的强制规范`。
@@ -373,7 +452,7 @@ pnpm playwright test  # E2E: CSP 生效、认证流程、水印验证
 - [ ] `lychee` 无死链 (除外显式排除)
 - [ ] `vnu-jar` 无 Error 级别违规
 - [ ] Telegram Bot Token 未出现在任何构建产物中
-- [ ] 水印验证通过 (`pnpm verify:watermark`)
+- [ ] 水印验证通过 (`pnpm verify:watermark` ⏸)
 - [ ] 多平台部署内容一致性校验 (SHA-256 对比)
 - [ ] 所有 CI/CD 命令参数符合 [第 10 节引号规范](#10-命令参数引号规范)
 - [ ] 无裸露变量/Secret 直接出现在命令行参数中
@@ -395,12 +474,12 @@ pnpm playwright test  # E2E: CSP 生效、认证流程、水印验证
 ### 10.1 核心原则
 
 | 场景                    | 规则                       | 示例                               |
-| ----------------------- | -------------------------- | ---------------------------------- | ------------ |
+| ----------------------- | -------------------------- | ---------------------------------- |
 | **参数含空格/特殊字符** | 必须用双引号包裹           | `git commit -m "feat: add search"` |
 | **参数为变量/Secret**   | 必须用双引号包裹           | `echo "${SECRET}"`                 |
 | **参数为路径**          | 必须用双引号包裹           | `cp "src/file name.md" "dist/"`    |
 | **命令子串/管道**       | 整体用双引号，内部单引号   | `sh -c "grep 'pattern' file.txt"`  |
-| **JSON/复杂结构**       | 单引号包裹整体，内部双引号 | `jq -r '.key                       | "\(.name)"'` |
+| **JSON/复杂结构**       | 单引号包裹整体，内部双引号 | `jq -r '.key \| "\(.name)"'`       |
 
 ### 10.2 禁止模式
 
@@ -506,20 +585,22 @@ echo "$output"
 
 ### A. 安全相关配置文件清单
 
-| 文件                              | 安全相关内容                                                             |
-| --------------------------------- | ------------------------------------------------------------------------ |
-| `astro.config.ts`                 | `security: { checkOrigin: false }` (开发便利，生产无影响)、CSP meta 注入 |
-| `src/layouts/BaseLayout.astro`    | CSP、安全响应头、ClientRouter、Pagefind UI                               |
-| `src/integrations/build-hooks.ts` | 构建阶段安全控制 (超时、错误隔离)                                        |
-| `src/integrations/watermark.ts`   | 盲水印注入逻辑                                                           |
-| `src/scripts/telegram-auth.ts`    | 客户端认证流程、JWT 校验                                                 |
-| `.github/workflows/deploy.yml`    | CI/CD 权限、Secret 管理、OIDC                                            |
-| `tgcloud.jsonc`                  | tgcloud 绑定、环境变量                                        |
-| `src/content.config.ts`           | Zod Schema 输入验证                                                      |
+| 文件                                    | 安全相关内容                                                             |
+| --------------------------------------- | ------------------------------------------------------------------------ |
+| `astro.config.ts`                       | `security: { checkOrigin: false }` (开发便利，生产无影响)、CSP meta 注入 |
+| `src/layouts/BaseLayout.astro` ⏸        | CSP、安全响应头、ClientRouter、Pagefind UI                               |
+| `src/integrations/build-hooks.ts` ⏸     | 构建阶段安全控制 (超时、错误隔离)                                        |
+| `src/integrations/watermark.ts` ⏸       | 盲水印注入逻辑                                                           |
+| `src/scripts/telegram-auth.ts` ⏸        | 客户端认证流程、JWT 校验                                                 |
+| `tgcloud/endpoints/getPostContent.js` ⏸ | 受保护内容路由、JWT 验证、群成员校验、内容返回                           |
+| `tgcloud/endpoints/getPostContent.js` ⏸ | Mini App 端点、initData 验证、群成员校验、内容返回                       |
+| `.github/workflows/deploy.yml`          | CI/CD 权限、Secret 管理、OIDC                                            |
+| `tgcloud.jsonc`                         | tgcloud 绑定、环境变量                                                   |
+| `src/content.config.ts`                 | Zod Schema 输入验证                                                      |
 
 ### B. 威胁建模数据流图 (DFD)
 
-```
+```text
 [用户浏览器] ──HTTPS──▶ [tgcloud Edge] ──▶ [静态资源 / Workers]
     │                          │                    │
     │                    WAF 规则              KV 存储 (Bot Token)
@@ -531,17 +612,17 @@ echo "$output"
 
 ### C. 密钥管理策略
 
-| 密钥                    | 存储                      | 轮换周期 | 撤销流程                          |
-| ----------------------- | ------------------------- | -------- | --------------------------------- |
-| tgcloud API Token    | GitHub Secrets            | 90 天    | Settings → Secrets 删除 + 新建    |
+| 密钥                    | 存储           | 轮换周期 | 撤销流程                          |
+| ----------------------- | -------------- | -------- | --------------------------------- |
+| tgcloud API Token       | GitHub Secrets | 90 天    | Settings → Secrets 删除 + 新建    |
 | Telegram Bot Token      | tgcloud Secret | 90 天    | BotFather `/revoke` + 重新部署    |
-| Codeberg SSH Deploy Key | GitHub Secrets            | 90 天    | Codeberg Settings 删除公钥 + 新建 |
-| Pinata JWT              | GitHub Secrets            | 90 天    | Pinata Dashboard 撤销 + 新建      |
+| Codeberg SSH Deploy Key | GitHub Secrets | 90 天    | Codeberg Settings 删除公钥 + 新建 |
+| Pinata JWT              | GitHub Secrets | 90 天    | Pinata Dashboard 撤销 + 新建      |
 | JWT 签名密钥            | tgcloud Secret | 180 天   | 重新部署 Worker (旧 JWT 自动失效) |
 
 ---
 
-## 11. 版本历史
+## 12. 版本历史
 
 | 版本 | 日期       | 作者       | 变更摘要                                                |
 | ---- | ---------- | ---------- | ------------------------------------------------------- |

@@ -13,9 +13,7 @@ Sets up a PreToolUse hook that intercepts and blocks dangerous git commands befo
 - `git reset --hard`
 - `git clean -f` / `git clean -fd`
 - `git branch -D`
-- `git checkout .` / `git restore .`
-
-When blocked, Claude sees a message telling it that it does not have authority to access these commands.
+- `git checkout .` / `git restore .` When blocked, Claude sees a message telling it that it does not have authority to access these commands.
 
 ## Steps
 
@@ -30,9 +28,7 @@ The bundled script is at: [scripts/block-dangerous-git.sh](scripts/block-dangero
 Copy it to the target location based on scope:
 
 - **Project**: `.claude/hooks/block-dangerous-git.sh`
-- **Global**: `~/.claude/hooks/block-dangerous-git.sh`
-
-Make it executable with `chmod +x`.
+- **Global**: `~/.claude/hooks/block-dangerous-git.sh` Make it executable with `chmod +x`.
 
 ### 3. Add hook to settings
 

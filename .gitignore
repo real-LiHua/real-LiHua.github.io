@@ -1,46 +1,54 @@
-# build output
-dist/
-
-# pagefind generated assets (regenerated on build)
-public/pagefind
-
-# generated files
-.astro/
-.wrangler/
-worker-configuration.d.ts
-
-# dependencies
+# Dependencies
 node_modules/
+.pnpm-store/
 
-# TypeScript build info
-*.tsbuildinfo
+# Build outputs
+dist/
+.build/
+.astro/
 
-# logs
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
 
+# Testing
+playwright-report/
+test-results/
+coverage/
 
-# environment variables
-.env
-.env.production
-.dev.vars
-
-# macOS-specific files
-.DS_Store
-
-# jetbrains setting folder
-.idea/
-
-# rust build artifacts
+# Rust
+Cargo.lock
 target/
+**/target/
 
-# Ignore Gradle project-specific cache directory
-.gradle
+# Environment
+.env
+.env.local
+.env.*.local
 
-# Ignore Gradle build output directory
-build
+# Turbo
+.turbo/
 
-# Ignore Kotlin plugin data
-.kotlin
+# Submodules
+src/posts/drafts/
+
+# Knowledge base (task cards and contracts are tracked; generated reports are ignored)
+.agents/lifecycle/
+.agents/learning/
+.agents/reports/
+!.agents/scripts/
+
+# Misc
+*.tgz
+.cache/

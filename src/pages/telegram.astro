@@ -1,28 +1,26 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+const env = import.meta.env as Record<string, string | undefined>;
+const botUsername = env.PUBLIC_TG_BOT_USERNAME ?? "your_bot";
 ---
 
-<BaseLayout>
-  <div class="hero bg-base-200 min-h-screen">
-    <div class="hero-content flex-col lg:flex-row-reverse">
-      <span class="countdown font-mono text-2xl" role="timer" aria-live="polite">
-        <span aria-label="10" role="timer" style="--value:10;">0</span>
-        :
-        <span aria-label="24" role="timer" style="--value:24;">59</span>
-        :
-        <span aria-label="59" role="timer" style="--value:59;">59</span>
-      </span>
-      <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-        <div class="card-body">
-          <fieldset class="fieldset">
-            <input class="input" type="text" />
-            <button class="btn btn-neutral mt-4">确认</button>
-          </fieldset>
-        </div>
-      </div>
-      <script>
-        import "../scripts/telegram";
-      </script>
-    </div>
-  </div>
+<BaseLayout title="Telegram 认证阅读" description="如何通过 Telegram 验证以阅读私密文章。">
+  <article class="prose mx-auto max-w-2xl">
+    <h1>Telegram 认证阅读</h1>
+    <p>
+      部分文章仅对特定 Telegram 群组成员开放。验证完全在 Telegram 内完成，站点本身不要求注册账号。
+    </p>
+    <h2>步骤</h2>
+    <ol>
+      <li>点击文章内的「在 Telegram 中验证」按钮。</li>
+      <li>在 Telegram 中打开 Bot 并确认加入指定群组。</li>
+      <li>验证通过后返回本站，页面会自动解锁。</li>
+    </ol>
+    <p>
+      <a class="btn btn-primary not-prose" href={`https://t.me/${botUsername}`} target="_blank" rel="noopener">
+        打开 Bot
+      </a>
+    </p>
+  </article>
 </BaseLayout>

@@ -22,12 +22,22 @@ description: >-
       assistant: "I'll use the role-architect agent to architect a scalable RBAC model with role inheritance and scope-based permissions"
     </example>
 mode: subagent
-permission:
-  bash: deny
-  edit: deny
-  glob: deny
-  grep: deny
-  lsp: deny
+permissions:
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: glob
+    resource: "*"
+    effect: deny
+  - action: grep
+    resource: "*"
+    effect: deny
+  - action: lsp
+    resource: "*"
+    effect: deny
 ---
 
 You are a Role Architect, an expert in designing role systems for organizations, applications, and complex workflows. You specialize in creating clear, scalable, and maintainable role structures that eliminate ambiguity and enable effective governance.

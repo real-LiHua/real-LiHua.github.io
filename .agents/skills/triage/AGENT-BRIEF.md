@@ -162,9 +162,7 @@ For a PR, "Current behavior" describes the state of the diff, and the brief asks
 ## Agent Brief
 
 **Category:** enhancement
-**Summary:** Finish the contributor's `--json` output flag for `triage list`
-
-**Current behavior:**
+**Summary:** Finish the contributor's `--json` output flag for `triage list` **Current behavior:**
 The PR adds a `--json` flag that serializes the issue list to JSON. The happy
 path works and the diff matches the project's command structure. Two gaps
 remain: errors are still printed as human text (not JSON), and the new flag has
@@ -177,8 +175,7 @@ is untouched when the flag is absent.
 
 **Key interfaces:**
 
-- The command's error path should emit `{ "error": string }` under `--json`
-  instead of the plain-text error
+- The command's error path should emit `{ "error": string }` under `--json` instead of the plain-text error
 - Reuse the existing serializer the PR already added; don't introduce a second
 
 **Acceptance criteria:**

@@ -8,8 +8,10 @@ The calendar component includes styles for different calendar libraries.
 
 - component
   - `cally (for Cally web component)`
-  - `react-day-picker (for the DayPicker component)`
-  - `vc (for Vanilla Calendar Pro)`
+
+- `react-day-picker (for the DayPicker component)`
+
+- `vc (for Vanilla Calendar Pro)`
 
 #### Syntax
 

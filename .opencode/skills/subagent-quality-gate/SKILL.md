@@ -90,7 +90,7 @@ node .agents/scripts/check-regression.ts HEAD~1
 
 ```bash
 # .husky/pre-commit.ts 已包含：
-# 1. oxfmt pre-commit.ts && node pre-commit.ts || wrangler types
+# 1. oxfmt && pnpm check   # ⏸ 原 pre-commit / wrangler 钩子待重写
 # 2. lint-staged (oxlint + oxfmt on staged files)
 # 质量门禁在 commit 前自动运行
 ```

@@ -1,546 +1,632 @@
+//! `post-edit` — 管理博客文章的命令行工具.
+//!
+//! Covers the full post lifecycle for a single author:
+//!
+//! - `new`     — create a post from a template
+//! - `edit`    — open `$EDITOR` or preview with `bat`
+//! - `list`    — list posts (including drafts), optional `--json`
+//! - `delete`  — remove a post (confirmation unless `--force`)
+//! - `publish` — move a draft into `src/posts/`, filling `publishDate`
+//!
+//! Drafts live in `src/posts/drafts/`; the directory a file lives in *is* its
+//! published state (see docs/adr/0002-draft-isolation-submodule.md and
+//! docs/POST_EDIT_CLI.md). Interactive prompts (skim / editor) fall back to a
+//! non-interactive branch when stdin is not a TTY so the tool stays usable in
+//! CI and pipelines.
+
+use std::collections::HashMap;
+use std::env;
+use std::fs;
+use std::io::{self, IsTerminal, Write};
+use std::path::{Path, PathBuf};
+use std::process::Command;
+
+use anyhow::{Context, Result, anyhow, bail};
 use bat::PrettyPrinter;
-use chrono::Datelike;
+use chrono::Local;
 use clap::{Parser, Subcommand};
-use gray_matter::engine::YAML;
-use gray_matter::Matter;
-use pinyin::ToPinyin;
-use serde::Deserialize;
+use gray_matter::{Matter, Pod, engine::YAML};
+use itertools::Itertools;
+use pinyin::{Pinyin, to_pinyin_vec};
 use skim::prelude::*;
 use slug::slugify;
-use std::fs;
-use std::io::{Cursor, Write};
-use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
 
-#[derive(Parser, Debug)]
-#[command(name = "post-edit")]
-#[command(about = "管理博客文章")]
+/// Directory holding published posts (relative to the repository root).
+const POSTS_DIR: &str = "src/posts";
+/// Directory holding drafts — excluded from production builds.
+const DRAFTS_DIR: &str = "src/posts/drafts";
+
+/// Fields we render a fresh frontmatter block for `new`.
+const DEFAULT_AUTHORS: &[&str] = &["real-LiHua"];
+
+#[derive(Parser)]
+#[command(
+    name = "post-edit",
+    version,
+    about = "管理博客文章的命令行工具 (Manage blog posts)"
+)]
 struct Cli {
     #[command(subcommand)]
-    command: Option<Commands>,
-
-    #[arg(short, long, default_value = "src/posts")]
-    posts_dir: String,
+    command: Commands,
 }
 
-#[derive(Subcommand, Debug)]
+#[derive(Subcommand)]
 enum Commands {
-    Preview {
-        filepath: String,
+    /// Create a new post from the standard template.
+    New {
+        /// Post title (also used to derive the slug unless `--slug` is given).
+        title: String,
+        /// Create the post in `src/posts/drafts/` instead of `src/posts/`.
+        #[arg(long)]
+        draft: bool,
+        /// Comma-separated tags.
+        #[arg(long, value_delimiter = ',')]
+        tags: Vec<String>,
+        /// Comma-separated authors (defaults to the site owner).
+        #[arg(long, value_delimiter = ',')]
+        authors: Vec<String>,
+        /// Explicit slug (skips pinyin/slug generation).
+        #[arg(long)]
+        slug: Option<String>,
     },
-    Search {
-        #[arg(short, long)]
+    /// Open a post in `$EDITOR`, or preview it with `bat`.
+    Edit {
+        /// Slug or fuzzy keyword. Omit to pick interactively.
         query: Option<String>,
+        /// Render the post with `bat` instead of opening an editor.
+        #[arg(long)]
+        preview: bool,
+        /// Editor command, overriding `$EDITOR` / `$VISUAL`.
+        #[arg(long)]
+        editor: Option<String>,
+    },
+    /// List posts (published and/or drafts).
+    List {
+        /// Only list drafts.
+        #[arg(long)]
+        drafts: bool,
+        /// Only list published posts.
+        #[arg(long)]
+        published: bool,
+        /// Machine-readable JSON output.
+        #[arg(long)]
+        json: bool,
+        /// Only list posts carrying this tag.
+        #[arg(long)]
+        tags: Option<String>,
+    },
+    /// Delete a post (asks for confirmation unless `--force`).
+    Delete {
+        /// Slug of the post to delete.
+        id: String,
+        /// Skip the confirmation prompt.
+        #[arg(long)]
+        force: bool,
+    },
+    /// Publish a draft: move it to `src/posts/` and set `publishDate`.
+    Publish {
+        /// Slug of the draft to publish.
+        id: String,
+        /// Override the publish date (`YYYY-MM-DD`, defaults to today).
+        #[arg(long)]
+        date: Option<String>,
     },
 }
 
-#[derive(Debug, Clone, Deserialize)]
-struct FrontMatter {
-    title: Option<String>,
-    #[serde(alias = "publishDate")]
-    date: Option<String>,
-    tags: Option<Vec<String>>,
-    description: Option<String>,
-}
-
+/// A post discovered on disk, with just enough frontmatter to list and select.
 #[derive(Debug, Clone)]
-struct PostInfo {
-    date: String,
-    description: String,
-    filename: String,
-    is_draft: bool,
-    tags: Vec<String>,
+struct PostEntry {
+    path: PathBuf,
+    slug: String,
     title: String,
+    is_draft: bool,
+    publish_date: Option<String>,
+    tags: Vec<String>,
 }
 
-fn main() {
-    let args = Cli::parse();
-
-    match args.command {
-        Some(Commands::Search { query }) => search_posts(&args.posts_dir, query.as_deref()),
-        Some(Commands::Preview { filepath }) => preview_file(&filepath),
-        None => interactive_menu(&args.posts_dir),
+fn main() -> Result<()> {
+    match Cli::parse().command {
+        Commands::New {
+            title,
+            draft,
+            tags,
+            authors,
+            slug,
+        } => cmd_new(&title, draft, &tags, &authors, slug),
+        Commands::Edit {
+            query,
+            preview,
+            editor,
+        } => cmd_edit(query.as_deref(), preview, editor.as_deref()),
+        Commands::List {
+            drafts,
+            published,
+            json,
+            tags,
+        } => cmd_list(drafts, published, json, tags.as_deref()),
+        Commands::Delete { id, force } => cmd_delete(&id, force),
+        Commands::Publish { id, date } => cmd_publish(&id, date.as_deref()),
     }
 }
 
-fn preview_file(filepath: &str) {
-    let path = Path::new(filepath);
-    if !path.exists() {
-        println!("无预览");
-        return;
+// ===== Commands =====
+
+fn cmd_new(
+    title: &str,
+    draft: bool,
+    tags: &[String],
+    authors: &[String],
+    slug: Option<String>,
+) -> Result<()> {
+    let slug = slug.unwrap_or_else(|| slug_from_title(title));
+    if slug.is_empty() {
+        bail!("could not derive a slug from {title:?}; pass --slug explicitly");
     }
 
-    let _ = PrettyPrinter::new()
-        .input_file(path)
-        .language("markdown")
-        .grid(true)
-        .term_width(80)
-        .print();
-}
+    let dir = if draft { DRAFTS_DIR } else { POSTS_DIR };
+    fs::create_dir_all(dir).with_context(|| format!("failed to create {dir}"))?;
 
-fn interactive_menu(posts_dir: &str) {
-    let posts = get_all_posts(posts_dir);
-
-    let mut choices: Vec<(String, String)> = vec![
-        ("📝 新建文章".to_owned(), "new".to_owned()),
-        ("🔍 搜索文章".to_owned(), "search".to_owned()),
-    ];
-
-    choices.extend(posts.iter().map(|post| {
-        let draft_mark = if post.is_draft { " [草稿]" } else { "" };
-        let tags_str = if post.tags.is_empty() {
-            String::new()
-        } else {
-            format!(" | {}", post.tags.join(", "))
-        };
-        let display = format!(
-            "{} | {}{}{} [{}]",
-            post.title, post.date, tags_str, draft_mark, post.filename
-        );
-        (display, post.filename.clone())
-    }));
-
-    let selected = skim_select(&choices, Some(posts_dir));
-
-    match selected.as_str() {
-        "new" => create_new_post(posts_dir),
-        "search" => {
-            let query = read_input("输入搜索关键词: ");
-            search_posts(posts_dir, Some(&query));
-            interactive_menu(posts_dir);
-        }
-        s if !s.is_empty() => post_actions(posts_dir, s),
-        _ => {}
-    }
-}
-
-fn post_actions(posts_dir: &str, filename: &str) {
-    let filepath = get_full_path(posts_dir, filename);
-    if filepath.exists() {
-        println!("\n--- 预览 ---\n");
-        preview_file(&filepath.to_string_lossy());
-        println!("\n--- 预览结束 ---\n");
+    let path = Path::new(dir).join(format!("{slug}.md"));
+    if path.exists() {
+        bail!("{} already exists", path.display());
     }
 
-    let post_info = get_post_info(posts_dir, filename);
-
-    let actions: Vec<(&str, &str)> = if post_info.is_draft {
-        vec![
-            ("编辑文章", "edit"),
-            ("发布文章", "publish"),
-            ("设为草稿", "draft"),
-            ("删除文章", "delete"),
-            ("返回", "back"),
-        ]
+    let authors = if authors.is_empty() {
+        DEFAULT_AUTHORS.iter().map(|s| (*s).to_string()).collect()
     } else {
-        vec![
-            ("编辑文章", "edit"),
-            ("设为草稿", "draft"),
-            ("删除文章", "delete"),
-            ("返回", "back"),
-        ]
+        authors.to_vec()
     };
 
-    let choices: Vec<(String, String)> = actions
-        .iter()
-        .map(|(label, action)| (label.to_string(), action.to_string()))
-        .collect();
-
-    let selected = skim_select(&choices, Some(posts_dir));
-
-    match selected.as_str() {
-        "edit" => edit_post(posts_dir, filename),
-        "publish" => toggle_draft(posts_dir, filename, false),
-        "draft" => toggle_draft(posts_dir, filename, true),
-        "delete" => delete_post(posts_dir, filename),
-        "back" => interactive_menu(posts_dir),
-        _ => {}
-    }
+    fs::write(
+        &path,
+        render_new_post(title, &today_string(), tags, &authors),
+    )
+    .with_context(|| format!("failed to write {}", path.display()))?;
+    println!("created {}", path.display());
+    Ok(())
 }
 
-fn get_full_path(posts_dir: &str, filename: &str) -> PathBuf {
-    if filename.starts_with("../drafts/") {
-        let drafts_dir = format!("{}/drafts", posts_dir.trim_end_matches("/posts"));
-        PathBuf::from(drafts_dir).join(filename.replace("../drafts/", ""))
-    } else {
-        PathBuf::from(posts_dir).join(filename)
-    }
-}
-
-fn is_path_draft(path: &Path) -> bool {
-    path.components().any(|c| c.as_os_str() == "drafts")
-}
-
-fn get_all_posts(dir: &str) -> Vec<PostInfo> {
-    let drafts_dir = format!("{}/drafts", dir.trim_end_matches("/posts"));
-    let drafts_path = Path::new(&drafts_dir);
-
-    let mut posts: Vec<PostInfo> = fs::read_dir(Path::new(dir))
-        .map(|entries| {
-            entries
-                .filter_map(std::result::Result::ok)
-                .filter(|entry| {
-                    let path = entry.path();
-                    let ext = path.extension();
-                    ext.is_some_and(|e| e == "md") || ext.is_some_and(|e| e == "mdx")
-                })
-                .filter_map(|entry| entry.path().to_str().map(String::from))
-                .map(|path| {
-                    let filename = Path::new(&path)
-                        .file_name()
-                        .and_then(std::ffi::OsStr::to_str)
-                        .unwrap_or("")
-                        .to_owned();
-                    get_post_info(dir, &filename)
-                })
-                .collect()
-        })
-        .unwrap_or_default();
-
-    if drafts_path.exists() {
-        let draft_posts: Vec<PostInfo> = fs::read_dir(drafts_path)
-            .map(|entries| {
-                entries
-                    .filter_map(std::result::Result::ok)
-                    .filter(|entry| {
-                        let path = entry.path();
-                        let ext = path.extension();
-                        ext.is_some_and(|e| e == "md") || ext.is_some_and(|e| e == "mdx")
-                    })
-                    .filter_map(|entry| entry.path().to_str().map(String::from))
-                    .map(|path| {
-                        let filename = Path::new(&path)
-                            .file_name()
-                            .and_then(std::ffi::OsStr::to_str)
-                            .unwrap_or("")
-                            .to_owned();
-                        let mut info = get_post_info(&drafts_dir, &filename);
-                        info.filename = format!("../drafts/{filename}");
-                        info.is_draft = true;
-                        info
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
-        posts.extend(draft_posts);
+fn cmd_edit(query: Option<&str>, preview: bool, editor: Option<&str>) -> Result<()> {
+    let posts = collect_posts()?;
+    if posts.is_empty() {
+        bail!("no posts found under {POSTS_DIR}");
     }
 
-    posts.sort_by(|a, b| b.date.cmp(&a.date));
-    posts
-}
+    let post = resolve_post(&posts, query.unwrap_or_default())?;
 
-fn get_post_info(dir: &str, filename: &str) -> PostInfo {
-    let full_path = get_full_path(dir, filename);
-    let filepath_str = full_path.to_string_lossy().to_string();
-    let content = fs::read_to_string(&filepath_str).unwrap_or_default();
-
-    let matter = Matter::<YAML>::new();
-    let parsed = matter.parse::<FrontMatter>(&content).ok();
-    let frontmatter = parsed.and_then(|p| p.data);
-    let title = frontmatter
-        .as_ref()
-        .and_then(|f| f.title.clone())
-        .unwrap_or_else(|| {
-            full_path
-                .file_stem()
-                .and_then(std::ffi::OsStr::to_str)
-                .unwrap_or("")
-                .to_owned()
-        });
-
-    // Determine draft status by path (位于 drafts 目录即视为草稿)
-    let is_draft = is_path_draft(&full_path);
-
-    PostInfo {
-        date: frontmatter
-            .as_ref()
-            .and_then(|f| f.date.clone())
-            .unwrap_or_default(),
-        description: frontmatter
-            .as_ref()
-            .and_then(|f| f.description.clone())
-            .unwrap_or_default(),
-        filename: filename.to_owned(),
-        is_draft,
-        tags: frontmatter.and_then(|f| f.tags).unwrap_or_default(),
-        title,
-    }
-}
-
-fn extract_filename_from_choice(text: &str) -> Option<String> {
-    let start = text.find('[')?;
-    let end = text.rfind(']')?;
-    if end > start + 1 {
-        Some(text[start + 1..end].to_string())
-    } else {
-        None
-    }
-}
-
-fn skim_select(choices: &[(String, String)], _posts_dir: Option<&str>) -> String {
-    let options = SkimOptionsBuilder::default()
-        .height("50%".to_owned())
-        .reverse(true)
-        .prompt("选择: ".to_owned())
-        .no_mouse(true)
-        .bind(vec!["ctrl-y:accept".to_string()])
-        .build()
-        .unwrap();
-
-    let input = choices
-        .iter()
-        .map(|(title, _)| title.clone())
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    let item_reader = SkimItemReader::default();
-    let receiver = item_reader.of_bufread(Cursor::new(input));
-    let selected = Skim::run_with(options, Some(receiver));
-
-    match selected {
-        Ok(sk) => sk
-            .selected_items
-            .first()
-            .map(|item| {
-                let binding = item.text();
-                let selected_text = binding.as_ref();
-                extract_filename_from_choice(selected_text).or_else(|| {
-                    choices
-                        .iter()
-                        .find(|(title, _)| title.as_str() == selected_text)
-                        .map(|(_, filename)| filename.clone())
-                })
-            })
-            .flatten()
-            .unwrap_or_default(),
-        _ => String::new(),
-    }
-}
-
-fn search_posts(posts_dir: &str, query: Option<&str>) {
-    let posts = get_all_posts(posts_dir);
-
-    let query = query.unwrap_or("").to_lowercase();
-
-    let filtered: Vec<PostInfo> = posts
-        .into_iter()
-        .filter(|p| {
-            query.is_empty()
-                || p.title.to_lowercase().contains(&query)
-                || p.tags.iter().any(|t| t.to_lowercase().contains(&query))
-                || p.description.to_lowercase().contains(&query)
-        })
-        .collect();
-
-    if filtered.is_empty() {
-        println!("没有找到匹配的文章");
-        return;
+    if preview {
+        let mut printer = PrettyPrinter::new();
+        printer.input_file(&post.path);
+        printer
+            .print()
+            .with_context(|| format!("failed to preview {}", post.path.display()))?;
+        return Ok(());
     }
 
-    let choices: Vec<(String, String)> = filtered
-        .iter()
-        .map(|p| {
-            let draft_mark = if p.is_draft { " [草稿]" } else { "" };
-            let tags_str = if p.tags.is_empty() {
-                String::new()
-            } else {
-                format!(" | {}", p.tags.join(", "))
-            };
-            let display = format!("{}{}{} [{}]", p.title, tags_str, draft_mark, p.filename);
-            (display, p.filename.clone())
-        })
-        .collect();
+    let editor = editor
+        .map(str::to_string)
+        .or_else(|| env::var("EDITOR").ok())
+        .or_else(|| env::var("VISUAL").ok());
 
-    let selected = skim_select(&choices, Some(posts_dir));
-
-    if !selected.is_empty() {
-        post_actions(posts_dir, &selected);
-    }
-}
-
-fn create_new_post(posts_dir: &str) {
-    let title = read_input("请输入文章标题: ");
-    if title.is_empty() {
-        eprintln!("标题不能为空");
-        std::process::exit(1);
-    }
-
-    let slug = title_to_pinyin(&title);
-    let date = chrono_lite_date();
-    let filename = format!("{date}-{slug}.md");
-    let filepath = format!("{posts_dir}/{filename}");
-
-    if Path::new(&filepath).exists() {
-        eprintln!("文件已存在: {filepath}");
-        std::process::exit(1);
-    }
-
-    let description = read_input("请输入文章描述 (可选): ");
-
-    let tags_input = read_input("请输入标签，用逗号分隔 (可选): ");
-    let tags_str = if tags_input.is_empty() {
-        "[]".to_string()
-    } else {
-        let tags: Vec<String> = tags_input
-            .split(',')
-            .map(|s| format!("\"{}\"", s.trim()))
-            .collect();
-        format!("[{}]", tags.join(", "))
-    };
-
-    // Telegram 认证配置
-    let enable_telegram = read_input("是否启用 Telegram 群组认证? (y/N): ");
-    let telegram_auth = if enable_telegram.trim().to_lowercase() == "y" {
-        let group_id = read_input("请输入 Telegram 群组 ID (如 -1001234567890): ");
-        let group_name = read_input("请输入群组名称 (可选): ");
-        let custom_message = read_input("请输入自定义提示信息 (可选): ");
-
-        let mut parts = vec!["enabled: true".to_string(), format!("groupId: \"{}\"", group_id.trim())];
-        if !group_name.trim().is_empty() {
-            parts.push(format!("groupName: \"{}\"", group_name.trim()));
+    match editor {
+        Some(editor) => open_in_editor(&editor, &post.path),
+        None => {
+            println!("{}", post.path.display());
+            Ok(())
         }
-        if !custom_message.trim().is_empty() {
-            parts.push(format!("customMessage: \"{}\"", custom_message.trim()));
-        }
-        format!("telegramAuth:\n  {}", parts.join("\n  "))
-    } else {
-        "telegramAuth: {}".to_string()
-    };
-
-    let content = format!(
-        "---\ntitle: {title}\ndescription: {description}\ntags: {tags_str}\npublishDate: {date}\n{telegram_auth}\n---\n\n"
-    );
-
-    let _ = fs::write(&filepath, content);
-
-    println!("已创建: {filepath}");
-    edit_post(posts_dir, &filename);
-}
-
-fn edit_post(posts_dir: &str, filename: &str) {
-    let filepath = if filename.starts_with("../drafts/") {
-        let drafts_dir = format!("{}/drafts", posts_dir.trim_end_matches("/posts"));
-        format!("{drafts_dir}/{}", filename.replace("../drafts/", ""))
-    } else {
-        format!("{posts_dir}/{filename}")
-    };
-    let _ = Command::new("nvim")
-        .arg(&filepath)
-        .stdin(Stdio::inherit())
-        .status();
-}
-
-fn toggle_draft(posts_dir: &str, filename: &str, is_draft: bool) {
-    // Move files between posts_dir and posts_dir/drafts instead of editing frontmatter
-    let src_path = get_full_path(posts_dir, filename);
-
-    if !src_path.exists() {
-        eprintln!("文件不存在: {}", src_path.to_string_lossy());
-        return;
-    }
-
-    let drafts_dir = format!("{}/drafts", posts_dir.trim_end_matches("/posts"));
-    let _ = fs::create_dir_all(&drafts_dir);
-
-    if is_draft {
-        // move to drafts
-        let file_name = src_path
-            .file_name()
-            .and_then(|s| s.to_str())
-            .unwrap_or("");
-        let dst = Path::new(&drafts_dir).join(file_name);
-        if let Err(e) = fs::rename(&src_path, &dst) {
-            eprintln!("移动到草稿失败: {e}");
-            std::process::exit(1);
-        }
-        println!("已设为草稿: {}", dst.to_string_lossy());
-    } else {
-        // publish: move from drafts to posts_dir
-        // filename may be like "../drafts/xxx.md" or just "xxx.md"
-        let src = if filename.starts_with("../drafts/") {
-            src_path
-        } else {
-            src_path
-        };
-        let file_name = src
-            .file_name()
-            .and_then(|s| s.to_str())
-            .unwrap_or("");
-        let dst = Path::new(posts_dir).join(file_name);
-        if let Err(e) = fs::rename(&src, &dst) {
-            eprintln!("发布（移动到 posts）失败: {e}");
-            std::process::exit(1);
-        }
-        println!("已发布: {}", dst.to_string_lossy());
     }
 }
 
-fn delete_post(posts_dir: &str, filename: &str) {
-    let filepath = if filename.starts_with("../drafts/") {
+fn cmd_list(drafts: bool, published: bool, json: bool, tag: Option<&str>) -> Result<()> {
+    let mut posts = collect_posts()?;
+    if drafts {
+        posts.retain(|post| post.is_draft);
+    }
+    if published {
+        posts.retain(|post| !post.is_draft);
+    }
+    if let Some(tag) = tag {
+        posts.retain(|post| post.tags.iter().any(|candidate| candidate == tag));
+    }
+
+    if json {
+        print_json(&posts);
+    } else {
+        print_table(&posts);
+    }
+    Ok(())
+}
+
+fn cmd_delete(id: &str, force: bool) -> Result<()> {
+    let posts = collect_posts()?;
+    let post = resolve_post(&posts, id)?;
+
+    if !force && !confirm(&format!("Delete {}?", post.path.display()))? {
+        println!("aborted");
+        return Ok(());
+    }
+
+    fs::remove_file(&post.path)
+        .with_context(|| format!("failed to delete {}", post.path.display()))?;
+    println!("deleted {}", post.path.display());
+    Ok(())
+}
+
+fn cmd_publish(id: &str, date: Option<&str>) -> Result<()> {
+    let posts = collect_posts()?;
+    let post = resolve_post(&posts, id)?;
+
+    if !post.is_draft {
+        bail!("{} is already published", post.slug);
+    }
+
+    let file_name = post
+        .path
+        .file_name()
+        .context("draft path has no file name")?;
+    let dest = Path::new(POSTS_DIR).join(file_name);
+    if dest.exists() {
+        bail!("{} already exists", dest.display());
+    }
+
+    let date = date.map_or_else(today_string, str::to_string);
+    let raw = fs::read_to_string(&post.path)
+        .with_context(|| format!("failed to read {}", post.path.display()))?;
+    fs::write(&post.path, set_publish_date(&raw, &date))
+        .with_context(|| format!("failed to update {}", post.path.display()))?;
+
+    fs::create_dir_all(POSTS_DIR).with_context(|| format!("failed to create {POSTS_DIR}"))?;
+    fs::rename(&post.path, &dest).with_context(|| {
         format!(
-            "{}/drafts/{}",
-            posts_dir.trim_end_matches("/posts"),
-            filename.replace("../drafts/", "")
+            "failed to move {} -> {}",
+            post.path.display(),
+            dest.display()
         )
+    })?;
+
+    println!("published {} -> {}", post.slug, dest.display());
+    Ok(())
+}
+
+// ===== Post discovery & selection =====
+
+fn collect_posts() -> Result<Vec<PostEntry>> {
+    let mut posts = Vec::new();
+
+    for (dir, is_draft) in [(POSTS_DIR, false), (DRAFTS_DIR, true)] {
+        let dir_path = Path::new(dir);
+        if !dir_path.is_dir() {
+            continue;
+        }
+
+        for entry in fs::read_dir(dir_path).with_context(|| format!("failed to read {dir}"))? {
+            let path = entry?.path();
+            if !is_markdown(&path) {
+                continue;
+            }
+            posts.push(read_post(path, is_draft)?);
+        }
+    }
+
+    Ok(posts
+        .into_iter()
+        .sorted_by(|a, b| a.slug.cmp(&b.slug))
+        .collect())
+}
+
+fn is_markdown(path: &Path) -> bool {
+    if !path.is_file() {
+        return false;
+    }
+    matches!(
+        path.extension().and_then(|ext| ext.to_str()),
+        Some("md" | "mdx")
+    )
+}
+
+fn read_post(path: PathBuf, is_draft: bool) -> Result<PostEntry> {
+    let raw =
+        fs::read_to_string(&path).with_context(|| format!("failed to read {}", path.display()))?;
+    let (frontmatter, _) = parse_frontmatter(&raw)
+        .with_context(|| format!("failed to parse frontmatter in {}", path.display()))?;
+
+    let slug = path
+        .file_stem()
+        .and_then(|stem| stem.to_str())
+        .context("post path has no file stem")?
+        .to_string();
+
+    Ok(PostEntry {
+        path,
+        slug: slug.clone(),
+        title: pod_string(&frontmatter, "title").unwrap_or(slug),
+        is_draft,
+        publish_date: pod_string(&frontmatter, "publishDate"),
+        tags: pod_string_list(&frontmatter, "tags"),
+    })
+}
+
+/// Resolve a user-supplied `query` to exactly one post. Prefers an exact slug
+/// match, then a case-insensitive substring match; several matches prompt an
+/// interactive picker when a TTY is available.
+fn resolve_post(posts: &[PostEntry], query: &str) -> Result<PostEntry> {
+    if let Some(exact) = posts.iter().find(|post| post.slug == query) {
+        return Ok(exact.clone());
+    }
+
+    let mut candidates = if query.is_empty() {
+        posts.to_vec()
     } else {
-        format!("{posts_dir}/{filename}")
+        fuzzy_candidates(posts, query)
     };
 
-    print!("确认删除 {filepath} ? (y/N): ");
-    std::io::stdout().flush().ok();
-
-    let mut confirm = String::new();
-    std::io::stdin().read_line(&mut confirm).ok();
-
-    if confirm.trim().to_lowercase() == "y" {
-        if let Err(e) = fs::remove_file(&filepath) {
-            eprintln!("删除失败: {e}");
-            std::process::exit(1);
+    match candidates.len() {
+        0 => bail!("no post matches {query:?}"),
+        1 => Ok(candidates.remove(0)),
+        _ => {
+            if io::stdin().is_terminal() && io::stdout().is_terminal() {
+                interactive_select(&candidates)
+            } else {
+                let list = candidates.iter().map(|post| post.slug.as_str()).join(", ");
+                bail!("multiple posts match {query:?}: {list}; pass an exact slug");
+            }
         }
-        println!("已删除: {filepath}");
-    } else {
-        println!("取消删除");
     }
 }
 
-fn read_input(prompt: &str) -> String {
-    print!("{prompt}");
-    std::io::stdout().flush().ok();
+fn fuzzy_candidates(posts: &[PostEntry], query: &str) -> Vec<PostEntry> {
+    let needle = query.to_lowercase();
+    posts
+        .iter()
+        .filter(|post| {
+            post.slug.to_lowercase().contains(&needle)
+                || post.title.to_lowercase().contains(&needle)
+        })
+        .cloned()
+        .collect()
+}
+
+fn interactive_select(candidates: &[PostEntry]) -> Result<PostEntry> {
+    let labels: Vec<String> = candidates
+        .iter()
+        .map(|post| format!("{}  ·  {}", post.slug, post.title))
+        .collect();
+
+    let options = SkimOptionsBuilder::default()
+        .height("40%")
+        .build()
+        .map_err(|error| anyhow!("failed to configure the picker: {error}"))?;
+
+    let output =
+        Skim::run_items(options, labels).map_err(|error| anyhow!("picker failed: {error}"))?;
+
+    let selected = output
+        .selected_items
+        .first()
+        .ok_or_else(|| anyhow!("no post selected"))?;
+    let text = selected.text().into_owned();
+    let slug = text.split("  ·  ").next().unwrap_or_default().trim();
+
+    candidates
+        .iter()
+        .find(|post| post.slug == slug)
+        .cloned()
+        .ok_or_else(|| anyhow!("selection {slug:?} does not match any post"))
+}
+
+// ===== Frontmatter =====
+
+fn parse_frontmatter(raw: &str) -> Result<(HashMap<String, Pod>, String)> {
+    let matter = Matter::<YAML>::new();
+    let parsed = matter.parse::<Pod>(raw)?;
+    let frontmatter = match parsed.data {
+        Some(pod) => pod.as_hashmap()?,
+        None => HashMap::new(),
+    };
+    Ok((frontmatter, parsed.content))
+}
+
+fn pod_string(frontmatter: &HashMap<String, Pod>, key: &str) -> Option<String> {
+    match frontmatter.get(key) {
+        Some(Pod::String(value)) => Some(value.clone()),
+        Some(Pod::Integer(value)) => Some(value.to_string()),
+        _ => None,
+    }
+}
+
+fn pod_string_list(frontmatter: &HashMap<String, Pod>, key: &str) -> Vec<String> {
+    match frontmatter.get(key) {
+        Some(Pod::Array(items)) => items
+            .iter()
+            .filter_map(|item| match item {
+                Pod::String(value) => Some(value.clone()),
+                _ => None,
+            })
+            .collect(),
+        Some(Pod::String(value)) => vec![value.clone()],
+        _ => Vec::new(),
+    }
+}
+
+const FRONTMATTER_FENCE: &str = "---";
+
+fn render_new_post(title: &str, date: &str, tags: &[String], authors: &[String]) -> String {
+    let mut out = String::from(FRONTMATTER_FENCE);
+    out.push('\n');
+    out.push_str(&format!("title: {}\n", quote(title)));
+    out.push_str(&format!("publishDate: {date}\n"));
+    out.push_str("description: \"\"\n");
+    push_list(&mut out, "tags", tags);
+    push_list(&mut out, "authors", authors);
+    out.push_str(FRONTMATTER_FENCE);
+    out.push_str("\n\n");
+    out.push_str(&format!("# {title}\n\n"));
+    out
+}
+
+fn push_list(out: &mut String, key: &str, values: &[String]) {
+    if values.is_empty() {
+        return;
+    }
+    out.push_str(&format!("{key}:\n"));
+    for value in values {
+        out.push_str(&format!("  - {}\n", quote(value)));
+    }
+}
+
+/// Replace or insert `publishDate` inside the frontmatter block, leaving the
+/// rest of the file (including unknown fields) byte-for-byte intact.
+fn set_publish_date(raw: &str, date: &str) -> String {
+    let mut lines: Vec<String> = raw.lines().map(str::to_string).collect();
+
+    if lines.first().map(String::as_str) != Some(FRONTMATTER_FENCE) {
+        return format!("{FRONTMATTER_FENCE}\npublishDate: {date}\n{FRONTMATTER_FENCE}\n\n{raw}");
+    }
+
+    let close = lines
+        .iter()
+        .skip(1)
+        .position(|line| line.trim_end() == FRONTMATTER_FENCE)
+        .map(|index| index + 1);
+
+    if let Some(close) = close {
+        let existing = lines
+            .iter()
+            .take(close)
+            .position(|line| line.trim_start().starts_with("publishDate:"));
+        match existing {
+            Some(index) => lines[index] = format!("publishDate: {date}"),
+            None => lines.insert(close, format!("publishDate: {date}")),
+        }
+    }
+
+    let mut out = lines.join("\n");
+    if raw.ends_with('\n') {
+        out.push('\n');
+    }
+    out
+}
+
+// ===== Output =====
+
+fn print_table(posts: &[PostEntry]) {
+    for post in posts {
+        let status = if post.is_draft { "draft" } else { "published" };
+        let date = post.publish_date.as_deref().unwrap_or("-");
+        println!(
+            "{:<40} {:<10} {:<10} {}",
+            post.slug, status, date, post.title
+        );
+    }
+}
+
+fn print_json(posts: &[PostEntry]) {
+    let items: Vec<String> = posts
+        .iter()
+        .map(|post| {
+            let publish_date = post
+                .publish_date
+                .as_deref()
+                .map_or_else(|| "null".to_string(), |date| format!("\"{}\"", json_escape(date)));
+            let tags = post
+                .tags
+                .iter()
+                .map(|tag| format!("\"{}\"", json_escape(tag)))
+                .join(", ");
+            format!(
+                "    {{\n      \"slug\": \"{}\",\n      \"title\": \"{}\",\n      \"draft\": {},\n      \"publishDate\": {},\n      \"path\": \"{}\",\n      \"tags\": [{}]\n    }}",
+                json_escape(&post.slug),
+                json_escape(&post.title),
+                post.is_draft,
+                publish_date,
+                json_escape(&post.path.display().to_string()),
+                tags,
+            )
+        })
+        .collect();
+
+    println!("[\n{}\n]", items.join(",\n"));
+}
+
+fn json_escape(input: &str) -> String {
+    let mut out = String::with_capacity(input.len());
+    for ch in input.chars() {
+        match ch {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            control if control.is_control() => {
+                out.push_str(&format!("\\u{:04x}", control as u32));
+            }
+            other => out.push(other),
+        }
+    }
+    out
+}
+
+// ===== Helpers =====
+
+fn today_string() -> String {
+    Local::now().format("%Y-%m-%d").to_string()
+}
+
+fn quote(value: &str) -> String {
+    format!("\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))
+}
+
+fn confirm(prompt: &str) -> Result<bool> {
+    if !io::stdin().is_terminal() {
+        bail!(
+            "refusing to continue without confirmation in a non-interactive session; pass --force"
+        );
+    }
+    print!("{prompt} [y/N] ");
+    io::stdout().flush()?;
 
     let mut input = String::new();
-    std::io::stdin().read_line(&mut input).ok();
-    input.trim().to_string()
+    io::stdin().read_line(&mut input)?;
+    Ok(matches!(input.trim().to_lowercase().as_str(), "y" | "yes"))
 }
 
-fn title_to_pinyin(title: &str) -> String {
-    let contains_chinese = title.chars().any(|c| matches!(c, '\u{4E00}'..='\u{9FFF}'));
-    let only_numbers_and_spaces = title
-        .chars()
-        .all(|c| c.is_ascii_digit() || c.is_whitespace());
-
-    if only_numbers_and_spaces {
-        return title.split_whitespace().collect::<Vec<_>>().join("-");
+fn open_in_editor(editor: &str, path: &Path) -> Result<()> {
+    let mut parts = editor.split_whitespace();
+    let program = parts.next().context("editor command is empty")?;
+    let status = Command::new(program)
+        .args(parts)
+        .arg(path)
+        .status()
+        .with_context(|| format!("failed to launch {program}"))?;
+    if !status.success() {
+        bail!("editor exited with {status}");
     }
-
-    let pinyin = title
-        .to_pinyin()
-        .flatten()
-        .map(|p| p.plain())
-        .collect::<Vec<_>>()
-        .join("-")
-        .to_lowercase();
-
-    if pinyin.is_empty() || contains_chinese {
-        slugify(title)
-    } else {
-        pinyin
-    }
+    Ok(())
 }
 
-fn chrono_lite_date() -> String {
-    use chrono::Local;
-    let now = Local::now();
-    format!("{:04}-{:02}-{:02}", now.year(), now.month(), now.day())
+/// Derive a URL slug from a (possibly Chinese) title via pinyin + slug.
+fn slug_from_title(title: &str) -> String {
+    let mut buffer = String::new();
+    for ch in title.chars() {
+        if ch.is_ascii_alphanumeric() {
+            buffer.push(ch);
+        } else if is_cjk(ch) {
+            for syllable in to_pinyin_vec(&ch.to_string(), Pinyin::plain) {
+                buffer.push_str(syllable);
+                buffer.push(' ');
+            }
+        } else {
+            buffer.push(' ');
+        }
+    }
+    slugify(buffer)
+}
+
+const fn is_cjk(ch: char) -> bool {
+    matches!(
+        ch as u32,
+        0x3400..=0x4DBF | 0x4E00..=0x9FFF | 0xF900..=0xFAFF
+    )
 }
 
 #[cfg(test)]
@@ -548,101 +634,48 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_title_to_pinyin_chinese() {
-        assert_eq!(title_to_pinyin("测试文章"), "ce-shi-wen-zhang");
+    fn slugifies_chinese_titles_to_pinyin() {
+        assert_eq!(slug_from_title("Hello World"), "hello-world");
+        let slug = slug_from_title("Astro 迁移踩坑记");
+        assert!(slug.starts_with("astro-"), "unexpected slug: {slug}");
+        assert!(!slug.contains(' '), "slug must not contain spaces: {slug}");
     }
 
     #[test]
-    fn test_title_to_pinyin_english() {
-        assert_eq!(title_to_pinyin("Hello World"), "hello-world");
-    }
-
-    #[test]
-    fn test_title_to_pinyin_mixed() {
-        assert_eq!(title_to_pinyin("Rust 编程语言"), "rust-bian-cheng-yu-yan");
-    }
-
-    #[test]
-    fn test_title_to_pinyin_numbers() {
-        assert_eq!(title_to_pinyin("123 Test"), "123-test");
-    }
-
-    #[test]
-    fn test_title_to_pinyin_special_chars() {
-        assert_eq!(title_to_pinyin("Hello! World?"), "hello-world");
-    }
-
-    #[test]
-    fn test_slugify_fallback() {
-        assert_eq!(slugify("Pure English Title"), "pure-english-title");
-    }
-
-    #[test]
-    fn test_title_to_pinyin_numbers_only() {
-        assert_eq!(title_to_pinyin("123"), "123");
-        assert_eq!(title_to_pinyin("123 456"), "123-456");
-    }
-
-    #[test]
-    fn test_update_frontmatter_bool_set_true() {
-        let content = "---\ntitle: Test\ndraft: false\n---\n\nHello";
-        let result = update_frontmatter_bool(content, "draft", true);
-        assert!(result.contains("draft: true"));
-    }
-
-    #[test]
-    fn test_update_frontmatter_bool_set_false() {
-        let content = "---\ntitle: Test\ndraft: true\n---\n\nHello";
-        let result = update_frontmatter_bool(content, "draft", false);
-        assert!(result.contains("draft: false"));
-    }
-
-    #[test]
-    fn test_update_frontmatter_bool_add_new_key() {
-        let content = "---\ntitle: Test\n---\n\nHello";
-        let result = update_frontmatter_bool(content, "draft", true);
-        assert!(result.contains("draft: true"));
-    }
-
-    #[test]
-    fn test_update_frontmatter_bool_preserves_content() {
-        let content = "---\ntitle: Test\ndate: 2024-01-01\n---\n\nHello World";
-        let result = update_frontmatter_bool(content, "draft", false);
-        assert!(result.contains("title: Test"));
-        assert!(result.contains("date: 2024-01-01"));
-        assert!(result.contains("draft: false"));
-        assert!(result.contains("Hello World"));
-    }
-
-    #[test]
-    fn test_chrono_lite_date_format() {
-        let date = chrono_lite_date();
-        assert!(date.len() == 10);
-        assert!(date.chars().nth(4) == Some('-'));
-        assert!(date.chars().nth(7) == Some('-'));
-    }
-
-    #[test]
-    fn test_extract_filename_from_choice() {
-        let text = "测试文章 | 2024-01-01 | tag1 [post.md]";
-        assert_eq!(
-            extract_filename_from_choice(text),
-            Some("post.md".to_string())
+    fn renders_frontmatter_block() {
+        let rendered = render_new_post(
+            "Hello: World",
+            "2026-10-12",
+            &["web".to_string()],
+            &["real-LiHua".to_string()],
         );
+        assert!(rendered.starts_with("---\n"));
+        assert!(rendered.contains("title: \"Hello: World\"\n"));
+        assert!(rendered.contains("publishDate: 2026-10-12\n"));
+        assert!(rendered.contains("  - \"web\"\n"));
     }
 
     #[test]
-    fn test_extract_filename_from_choice_without_delimiters() {
-        let text = "测试文章 | 2024-01-01";
-        assert_eq!(extract_filename_from_choice(text), None);
+    fn inserts_publish_date_when_missing() {
+        let raw = "---\ntitle: \"Draft\"\n---\n\nBody\n";
+        let updated = set_publish_date(raw, "2026-10-12");
+        assert!(updated.contains("publishDate: 2026-10-12\n"));
+        assert!(updated.contains("Body"));
+        assert_eq!(updated.matches("publishDate").count(), 1);
     }
 
     #[test]
-    fn test_extract_filename_from_choice_with_brackets() {
-        let text = "test [file-with-dash.md]";
-        assert_eq!(
-            extract_filename_from_choice(text),
-            Some("file-with-dash.md".to_string())
-        );
+    fn replaces_existing_publish_date() {
+        let raw = "---\ntitle: \"Draft\"\npublishDate: 2020-01-01\n---\nBody\n";
+        let updated = set_publish_date(raw, "2026-10-12");
+        assert!(updated.contains("publishDate: 2026-10-12\n"));
+        assert!(!updated.contains("2020-01-01"));
+        assert_eq!(updated.matches("publishDate").count(), 1);
+    }
+
+    #[test]
+    fn escapes_json_strings() {
+        assert_eq!(json_escape("a\"b"), "a\\\"b");
+        assert_eq!(json_escape("line\nbreak"), "line\\nbreak");
     }
 }

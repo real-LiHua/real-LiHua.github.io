@@ -14,9 +14,7 @@
 
 -
 -
--
-
----
+- ***
 
 ## Knowledge Base Impact
 
@@ -39,6 +37,28 @@
 | e.g., New term  | CONTEXT.md                            | Added "TracerBullet" definition       |
 | e.g., Interface | src/modules/build-pipeline.ts         | Added `timeout` field to BuildStage   |
 | e.g., ADR       | docs/adr/0005-theme-token-strategy.md | Recorded CSS Token vs @theme decision |
+
+---
+
+## Dependency Changes
+
+**Does this PR add/update/remove npm or Cargo dependencies?**
+
+- [ ] **No dependency changes**
+- [ ] **New dependency added** — Completed `docs/adr/0010-dependency-evaluation.md` L1-L3 evaluation
+- [ ] **Dependency updated** — Reviewed changelog, tested breaking changes
+- [ ] **Dependency removed** — Verified no residual usage
+
+### Dependency Evaluation (if new/updated)
+
+| Package | Version | L1: Necessity | L2: Quality/Security | L3: Integration | ADR (if arch-level) |
+| ------- | ------- | ------------- | -------------------- | --------------- | ------------------- |
+|         |         |               |                      |                 |                     |
+
+- [ ] L1: Alternative considered (native API / existing dep / lightweight impl)
+- [ ] L2: `pnpm audit` / `cargo audit` pass, license MIT/Apache-2.0/BSD, size within budget
+- [ ] L3: `pnpm check && pnpm build && pnpm playwright test` pass
+- [ ] Architecture-level dependency → ADR created (0010+)
 
 ---
 
@@ -68,7 +88,26 @@
 
 ---
 
-## Breaking Changes
+## Learning Notes
+
+**Did this work uncover any pitfalls, patterns, or decisions worth capturing?**
+
+- [ ] **No new learning points**
+- [ ] **New learning captured** — Recorded in:
+
+| Type     | Location                                                          | Summary |
+| -------- | ----------------------------------------------------------------- | ------- |
+| Pitfall  | Source code (`@learning:pitfall`) / `.agents/learning/sessions/`  | ...     |
+| Pattern  | Source code (`@learning:pattern`) / `.agents/learning/sessions/`  | ...     |
+| Decision | Source code (`@learning:decision`) / `.agents/learning/sessions/` | ...     |
+
+### Key Learning Points (1-3 items)
+
+1. **Pitfall**: ... → **Solution**: ...
+2. **Pattern**: ... → **Applicability**: ...
+3. **Decision**: ... → **Reason**: ...
+
+---
 
 <!-- If this PR introduces breaking changes, describe them and migration path -->
 

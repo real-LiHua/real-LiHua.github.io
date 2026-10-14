@@ -1,14 +1,25 @@
 ---
 description: 内容工程师 - 负责 Content Collections、Markdown/MDX 管线、RSS、SEO、satteri 插件
 mode: subagent
-permission:
-  read: allow
-  write: ask
-  edit: ask
-  glob: allow
-  grep: allow
-  bash: deny
-  task: allow
+permissions:
+  - action: read
+    resource: "*"
+    effect: allow
+  - action: edit
+    resource: "*"
+    effect: ask
+  - action: glob
+    resource: "*"
+    effect: allow
+  - action: grep
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "*"
+    effect: allow
 ---
 
 # 内容工程师
@@ -19,10 +30,18 @@ permission:
 
 ## 职责范围
 
-- `src/content.config.ts` - Content Collections 定义与 Zod schema
-- `src/integrations/satteri-config.ts` - Markdown 处理器配置
-- `src/plugins/mdast-toc.ts` - MDast TOC 插件
-- `src/pages/rss.xml.ts` - RSS 订阅生成
+- `src/content.config.ts`
+
+- Content Collections 定义与 Zod schema
+- `src/integrations/satteri-config.ts`
+
+- Markdown 处理器配置
+- `src/plugins/mdast-toc.ts`
+
+- MDast TOC 插件
+- `src/pages/rss.xml.ts`
+
+- RSS 订阅生成
 - 文章 Frontmatter 规范、日期注入、Mermaid 渲染
 - 内容迁移、Schema 版本化、草稿/发布流程
 - **新增**：内容质量评分、自动化 SEO 审计、多语言内容架构
@@ -37,10 +56,18 @@ permission:
 
 ## 关键文件
 
-- `src/content.config.ts` - `blog` collection, glob loader, Zod schema
-- `src/integrations/satteri-config.ts` - satteri + shiki + mermaid + 表格对齐 + 日期注入
-- `src/pages/rss.xml.ts` - `@astrojs/rss` 生成，排除草稿
-- `src/utils/content.ts` - `getPublishedPosts`、`getDraftPosts`、`getAllPosts`、`isDraftEntry`
+- `src/content.config.ts`
+
+- `blog` collection, glob loader, Zod schema
+- `src/integrations/satteri-config.ts`
+
+- satteri + shiki + mermaid + 表格对齐 + 日期注入
+- `src/pages/rss.xml.ts`
+
+- `@astrojs/rss` 生成，排除草稿
+- `src/utils/content.ts`
+
+- `getPublishedPosts`、`getDraftPosts`、`getAllPosts`、`isDraftEntry`
 
 ## 工作模式
 

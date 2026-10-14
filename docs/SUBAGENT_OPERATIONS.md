@@ -1,16 +1,20 @@
 # Sub-agent Operations Quick Reference
 
+> [!NOTE] 设施状态（2026-10）
+> 项目正按 `REWRITE_PLAN.md` **从零重写**：`src/`、`.github/workflows/`、`.agents/scripts/`、`.agents/tasks/` 均已在工作区就位。
+> 文中 `⏸` 标注对应**尚未落地**的部分。`tgcloud/` 目录从未存在；Bot 源码为根级 `handlers/`、`schema.js`。
+
 ## Daily Commands
 
-| Action       | Command                                                                                                   |
-| ------------ | --------------------------------------------------------------------------------------------------------- |
-| 查看任务状态 | `cat .agents/tasks/phase-X/N.progress`                                                                    |
-| 领取任务     | `pnpm exec tsx .agents/scripts/task-claim.ts 1.1 --assignee frontend-architect`                           |
-| 更新进度     | `pnpm exec tsx .agents/scripts/task-progress.ts 1.1 50 --msg "Implementing types"`                        |
-| 上报阻塞     | `pnpm exec tsx .agents/scripts/task-progress.ts 1.1 --blocked "Need schema" --help-from content-engineer` |
-| 完成任务     | `pnpm exec tsx .agents/scripts/task-complete.ts 1.1`                                                      |
-| 跑质量门禁   | `pnpm exec tsx .agents/scripts/run-gate.ts frontend-architect`                                            |
-| 回归检查     | `pnpm exec tsx .agents/scripts/check-regression.ts HEAD~1`                                                |
+| Action       | Command                                                                                                     |
+| ------------ | ----------------------------------------------------------------------------------------------------------- |
+| 查看任务状态 | `cat .agents/tasks/phase-X/N.progress` ⏸                                                                    |
+| 领取任务     | `pnpm exec tsx .agents/scripts/task-claim.ts 1.1 --assignee frontend-architect` ⏸                           |
+| 更新进度     | `pnpm exec tsx .agents/scripts/task-progress.ts 1.1 50 --msg "Implementing types"` ⏸                        |
+| 上报阻塞     | `pnpm exec tsx .agents/scripts/task-progress.ts 1.1 --blocked "Need schema" --help-from content-engineer` ⏸ |
+| 完成任务     | `pnpm exec tsx .agents/scripts/task-complete.ts 1.1` ⏸                                                      |
+| 跑质量门禁   | `pnpm exec tsx .agents/scripts/run-gate.ts frontend-architect` ⏸                                            |
+| 回归检查     | `pnpm exec tsx .agents/scripts/check-regression.ts HEAD~1` ⏸                                                |
 
 ## Phase 执行流程
 
@@ -35,9 +39,9 @@ task-progress 1.1 60 --msg "Updated content.ts imports"
 # 5. 遇阻塞立即上报
 task-progress 1.1 --blocked "Zod import error" --help-from quality-dx-guardian
 
-# 6. 完成后跑门禁
+# 6. 完成后跑质量门禁
 task-complete 1.1
-# 自动运行：tsc, oxlint, oxfmt, build + 角色专属门禁
+# 自动运行：tsc, oxlint, oxfmt, build + 角色专属质量门禁
 
 # 7. 全 Phase 完成后验收
 check-regression HEAD~1
@@ -53,7 +57,7 @@ task-progress <id> --blocked "<具体原因>" --help-from <目标角色>
 task-progress <id> <percent> --msg "Resolved: <原因>"
 ```
 
-### 门禁失败
+### 质量门禁失败
 
 ```bash
 task-complete 1.1
@@ -62,11 +66,11 @@ task-complete 1.1
 task-complete 1.1
 ```
 
-### 需要跳过门禁（仅紧急情况）
+### 需要跳过质量门禁（仅紧急情况）
 
 ```bash
 task-complete 1.1 --skip-gate
-# ⚠️ 会记录 gate.failure.json，需补门禁
+# ⚠️ 会记录 gate.failure.json，需补质量门禁
 ```
 
 ### 并行任务冲突（同一文件）
@@ -103,7 +107,7 @@ cat .agents/lifecycle/performance-frontend-architect-2026-10.md
 
 ## 目录结构
 
-```
+```text
 .agents/
 ├── scripts/           # 核心脚本
 │   ├── task-claim.ts
@@ -133,17 +137,17 @@ cat .agents/lifecycle/performance-frontend-architect-2026-10.md
 2. **心跳更新** - 长任务每 30min `task-progress`
 3. **阻塞即报** - 卡住 > 15min 必须 `task-progress --blocked`
 4. **产出物声明** - `task-complete` 前明确输出文件列表
-5. **门禁自检** - `task-complete` 自动跑通用+专属门禁
+5. **质量门禁自检** - `task-complete` 自动跑通用+专属质量门禁
 6. **契约先行** - 接口变更先更新 `.agents/contracts/` 再实现
 
 ## 故障排查
 
-| 现象                     | 原因              | 解决                                      |
-| ------------------------ | ----------------- | ----------------------------------------- |
-| `task-claim` 找不到任务  | 路径错误          | 检查 `.agents/tasks/phase-X/`             |
-| `task-complete` 门禁挂起 | 端口占用/进程残留 | `pkill -f playwright; pkill -f cargo`     |
-| `check-regression` 报错  | git stash 冲突    | 手动 `git stash; git checkout <sha>; ...` |
-| 进度文件不更新           | 权限问题          | `chmod +x .agents/scripts/*.ts`           |
+| 现象                         | 原因              | 解决                                      |
+| ---------------------------- | ----------------- | ----------------------------------------- |
+| `task-claim` 找不到任务      | 路径错误          | 检查 `.agents/tasks/phase-X/` ⏸           |
+| `task-complete` 质量门禁挂起 | 端口占用/进程残留 | `pkill -f playwright; pkill -f cargo`     |
+| `check-regression` 报错      | git stash 冲突    | 手动 `git stash; git checkout <sha>; ...` |
+| 进度文件不更新               | 权限问题          | `chmod +x .agents/scripts/*.ts` ⏸         |
 
 ## 联系人
 
@@ -162,12 +166,15 @@ cat .agents/lifecycle/performance-frontend-architect-2026-10.md
 
 ### Astro 7 Content Collections
 
-- **Glob Loader** (`astro/loaders`): `glob({ pattern: "**/*.{md,mdx}", base: "./src/posts" })` — 支持 `generateId`、`retainBody` (v5.17+)、`pattern` 数组
+- **Glob Loader** (`astro/loaders`): `glob({ pattern: "**/*.{md,mdx}", base: "./src/posts" })` ⏸ — 支持 `generateId`、`retainBody` (v5.17+)、`pattern` 数组
 - **Schema** (`astro/zod`): Zod 4 语法，`z.coerce.date()`、`z.array(z.string())`、`.optional()`、`.nullable()`，自动生成 TS 类型
 - **Markdown 处理器**: **Satteri** (`@astrojs/markdown-satteri`) 替代已弃用的 remark/rehype，提供 `MdastPlugin`/`HastPlugin` 插件系统（heading IDs、外链标记、Mermaid 渲染、日期自动填充、表格对齐）
 - **Render**: `render(entry)` → `{ Content, headings, remarkPluginFrontmatter }`，`Content` 为 Astro 组件
 - **查询**: `getCollection("blog", filter?)`、`getEntry("blog", id)`、`getEntries()`
-- **RSS**: `@astrojs/rss` + `pagesGlobToRssItems(import.meta.glob)` 或 `rssSchema` 强制字段
+- **RSS**: `@astrojs/rss`
+
+* `pagesGlobToRssItems(import.meta.glob)` 或 `rssSchema` 强制字段
+
 - **Sitemap**: `@astrojs/sitemap` v3.7+ 支持 `chunks` 分片、`namespaces` 排除、`ChangeFreqEnum`
 
 ### Astro Integrations & Hooks
@@ -186,7 +193,7 @@ cat .agents/lifecycle/performance-frontend-architect-2026-10.md
 
 ### Middleware
 
-- `src/middleware/index.ts` 导出 `onRequest(context, next)`，可读写 `context.locals` 跨组件共享
+- `src/middleware/index.ts` ⏸ 导出 `onRequest(context, next)`，可读写 `context.locals` 跨组件共享
 - 预渲染时运行，按需渲染时每请求运行，Cookie/Headers 仅 SSR 可用
 
 ### Image Optimization
@@ -204,7 +211,12 @@ cat .agents/lifecycle/performance-frontend-architect-2026-10.md
 
 ### Pagefind
 
-- **模块化 UI**: `Instance({ bundlePath })` + `Input({ containerElement })` + `ResultList({ containerElement, resultTemplate })`
+- **模块化 UI**: `Instance({ bundlePath })`
+
+* `Input({ containerElement })`
+
+* `ResultList({ containerElement, resultTemplate })`
+
 - **声明式**: `<pagefind-config base-url="/" bundle-path="/pagefind/"><pagefind-input><pagefind-results>`
 - **CSS 变量**: `--pagefind-ui-primary`、`--pagefind-ui-background`、`--pagefind-ui-text`、`body.dark` 覆盖
 - **结果模板**: `<script type="text/pagefind-template">` 内部 `{{ meta.title }}`、`{{ url | safeUrl }}`、`{{+ excerpt +}}`

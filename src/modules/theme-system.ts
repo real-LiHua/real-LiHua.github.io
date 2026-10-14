@@ -1,80 +1,46 @@
-// Theme System Module — Public Interface
-// 深度模块：CSS 变量 Token + daisyUI 主题 + prose 适配 + 运行时切换
+// Theme System — deep module.
+//
+// Owns the theme contract shared by the server (no-flash inline script, initial
+// `data-theme`) and the client (`theme-toggle` module). The palette itself lives
+// in `src/styles/theme-tokens.css`; this module only resolves which theme wins.
+// (docs/adr/0005-theme-token-strategy.md)
 
-export type ThemeMode = "light" | "dark";
+import type { ThemeMode } from "./types";
 
-export interface ThemeTokens {
-  // 由 theme-tokens.css 定义，这里仅作类型记录
-  colors: {
-    base100: string;
-    base200: string;
-    base300: string;
-    baseContent: string;
-    primary: string;
-    primaryContent: string;
-    secondary: string;
-    secondaryContent: string;
-    accent: string;
-    accentContent: string;
-    neutral: string;
-    neutralContent: string;
-    info: string;
-    infoContent: string;
-    success: string;
-    successContent: string;
-    warning: string;
-    warningContent: string;
-    error: string;
-    errorContent: string;
-  };
-  radii: {
-    selector: string;
-    field: string;
-    box: string;
-  };
-  sizes: {
-    selector: string;
-    field: string;
-  };
-  border: string;
-  depth: number;
-  noise: number;
-  // @tailwindcss/typography prose 变量
-  prose: {
-    body: string;
-    headings: string;
-    lead: string;
-    links: string;
-    bold: string;
-    counters: string;
-    bullets: string;
-    hr: string;
-    quotes: string;
-    quoteBorders: string;
-    captions: string;
-    code: string;
-    preCode: string;
-    preBg: string;
-    thBorders: string;
-    tdBorders: string;
-  };
-}
+export const DEFAULT_THEME: ThemeMode = "light";
+export const THEME_STORAGE_KEY = "theme";
 
 export interface ThemeSystem {
-  /** 初始化：读取 localStorage + 系统偏好，应用到 document.documentElement */
-  init(): void;
-
-  /** 切换主题并持久化 */
-  toggleTheme(mode: ThemeMode): void;
-
-  /** 获取当前主题 */
-  getCurrentTheme(): ThemeMode;
-
-  /** 监听主题变化 */
-  onThemeChange(callback: (mode: ThemeMode) => void): () => void;
+  /** Decide the active theme from a stored preference + OS preference. */
+  resolve(stored: string | null | undefined, prefersDark?: boolean): ThemeMode;
+  /** Type guard for persisted values. */
+  isThemeMode(value: unknown): value is ThemeMode;
+  /** The opposite theme. */
+  invert(mode: ThemeMode): ThemeMode;
+  /**
+   * Inline, render-blocking script that applies the theme before first paint to avoid a flash of
+   * the wrong theme. Safe to inject as `is:inline`.
+   */
+  inlineScript(): string;
 }
 
-// CSS 变量契约：在 theme-tokens.css 中定义
-// :root / [data-theme="light"] / [data-theme="dark"]
-// 所有 --color-*、--radius-*、--size-*、--border、--depth、--noise、--tw-prose-*
-export const themeSystem: ThemeSystem;
+export const themeSystem: ThemeSystem = {
+  resolve(stored, prefersDark = false) {
+    if (stored === "light" || stored === "dark") {
+      return stored;
+    }
+    return prefersDark ? "dark" : "light";
+  },
+
+  isThemeMode(value): value is ThemeMode {
+    return value === "light" || value === "dark";
+  },
+
+  invert(mode) {
+    return mode === "dark" ? "light" : "dark";
+  },
+
+  inlineScript() {
+    return `(function(){try{var k="${THEME_STORAGE_KEY}",s=localStorage.getItem(k),d=window.matchMedia("(prefers-color-scheme: dark)").matches,t=(s==="light"||s==="dark")?s:(d?"dark":"light");document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme="${DEFAULT_THEME}";}})();`;
+  },
+};

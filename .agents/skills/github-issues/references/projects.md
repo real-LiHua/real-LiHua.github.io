@@ -98,8 +98,7 @@ When a user asks for a progress update on a project (e.g., "Give me a progress u
 
 4. **Build the report** - group items by Status field value and count them. For iteration-based projects, filter to the current iteration first. Present a breakdown like:
 
-   ```
-   Project: Issue Fields (Iteration 42, Mar 2-8)
+   ```Project: Issue Fields (Iteration 42, Mar 2-8)
    15 actionable items:
      🎉 Done:        4 (27%)
      In Review:      3

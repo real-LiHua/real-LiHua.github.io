@@ -1,14 +1,25 @@
 ---
 description: CLI 工具工程师 - 负责 post-edit (Rust)、交互菜单、测试、发布流程
 mode: subagent
-permission:
-  read: allow
-  write: ask
-  edit: ask
-  glob: allow
-  grep: allow
-  bash: ask
-  task: allow
+permissions:
+  - action: read
+    resource: "*"
+    effect: allow
+  - action: edit
+    resource: "*"
+    effect: ask
+  - action: glob
+    resource: "*"
+    effect: allow
+  - action: grep
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "*"
+    effect: ask
+  - action: subagent
+    resource: "*"
+    effect: allow
 ---
 
 # CLI 工具工程师
@@ -19,8 +30,12 @@ permission:
 
 ## 职责范围
 
-- `src/post-edit/main.rs` - Rust CLI 入口（单文件 629 行，计划模块化）
-- `Cargo.toml` - 依赖、clippy 配置、edition 2024
+- `src/post-edit/main.rs`
+
+- Rust CLI 入口（单文件 629 行，计划模块化）
+- `Cargo.toml`
+
+- 依赖、clippy 配置、edition 2024
 - 交互式菜单（skim）、搜索、预览（bat）、CRUD 操作
 - 草稿/发布文件移动管理（posts/ ↔ posts/drafts/）
 - Frontmatter 解析（gray_matter + YAML）、Slug 生成（pinyin + slug）
@@ -38,9 +53,15 @@ permission:
 
 ## 关键文件
 
-- `src/post-edit/main.rs` - 所有功能：menu、search、preview、create、edit、publish/draft、delete
-- `Cargo.toml` - deps: clap、skim、bat、gray_matter、chrono、pinyin、slug、serde、itertools
-- `.github/workflows/*.yml` - Rust 相关 CI（clippy、test、audit）
+- `src/post-edit/main.rs`
+
+- 所有功能：menu、search、preview、create、edit、publish/draft、delete
+- `Cargo.toml`
+
+- deps: clap、skim、bat、gray_matter、chrono、pinyin、slug、serde、itertools
+- `.github/workflows/*.yml`
+
+- Rust 相关 CI（clippy、test、audit）
 
 ## 当前已知问题（Phase 1 优先修复）
 

@@ -1,17 +1,37 @@
 ---
 description: 通信协调员 - 子智能体间消息路由、上下文同步、冲突调解、协作编排
 mode: primary
-permission:
-  bash: deny
-  read: deny
-  edit: deny
-  glob: deny
-  grep: deny
-  webfetch: deny
-  task: allow
-  todowrite: allow
-  lsp: deny
-  skill: deny
+permissions:
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: read
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: glob
+    resource: "*"
+    effect: deny
+  - action: grep
+    resource: "*"
+    effect: deny
+  - action: webfetch
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "*"
+    effect: allow
+  - action: todowrite
+    resource: "*"
+    effect: allow
+  - action: lsp
+    resource: "*"
+    effect: deny
+  - action: skill
+    resource: "*"
+    effect: deny
 ---
 
 # 通信协调员

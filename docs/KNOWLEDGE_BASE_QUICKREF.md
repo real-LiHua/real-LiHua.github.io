@@ -1,20 +1,24 @@
 # AGENTS 知识库快速导航卡
 
+> [!NOTE] 设施状态（2026-10）
+> 项目正按 `REWRITE_PLAN.md` **从零重写**：`src/`、`.github/workflows/`、`.agents/scripts/`、`.agents/tasks/` 均已在工作区就位。
+> 文中 `⏸` 标注对应**尚未落地**的部分。`tgcloud/` 目录从未存在；Bot 源码为根级 `handlers/`、`schema.js`。
+
 ## 三层金字塔
 
-```
+```text
 L1: AGENTS.md          ← 始终加载 (步骤 + 指针)
     ├─ "模块边界、数据流" → docs/adr/0001-functional-architecture.md
     ├─ "安全基线、威胁模型" → docs/SECURITY_WHITEPAPER.md
     ├─ "子智能体命令、故障排查" → docs/SUBAGENT_OPERATIONS.md
     ├─ "草稿隔离、Git submodule" → docs/adr/0002-draft-isolation-submodule.md
-    ├─ "角色/生命周期/内控" → docs/adr/0003-subagent-responsibilities-controls.md
-    └─ "知识库架构/指针规范" → docs/adr/0004-agents-knowledge-base-architecture.md
+    ├─ "角色/生命周期/内控" → docs/adr/0004-subagent-coordination.md
+    └─ "知识库架构/指针规范" → docs/adr/0008-agents-knowledge-base-architecture.md
 
 L2: 领域文档          ← 按需加载
-    CONTEXT.md              # 15 术语单一源头
+    CONTEXT.md              # 49 术语单一源头
     REFACTOR_PLAN.md        # 8 阶段重构计划
-    docs/adr/0001..0004.md  # 架构决策记录
+    docs/adr/0001-0011      # 架构决策记录
     docs/SECURITY_WHITEPAPER.md
     docs/SUBAGENT_OPERATIONS.md
     docs/architecture-map.md
@@ -26,6 +30,8 @@ L3: 环境/代码          ← 直接查看
 ```
 
 ## 核心术语 (CONTEXT.md)
+
+> 速查摘要：术语单一来源与完整定义以 `CONTEXT.md` 为准。
 
 | 术语                   | 含义                                                                                                                                                               |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -39,7 +45,7 @@ L3: 环境/代码          ← 直接查看
 | **BuildPipeline**      | 统一构建后处理：Pagefind → lychee → vnu → Mermaid → Watermark                                                                                                      |
 | **ThemeSystem**        | CSS Token + daisyUI 主题 + prose 适配 + 运行时切换                                                                                                                 |
 | **ClientRuntime**      | 统一客户端入口 + 9 ClientModule 注册表 + 生命周期分发                                                                                                              |
-| **TelegramAuth**       | 文章级访问控制：前端墙 + JWT 轮询 + Bot 深度链接                                                                                                                   |
+| **TelegramAuth**       | 文章级访问控制：认证墙 UI + 独立保护路由 GET /api/posts/[id]/protected + JWT 轮询 + Bot 深度链接                                                                   |
 | **Deep Module**        | 小接口大实现，隐藏复杂度 (Ousterhout)                                                                                                                              |
 | **Seam**               | 模块接口位置 (Feathers 术语)                                                                                                                                       |
 | **AstroIntegration**   | 通过 `astro:config:setup` 等钩子扩展构建，接收 `logger`                                                                                                            |
@@ -61,21 +67,21 @@ L3: 环境/代码          ← 直接查看
 | **Satteri**            | 替代 remark/rehype 的 Markdown 处理器（`@astrojs/markdown-satteri`），`MdastPlugin`/`HastPlugin` 插件系统，构建时 AST 转换：heading IDs、外链、Mermaid、日期、表格 |
 | **tgcloud**            | Telegram 的无服务器平台，运行在 V8 隔离环境中，类似 wrangler/vercel + drizzle-kit                                                                                  |
 | **tgcloud SDK**        | 提供 `db` (数据库), `api` (Bot API), `fetch` (HTTP), `console` (日志)                                                                                              |
-| **BotApiError**        | tgcloud SDK 中 Bot API 调用失败时抛出的错误，含 `.code` `.description` `.method` `.parameters`                                                                      |
+| **BotApiError**        | tgcloud SDK 中 Bot API 调用失败时抛出的错误，含 `.code` `.description` `.method` `.parameters`                                                                     |
 | **EndpointError**      | 拒绝 Mini App 调用的错误，抛出后返回 400 状态码                                                                                                                    |
 | **InputFile**          | 文件上传对象，`new InputFile(bytes, filename, { type })`，用于 `api.sendDocument` 等                                                                               |
-| **TelegramAuth (Bot)** | tgcloud Bot 认证：通过深度链接验证群成员身份，签发 JWT (15min)                                                                                                     |
+| **TelegramAuth (Bot)** | tgcloud Bot 认证：深度链接验证群成员身份，签发 JWT (15min) + 受保护路由 GET /api/posts/[id]/protected 返回内容                                                     |
 
 ## 角色速查
 
-| 角色                        | 必读 L2                                     | 专属门禁                  |
-| --------------------------- | ------------------------------------------- | ------------------------- |
-| `frontend-architect`        | 0001, 0005, 0006, SUBAGENT_OPERATIONS       | Playwright Chromium       |
-| `content-engineer`          | 0001, 0002, REFACTOR_PLAN                   | 内容管道+RSS验证          |
-| `build-deploy-engineer`     | 0001, 0003, SECURITY_WHITEPAPER             | lychee+vnu                |
-| `cli-tool-engineer`         | 0003, REFACTOR_PLAN                         | cargo test/clippy/audit   |
-| `search-discovery-engineer` | 0001, 0006, architecture-map                | Pagefind索引存在          |
-| `quality-dx-guardian`       | 全部 ADR, SUBAGENT_OPERATIONS               | 全套Playwright            |
+| 角色                        | 必读 L2                                     | 专属质量门禁            |
+| --------------------------- | ------------------------------------------- | ----------------------- |
+| `frontend-architect`        | 0001, 0005, 0006, 0007, SUBAGENT_OPERATIONS | Playwright Chromium     |
+| `content-engineer`          | 0001, 0002, 0004, REFACTOR_PLAN             | 内容管道+RSS验证        |
+| `build-deploy-engineer`     | 0001, 0003, 0004, SECURITY_WHITEPAPER       | lychee+vnu              |
+| `cli-tool-engineer`         | 0003, 0004, REFACTOR_PLAN                   | cargo test/clippy/audit |
+| `search-discovery-engineer` | 0001, 0006, 0007, architecture-map          | Pagefind索引存在        |
+| `quality-dx-guardian`       | 全部 ADR, SUBAGENT_OPERATIONS               | 全套Playwright          |
 
 ## 常用命令
 
@@ -85,22 +91,18 @@ pnpm exec tsx .agents/scripts/task-claim.ts 1.1 --assignee content-engineer
 pnpm exec tsx .agents/scripts/task-progress.ts 1.1 50 --msg "Exported types"
 pnpm exec tsx .agents/scripts/task-progress.ts 1.1 --blocked "Need schema" --help-from quality-dx-guardian
 pnpm exec tsx .agents/scripts/task-complete.ts 1.1
-
 # 质量门禁
 pnpm exec tsx .agents/scripts/run-gate.ts frontend-architect
 pnpm exec tsx .agents/scripts/check-regression.ts HEAD~1
-
 # 开发
 pnpm dev
 pnpm check
 pnpm build
-pnpm playwright test
-
-# tgcloud Telegram Bot
+pnpm exec playwright test  # # tgcloud Telegram Bot
 pnpm status           # 检查本地 vs 云端状态
 pnpm deploy           # 部署到 tgcloud
 pnpm exec tgcloud migrate   # 应用数据库架构变更
-pnpm run <module>           # 本地运行 handler/endpoint (tgcloud run)
+pnpm exec tgcloud run <module>   # 本地运行 handler/endpoint (tgcloud run)
 pnpm exec tgcloud webhook   # 检查/同步 bot webhook
 ```
 
@@ -127,9 +129,8 @@ pnpm exec tgcloud webhook   # 检查/同步 bot webhook
 
 ```bash
 pnpm check && pnpm build
-pnpm playwright test --project=chromium  # 角色专属
+pnpm exec playwright test --project=chromium  # 角色专属
 ```
-````
 
 ## Outputs
 
@@ -140,16 +141,15 @@ pnpm playwright test --project=chromium  # 角色专属
 ```json
 { "exports": {}, "contracts": {}, "notes": "" }
 ```
-
-```
+````
 
 ## 指针写法对照
 
-| 场景 | ❌ 差 | ✅ 好 |
-|------|------|------|
-| 安全审查 | "详见白皮书" | "CSP策略、Telegram认证、构建管线安全 → `docs/SECURITY_WHITEPAPER.md`" |
-| 模块边界 | "看架构文档" | "C4模型、深度模块边界、数据流 → `docs/adr/0001-functional-architecture.md`" |
-| 子智能体操作 | "看操作手册" | "任务领取/进度/阻塞/门禁命令 → `docs/SUBAGENT_OPERATIONS.md`" |
+| 场景         | ❌ 差        | ✅ 好                                                                       |
+| ------------ | ------------ | --------------------------------------------------------------------------- |
+| 安全审查     | "详见白皮书" | "CSP策略、Telegram认证、构建管线安全 → `docs/SECURITY_WHITEPAPER.md`"       |
+| 模块边界     | "看架构文档" | "C4模型、深度模块边界、数据流 → `docs/adr/0001-functional-architecture.md`" |
+| 子智能体操作 | "看操作手册" | "任务领取/进度/阻塞/质量门禁命令 → `docs/SUBAGENT_OPERATIONS.md`"           |
 
 ## 导向词
 
@@ -162,7 +162,7 @@ pnpm playwright test --project=chromium  # 角色专属
 
 ## 目录速查
 
-```
+```text
 
 .agents/
 ├── scripts/task-claim.ts, task-progress.ts, task-complete.ts, run-gate.ts, check-regression.ts
@@ -183,23 +183,24 @@ src/modules/
 ├── telegram-auth.ts
 └── ui-components.ts
 
-````
+```
 
 ## 维护节奏
 
-| 动作 | 频率 | 责任 |
-|------|------|------|
+| 动作         | 频率       | 责任                |
+| ------------ | ---------- | ------------------- |
 | 术语同步检查 | Phase 结束 | quality-dx-guardian |
-| ADR 过期审查 | 季度 | 全员 |
-| 指针失效扫描 | 月度 | quality-dx-guardian |
-| 任务卡归档 | Phase 完成 | 对应角色 |
-| 健康度评估 | 季度 | 全员 |
+| ADR 过期审查 | 季度       | 全员                |
+| 指针失效扫描 | 月度       | quality-dx-guardian |
+| 任务卡归档   | Phase 完成 | 对应角色            |
+| 健康度评估   | 季度       | 全员                |
 
 ---
 
 ## 常用 API 模式速查
 
 ### Content Collections
+
 ```typescript
 // src/content.config.ts
 import { defineCollection } from "astro:content";
@@ -220,7 +221,7 @@ export const collections = { blog };
 import { getCollection, getEntry, render } from "astro:content";
 const posts = await getCollection("blog", ({ id }) => !id.startsWith("drafts/"));
 const { Content, headings } = await render(post);
-````
+```
 
 ### View Transitions
 
@@ -311,48 +312,51 @@ export default defineConfig({
 ## tgcloud SDK 常用模式
 
 ### Handler (消息处理)
+
 ```javascript
 // handlers/message.js
-import { api } from 'sdk';
+import { api } from "sdk";
 
 export default async function (message, ctx) {
   // message: Telegram Message 对象
   // ctx.update: 完整的 Update 对象
   await api.sendMessage({
     chat_id: message.chat.id,
-    text: `You said: ${message.text ?? '(no text)'}`,
+    text: `You said: ${message.text ?? "(no text)"}`,
   });
 }
 ```
 
 ### Endpoint (Mini App 调用)
+
 ```javascript
 // endpoints/getProfile.js
-import { db, EndpointError } from 'sdk';
-import { eq } from 'sdk/db';
-import { profiles } from '../schema.js';
+import { db, EndpointError } from "sdk";
+import { eq } from "sdk/db";
+import { profiles } from "../schema.js";
 
 export default async function (input, ctx) {
   // input: Mini App 传入的 JSON 对象
   // ctx.initData: 验证过的 Telegram WebApp initData (含 user 信息)
   const user = ctx.initData.user;
   const row = await db.select().from(profiles).where(eq(profiles.userId, user.id)).get();
-  if (!row) throw new EndpointError('Profile not found', { code: 'NOT_FOUND' });
+  if (!row) throw new EndpointError("Profile not found", { code: "NOT_FOUND" });
   return row; // 自动包装为 { ok: true, result: row }
 }
 ```
 
 ### Database (db) 查询
+
 ```javascript
-import { db, eq, sql } from 'sdk/db';
-import { users, posts } from '../schema.js';
+import { db, eq, sql } from "sdk/db";
+import { users, posts } from "../schema.js";
 
 // 查询
 const user = await db.select().from(users).where(eq(users.tgId, 12345)).get();
 const posts = await db.select().from(posts).where(eq(posts.userId, user.id)).all();
 
 // 插入
-await db.insert(posts).values({ userId: user.id, text: 'Hello' }).run();
+await db.insert(posts).values({ userId: user.id, text: "Hello" }).run();
 
 // 更新
 await db.update(posts).set({ done: true }).where(eq(posts.id, 1)).run();
@@ -365,14 +369,15 @@ await db.run(sql`UPDATE posts SET done = 1 WHERE id = ${1}`);
 ```
 
 ### Bot API (api)
+
 ```javascript
-import { api, BotApiError } from 'sdk';
+import { api, BotApiError } from "sdk";
 
 // 发送消息
-await api.sendMessage({ chat_id: id, text: 'Hello!' });
+await api.sendMessage({ chat_id: id, text: "Hello!" });
 
 // 编辑消息
-await api.editMessageText({ chat_id, message_id, text: 'Updated' });
+await api.editMessageText({ chat_id, message_id, text: "Updated" });
 
 // 错误处理
 try {
@@ -383,36 +388,42 @@ try {
 ```
 
 ### HTTP (fetch)
-```javascript
-import { fetch } from 'sdk';
 
-const res = await fetch('https://api.example.com/users', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ name: 'Alice' }),
+```javascript
+import { fetch } from "sdk";
+
+const res = await fetch("https://api.example.com/users", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ name: "Alice" }),
 });
 if (!res.ok) throw new Error(res.statusText);
 const data = await res.json();
 ```
 
 ### 文件上传
+
 ```javascript
-import { InputFile } from 'sdk';
+import { InputFile } from "sdk";
 
 await api.sendDocument({
   chat_id,
-  document: new InputFile(bytes, 'a.pdf', { type: 'application/pdf' })
+  document: new InputFile(bytes, "a.pdf", { type: "application/pdf" }),
 });
 ```
 
 ### 文件下载
+
 ```javascript
 const bytes = await api.getFileContent(file_id); // Uint8Array
 const stream = await api.getFileStream(file_id);
-for await (const chunk of stream.body) { /* Uint8Array */ }
+for await (const chunk of stream.body) {
+  /* Uint8Array */
+}
 ```
 
 ### 本地测试
+
 ```bash
 # 运行 handler/endpoint
 pnpm exec tgcloud run handlers/message '{"chat":{"id":1},"text":"hello"}'
@@ -424,6 +435,7 @@ pnpm exec tgcloud webhook sync
 ```
 
 ### 部署与迁移
+
 ```bash
 pnpm exec tgcloud push      # 部署代码
 pnpm exec tgcloud migrate   # 应用 schema 变更

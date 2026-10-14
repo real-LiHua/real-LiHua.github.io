@@ -1,204 +1,286 @@
-# Refactor Plan: 博客架构现代化与模块化重构
+# 重构实施计划
 
-## Current State
+> [!NOTE] 设施状态（2026-10）
+> 项目正按 `REWRITE_PLAN.md` **从零重写**：`src/`、`.github/workflows/`、`.agents/scripts/`、`.agents/tasks/` 均已在工作区就位。
+> 文中 `⏸` 标注对应**尚未落地**的部分。`tgcloud/` 目录从未存在；Bot 源码为根级 `handlers/`、`schema.js`。
 
-项目是一个基于 **Astro 7 + MDX + Content Collections** 的个人博客，部署到 Cloudflare Workers / Codeberg / GitHub Pages / IPFS 四平台。核心技术栈冻结：
+## 概览
 
-- Astro 7 (Node adapter, standalone)
-- Tailwind CSS 4 + daisyUI 5 + @tailwindcss/typography
-- Pagefind 零配置静态搜索
-- oxlint + oxfmt (lint-staged + Husky)
-- Rust CLI `post-edit` 管理文章
-- GitHub Actions 4 并行部署任务
-
-**当前痛点**：
-
-1. **集成分散**：4 个自定义 Astro 集成 (`build-hooks`, `satteri-config`, `watermark`, `mermaid-compile-time`) 各自为政，`astro:build:done` 钩子重复遍历文件
-2. **组件耦合**：`Navigation.astro` 内联路由逻辑、移动端/桌面端重复代码；`PostCard` 两种变体逻辑混合
-3. **主题变量冗余**：`global.css` 光/暗主题各 35 行 CSS 变量重复，`prose` 变量分离在 `:root` 与 `[data-theme="dark"]`
-4. **Pagefind 硬编码**：`BaseLayout` 直接引入 Pagefind UI 脚本/样式，难以测试/替换
-5. **客户端脚本分散**：9 个独立脚本，无统一入口，`astro:page-load` 监听分散
-6. **类型安全缺口**：`post.data` 访问多用 `as unknown as`，`telegramAuth` 类型未导出复用
-7. **构建钩子副作用**：`watermark`/`mermaid` 直接读写 `dist/client`，无中间层抽象
-
-## Target State
-
-1. **统一构建管线**：单一 `build-pipeline` 集成，按阶段执行（Pagefind → 链接检查 → HTML 验证 → Mermaid 渲染 → 水印注入），复用文件遍历
-2. **组件复合化**：`Navigation` 拆分为 `Navbar` + `NavLinks` + `MobileMenu` 复合组件；`PostCard` 变体提取为 `PostCardGrid` / `PostCardList`
-3. **主题 Token 化**：CSS 变量集中在 `theme-tokens.css`，通过 `@plugin "daisyui/theme"` 仅引用 token，`prose` 变量同步纳入
-4. **Pagefind 组件化**：`<PagefindSearch />` 封装 UI/配置/样式，`BaseLayout` 仅 `<slot name="search" />`
-5. **客户端模块化**：`scripts/client-entry.ts` 统一注册，生命周期事件集中分发
-6. **类型完备**：导出 `PostFrontmatter`、`TelegramAuthConfig` 等类型，消除 `as unknown as`
-7. **内容工具类型安全**：`getPublishedPosts` 返回 `CollectionEntry<"blog">[]` 精确类型，`render` 结果类型化
+基于 `docs/adr/0001-functional-architecture.md` 的深度模块架构，将现有浅模块代码重构为 8 个 Phase。每 Phase 独立可回滚，`git tag phase-{1..8}-done` 标记。
 
 ---
 
-## Affected Files
+## Phase 依赖拓扑
 
-| File                                       | Change Type | Dependencies                                    |
-| ------------------------------------------ | ----------- | ----------------------------------------------- |
-| `src/integrations/build-pipeline.ts`       | create      | blocks all integration refactors                |
-| `src/integrations/build-hooks.ts`          | delete      | blocked by build-pipeline                       |
-| `src/integrations/satteri-config.ts`       | modify      | blocked by build-pipeline (markdown config)     |
-| `src/integrations/watermark.ts`            | modify      | blocked by build-pipeline (file IO abstraction) |
-| `src/integrations/mermaid-compile-time.ts` | modify      | blocked by build-pipeline (file IO abstraction) |
-| `src/components/Navigation.astro`          | delete      | blocks navbar/\* refactors                      |
-| `src/components/navbar/Start.astro`        | modify      | blocked by Navigation delete                    |
-| `src/components/navbar/Center.astro`       | create      | blocked by Navigation delete                    |
-| `src/components/navbar/End.astro`          | modify      | blocked by Navigation delete                    |
-| `src/components/navbar/MobileMenu.astro`   | create      | blocked by Navigation delete                    |
-| `src/components/Navbar.astro`              | create      | blocks Header refactor                          |
-| `src/components/Header.astro`              | modify      | blocked by Navbar create                        |
-| `src/components/common/PostCard.astro`     | delete      | blocks PostCardGrid/List create                 |
-| `src/components/common/PostCardGrid.astro` | create      | blocked by PostCard delete                      |
-| `src/components/common/PostCardList.astro` | create      | blocked by PostCard delete                      |
-| `src/components/common/Tag.astro`          | keep        | —                                               |
-| `src/components/PagefindSearch.astro`      | create      | blocks BaseLayout modify                        |
-| `src/layouts/BaseLayout.astro`             | modify      | blocked by PagefindSearch create                |
-| `src/styles/global.css`                    | modify      | blocked by theme-tokens.css create              |
-| `src/styles/theme-tokens.css`              | create      | blocks global.css modify                        |
-| `src/scripts/client-entry.ts`              | create      | blocks all script refactors                     |
-| `src/scripts/theme-toggle.ts`              | modify      | blocked by client-entry                         |
-| `src/scripts/toc.ts`                       | modify      | blocked by client-entry                         |
-| `src/scripts/reading-progress.ts`          | modify      | blocked by client-entry                         |
-| `src/scripts/scroll-reveal.ts`             | modify      | blocked by client-entry                         |
-| `src/scripts/tilt-card.ts`                 | modify      | blocked by client-entry                         |
-| `src/scripts/code-copy.ts`                 | modify      | blocked by client-entry                         |
-| `src/scripts/telegram-auth.ts`             | modify      | blocked by client-entry                         |
-| `src/scripts/gravatar-fallback.ts`         | modify      | blocked by client-entry                         |
-| `src/utils/content.ts`                     | modify      | blocks pages/posts/[id].astro                   |
-| `src/utils/date.ts`                        | keep        | —                                               |
-| `src/content.config.ts`                    | modify      | exports types                                   |
-| `src/pages/posts/index.astro`              | modify      | blocked by PostCardGrid/List                    |
-| `src/pages/posts/[id].astro`               | modify      | blocked by content.ts types, client-entry       |
-| `src/pages/tags/[tag].astro`               | modify      | blocked by PostCardGrid/List                    |
-| `astro.config.ts`                          | modify      | replace integrations                            |
-| `package.json`                             | modify      | scripts/client-entry build step                 |
+```mermaid
+graph TD
+    Phase1[Phase 1: Types & Interfaces] --> Phase2
+    Phase2[Phase 2: Build Pipeline] --> Phase3
+    Phase2 --> Phase4
+    Phase2 --> Phase5
+    Phase3[Phase 3: Components] --> Phase7
+    Phase4[Phase 4: Theme Tokens] --> Phase7
+    Phase5[Phase 5: Search Component] --> Phase7
+    Phase6[Phase 6: Client Runtime] --> Phase7
+    Phase7[Phase 7: Content & Pages] --> Phase8
+    Phase8[Phase 8: Cleanup & Docs]
 
----
+    %% Phase 1 parallel group
+    P1.1[1.1 Export types] --> P1.4
+    P1.2[1.2 Content util types] --> P1.4
+    P1.3[1.3 Page types update] --> P1.4
+    P1.4[1.4 Verify: pnpm check]
 
-## Execution Plan
+    %% Phase 2 serial (shared dist/client)
+    P2.1[2.1 BuildPipeline impl] --> P2.2
+    P2.2[2.2 Watermark refactor] --> P2.3
+    P2.3[2.3 Mermaid refactor] --> P2.4
+    P2.4[2.4 Satteri config] --> P2.5
+    P2.5[2.5 Astro config replace] --> P2.6
+    P2.6[2.6 Verify: pnpm build]
 
-### Phase 1: Types and Interfaces
+    %% Phase 3 components
+    P3.1[3.1 MobileMenu] --> P3.4
+    P3.2[3.2 Center] --> P3.4
+    P3.3[3.3 Start/End refactor] --> P3.4
+    P3.4[3.4 Navbar composite] --> P3.5
+    P3.5[3.5 Header simplify] --> P3.6
+    P3.6[3.6 Delete Navigation] --> P3.7
+    P3.7[3.7 PostCardGrid/List] --> P3.8
+    P3.8[3.8 Delete PostCard] --> P3.9
+    P3.9[3.9 Pages update] --> P3.10
+    P3.10[3.10 Verify: visual regression]
 
-- [ ] **1.1** 在 `src/content.config.ts` 导出 `PostFrontmatter`、`TelegramAuthConfig`、`BlogCollection` 类型
-  - `PostFrontmatter = z.infer<typeof blog.schema>`
-  - `TelegramAuthConfig = z.infer<typeof telegramAuthSchema>`
-  - `BlogCollection = CollectionEntry<"blog">`
-- [ ] **1.2** 在 `src/utils/content.ts` 引入并导出上述类型，`getPublishedPosts` 返回类型改为 `Promise<BlogCollection[]>`
-- [ ] **1.3** 在 `src/pages/posts/[id].astro` 使用导入类型替换 `as unknown as` 与内联推断
-- [ ] **Verify**: `pnpm check` 通过，无 `any` 泄漏
+    %% Phase 4 theme
+    P4.1[4.1 theme-tokens.css] --> P4.2
+    P4.2[4.2 global.css refactor] --> P4.3
+    P4.3[4.3 daisyUI plugin adjust] --> P4.4
+    P4.4[4.4 Verify: theme switch]
 
-### Phase 2: 统一构建管线
+    %% Phase 5 search
+    P5.1[5.1 PagefindSearch component] --> P5.2
+    P5.2[5.2 BaseLayout slot] --> P5.3
+    P5.3[5.3 Pages inject search] --> P5.4
+    P5.4[5.4 Verify: search works]
 
-- [ ] **2.1** 创建 `src/integrations/build-pipeline.ts`：
-  - 单一 `astro:build:done` 钩子
-  - 内部阶段数组：`[pagefind, lychee, vnu, mermaid, watermark]`
-  - 复用 `findHtmlFiles` 工具（从 watermark/mermaid 提取到 `src/integrations/utils/file-utils.ts`）
-  - 每阶段独立 `try/catch`，失败不阻断后续，汇总错误最后抛出
-- [ ] **2.2** 重构 `watermark.ts`：导出纯函数 `applyWatermarks(htmlFiles, siteUrl)`，不再是集成
-- [ ] **2.3** 重构 `mermaid-compile-time.ts`：导出纯函数 `renderMermaidInFiles(htmlFiles)`，不再是集成
-- [ ] **2.4** `satteri-config.ts` 保留 `astro:config:setup`（markdown 处理器配置），移出 build 阶段逻辑
-- [ ] **2.5** `astro.config.ts` 替换 `integrations` 数组：移除 4 个旧集成，添加 `buildPipelineIntegration()`
-- [ ] **Verify**: `pnpm build` 成功，`dist/client` 包含 pagefind 索引、mermaid SVG、水印 HTML，lychee/vnu 无报错
+    %% Phase 6 client runtime
+    P6.1[6.1 client-entry.ts] --> P6.2
+    P6.2[6.2 9 modules refactor] --> P6.3
+    P6.3[6.3 Lifecycle dispatch] --> P6.4
+    P6.4[6.4 BaseLayout entry] --> P6.5
+    P6.5[6.5 Verify: all interactions]
 
-### Phase 3: 组件复合化
+    %% Phase 7 content
+    P7.1[7.1 RenderedPost type] --> P7.2
+    P7.2[7.2 Post page types] --> P7.3
+    P7.3[7.3 Post list simplify] --> P7.4
+    P7.4[7.4 Verify: pnpm check + playwright]
 
-- [ ] **3.1** 创建 `src/components/navbar/MobileMenu.astro`（从 Navigation 提取移动端下拉菜单）
-- [ ] **3.2** 创建 `src/components/navbar/Center.astro`（桌面端导航链接，接收 `links: NavLink[]` props）
-- [ ] **3.3** 重构 `src/components/navbar/Start.astro`、`End.astro` 为纯展示组件
-- [ ] **3.4** 创建 `src/components/Navbar.astro` 复合组件：
-  - `<Navbar><Navbar.Start /><Navbar.Center /><Navbar.End /></Navbar>`
-  - 内部处理响应式断点、移动端状态
-- [ ] **3.5** 简化 `Header.astro`：仅 `<header><Navbar /></header>`
-- [ ] **3.6** 删除 `Navigation.astro`
-- [ ] **3.7** 创建 `PostCardGrid.astro`、`PostCardList.astro`（从 PostCard 拆分 variant 逻辑）
-- [ ] **3.8** 删除 `PostCard.astro`
-- [ ] **3.9** 更新 `src/pages/posts/index.astro`、`src/pages/tags/[tag].astro` 引入新组件
-- [ ] **Verify**: `pnpm dev` 视觉回归无差异，响应式断点正常
+    %% Phase 8 cleanup
+    P8.1[8.1 Dead code removal] --> P8.2
+    P8.2[8.2 AGENTS.md update] --> P8.3
+    P8.3[8.3 Full CI simulation]
+```
 
-### Phase 4: 主题 Token 化
-
-- [ ] **4.1** 创建 `src/styles/theme-tokens.css`：
-  - 定义 `:root` 与 `[data-theme="dark"]` 共享的 `--color-*`、`--radius-*`、`--size-*`、`--border`、`--depth`、`--noise`
-  - 将 `prose` 变量（`--tw-prose-*`）纳入同一文件，按主题分组
-- [ ] **4.2** `global.css` `@import "./theme-tokens.css"`，移除重复变量块
-- [ ] **4.3** 调整 daisyUI `@plugin "daisyui/theme"` 仅引用 token 变量（或改用 `@theme` 语法，Tailwind CSS 4 支持）
-- [ ] **Verify**: `pnpm build`，手动切换主题、缩放、减弱动态偏好均正常
-
-### Phase 5: Pagefind 组件化
-
-- [ ] **5.1** 创建 `src/components/PagefindSearch.astro`：
-  - 接收 `bundlePath`、`placeholder`、`theme` props
-  - 内联 `<pagefind-config>`、`<pagefind-input>`、`<pagefind-results>` 或模块化 UI
-  - 样式通过 CSS 变量（`--pagefind-ui-*`）适配 daisyUI 主题
-- [ ] **5.2** `BaseLayout.astro` 移除硬编码 Pagefind 脚本/样式，改为 `<slot name="search" />`
-- [ ] **5.3** `src/pages/posts/index.astro`、`src/pages/posts/[id].astro` 等需要搜索的页面传入 `<PagefindSearch slot="search" />`
-- [ ] **Verify**: 搜索功能正常，主题切换后 UI 颜色同步
-
-### Phase 6: 客户端模块化
-
-- [ ] **6.1** 创建 `src/scripts/client-entry.ts`：
-  - 统一监听 `astro:page-load`、`astro:after-swap`
-  - 导出 `registerClientModule(name, initFn)` 注册表
-  - 每个原脚本改为导出 `init(context)` 函数，接收 `{ document, window, routerEvents }`
-- [ ] **6.2** 重构 9 个脚本为模块：
-  - `theme-toggle` → `initThemeToggle(ctx)`
-  - `toc` → `initTOC(ctx)`
-  - `reading-progress` → `initReadingProgress(ctx)`
-  - `scroll-reveal` → `initScrollReveal(ctx)`
-  - `tilt-card` → `initTiltCard(ctx)`
-  - `code-copy` → `initCodeCopy(ctx)`
-  - `telegram-auth` → `initTelegramAuth(ctx)`
-  - `gravatar-fallback` → `initGravatarFallback(ctx)`
-  - `verify-watermark` 保留为独立 CLI 脚本
-- [ ] **6.3** `client-entry.ts` 在 `astro:page-load` 依次调用所有 `initFn`
-- [ ] **6.4** `BaseLayout` 仅 `<script><script>` 引入 `client-entry.ts`（或用 `is:inline` 注册）
-- [ ] **Verify**: 所有交互功能正常，控制台无重复注册警告
-
-### Phase 7: 内容工具与页面类型安全
-
-- [ ] **7.1** `src/utils/content.ts` 补充 `render` 结果类型：`RenderedPost = Awaited<ReturnType<typeof render>>`
-- [ ] **7.2** `src/pages/posts/[id].astro` 使用类型化 `Content`、`headings`、`toc`
-- [ ] **7.3** `src/pages/posts/index.astro` 简化映射逻辑，直接用 `post.data`（已含 `remarkPluginFrontmatter`）
-- [ ] **Verify**: `pnpm check` 通过，`pnpm playwright test` 通过
-
-### Phase 8: 清理与文档
-
-- [ ] **8.1** 删除未使用的导入、废弃文件
-- [ ] **8.2** 更新 `AGENTS.md` 反映新架构（集成、组件、脚本结构）
-- [ ] **8.3** 运行完整 CI 模拟：`pnpm check && pnpm build && pnpm playwright test`
+**并行度**: Max 4 (Phase 1/3/4/5/6 可并行不同组)
+**关键路径**: P1.1→P1.4 → P2.1→P2.6 → P3.1→P3.10 → P7.1→P7.4 → P8.3
+**预估**: 4-5 周（单人串行约 80h，并行可压缩至 40h）
 
 ---
 
-## Rollback Plan
+## Phase 详细任务
 
-If something fails:
+### Phase 1: Types & Interfaces (Week 1)
 
-1. **Phase 2 (构建管线) 失败**：
-   - `git restore astro.config.ts src/integrations/`
-   - 恢复 4 个原集成，`pnpm build` 验证
-2. **Phase 3/5/6 (组件/脚本) 失败**：
-   - `git restore src/components/ src/layouts/BaseLayout.astro src/scripts/`
-   - `pnpm dev` 验证视觉/交互
-3. **Phase 4 (主题) 失败**：
-   - `git restore src/styles/global.css`
-   - 删除 `theme-tokens.css`
-4. **整体回滚**：`git reset --hard HEAD~1` 回到重构前提交
+**目标**: 建立类型系统单一源头，消除 `any`、`as unknown as`
 
----
+| Task                   | Assignee            | 产出                                                                                                        | 验收                  |
+| ---------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------- |
+| 1.1 Export types       | content-engineer    | `src/modules/types.ts` ⏸ 统一导出 `PostFrontmatter`、`BlogCollection`、`TelegramAuthConfig`、`RenderedPost` | `pnpm check` 0 errors |
+| 1.2 Content util types | content-engineer    | `src/utils/content.ts` ⏸ 返回类型显式化，消除隐式推导                                                       | 无隐式 any            |
+| 1.3 Page types update  | frontend-architect  | `src/pages/*.astro` ⏸ 导入 types 模块，移除本地类型定义                                                     | 类型统一              |
+| 1.4 Verify             | quality-dx-guardian | `pnpm check && pnpm exec tsc -b` 全绿                                                                       | CI 绿灯               |
 
-## Risks
-
-| Risk                                                    | Likelihood | Impact | Mitigation                                          |
-| ------------------------------------------------------- | ---------- | ------ | --------------------------------------------------- |
-| `build-pipeline` 并行阶段竞态                           | 中         | 高     | 每阶段串行执行，文件锁或临时目录隔离                |
-| daisyUI 5 `@plugin` 语法与 Tailwind CSS 4 `@theme` 冲突 | 低         | 中     | 优先用官方文档验证的 `@plugin "daisyui/theme"` 写法 |
-| Pagefind 模块化 UI 与现有 `pagefind-modal` 冲突         | 低         | 中     | 保留 `<pagefind-modal>` 仅作备用，主 UI 用组件化    |
-| 客户端模块注册顺序导致依赖失败                          | 中         | 中     | `client-entry` 显式定义加载顺序，必要时 `await`     |
-| Rust CLI `post-edit` 依赖旧 frontmatter 字段            | 低         | 低     | 重构不改字段名，仅类型导出                          |
-| `astro:build:done` 单钩子超时                           | 低         | 高     | 分阶段设置超时，日志分级                            |
+**里程碑**: `git tag phase-1-done`
 
 ---
 
-**Shall I proceed with Phase 1?**
+### Phase 2: Build Pipeline (Week 2)
+
+**目标**: 统一 5 个构建阶段，复用 FileWalker，错误聚合
+
+| Task                     | Assignee              | 产出                                                                            | 验收       |
+| ------------------------ | --------------------- | ------------------------------------------------------------------------------- | ---------- |
+| 2.1 BuildPipeline impl   | build-deploy-engineer | `src/modules/build-pipeline.ts` ⏸ 接口 + 实现，`execute(distDir)` 串行跑 5 阶段 | 单入口     |
+| 2.2 Watermark refactor   | build-deploy-engineer | `src/integrations/watermark.ts` ⏸ 作为 Stage 注册，仅处理原创文章               | 仅原创注入 |
+| 2.3 Mermaid refactor     | build-deploy-engineer | `src/integrations/mermaid-compile-time.ts` ⏸ 作为 Stage，复用 FileWalker        | 无闪烁     |
+| 2.4 Satteri config       | content-engineer      | `src/integrations/satteri-config.ts` ⏸ 整合到 build hooks                       | 无重复处理 |
+| 2.5 Astro config replace | build-deploy-engineer | `astro.config.ts` 移除 4 旧集成，仅注册 `build-hooks`                           | 配置简化   |
+| 2.6 Verify               | quality-dx-guardian   | `pnpm build` 全绿，`dist/client/pagefind/` 存在                                 | CI 绿灯    |
+
+**里程碑**: `git tag phase-2-done`
+
+---
+
+### Phase 3: Components (Week 2-3)
+
+**目标**: 复合组件模式，消除布尔属性爆炸
+
+| Task                   | Assignee            | 产出                                                   | 验收       |
+| ---------------------- | ------------------- | ------------------------------------------------------ | ---------- |
+| 3.1 MobileMenu         | frontend-architect  | `src/components/navbar/MobileMenu.astro` ⏸             | 独立可复用 |
+| 3.2 Center             | frontend-architect  | `src/components/navbar/Center.astro` ⏸                 | slots 组合 |
+| 3.3 Start/End refactor | frontend-architect  | `Start.astro` ⏸/`End.astro` ⏸ 提取                     | 单职责     |
+| 3.4 Navbar composite   | frontend-architect  | `Navbar.astro` ⏸ 组合 4 子组件                         | 复合模式   |
+| 3.5 Header simplify    | frontend-architect  | `Header.astro` ⏸ 仅作布局容器                          | 无逻辑     |
+| 3.6 Delete Navigation  | frontend-architect  | 删除 `Navigation.astro` ⏸ 旧组件                       | 无死代码   |
+| 3.7 PostCardGrid/List  | frontend-architect  | `PostCardGrid.astro` ⏸/`PostCardList.astro` ⏸ 变体分离 | 两种视图   |
+| 3.8 Delete PostCard    | frontend-architect  | 删除 `PostCard.astro` ⏸ 旧组件                         | 无死代码   |
+| 3.9 Pages update       | frontend-architect  | `index.astro` ⏸/`posts/[id].astro` ⏸ 使用新组件        | 页面正常   |
+| 3.10 Verify            | quality-dx-guardian | Visual regression + Playwright 绿灯                    | 无视觉差异 |
+
+**里程碑**: `git tag phase-3-done`
+
+---
+
+### Phase 4: Theme Tokens (Week 3)
+
+**目标**: CSS 变量单一源头，daisyUI 完全解耦
+
+| Task                      | Assignee            | 产出                                                                 | 验收       |
+| ------------------------- | ------------------- | -------------------------------------------------------------------- | ---------- |
+| 4.1 theme-tokens.css      | frontend-architect  | `src/styles/theme-tokens.css` ⏸ 定义所有 `--color-*`、`--tw-prose-*` | 单一源头   |
+| 4.2 global.css refactor   | frontend-architect  | `global.css` ⏸ 仅 `@import "theme-tokens.css"` + Tailwind + daisyUI  | 无重复变量 |
+| 4.3 daisyUI plugin adjust | frontend-architect  | `@plugin "daisyui/theme"` 引用 CSS 变量，`prefersdark` 自动适配      | 深色自动   |
+| 4.4 Verify                | quality-dx-guardian | 主题切换无闪烁，Prose 样式同步                                       | 无视觉差异 |
+
+**里程碑**: `git tag phase-4-done`
+
+---
+
+### Phase 5: Search Component (Week 3)
+
+**目标**: Pagefind 声明式 UI 组件化，CSS 变量主题适配
+
+| Task                         | Assignee                  | 产出                                                                 | 验收       |
+| ---------------------------- | ------------------------- | -------------------------------------------------------------------- | ---------- |
+| 5.1 PagefindSearch component | search-discovery-engineer | `src/components/search/PagefindSearch.astro` ⏸ 声明式 `<pagefind-*>` | 零 JS 样板 |
+| 5.2 BaseLayout slot          | frontend-architect        | `BaseLayout` 增加 `slot="search"` 注入                               | 插槽化     |
+| 5.3 Pages inject search      | search-discovery-engineer | 文章页/列表页注入搜索组件                                            | 全站可搜   |
+| 5.4 Verify                   | quality-dx-guardian       | 搜索功能正常，主题切换样式同步                                       | E2E 绿灯   |
+
+**里程碑**: `git tag phase-5-done`
+
+---
+
+### Phase 6: Client Runtime (Week 4)
+
+**目标**: 单一入口注册表，9 模块依赖管理，条件加载，TelegramAuth 分层降级
+
+| Task                          | Assignee            | 产出                                                                                                  | 验收         |
+| ----------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------- | ------------ |
+| 6.1 client-entry.ts           | frontend-architect  | `src/modules/client-runtime.ts` ⏸ 接口 + 实现，`registerModule`/`start()`                             | 单一入口     |
+| 6.2 9 modules refactor        | frontend-architect  | `src/scripts/modules/*.ts` ⏸ 导出 `init(ctx)`，`dependsOn` 声明依赖                                   | 模块化       |
+| 6.3 TelegramAuth 分层降级重构 | frontend-architect  | `src/scripts/modules/telegram-auth.ts` ⏸ 重构为：分层降级策略 + 多入口 UI + Cookie偏好记忆 + 手动切换 | 分层降级架构 |
+| 6.4 Lifecycle dispatch        | frontend-architect  | `astro:page-load`/`astro:after-swap` 分发，拓扑排序初始化                                             | 顺序正确     |
+| 6.5 BaseLayout entry          | frontend-architect  | `BaseLayout` 单一 `<script>` 引入并启动                                                               | 无碎片       |
+| 6.6 Verify                    | quality-dx-guardian | 所有交互正常，View Transitions 切换无重复初始化                                                       | E2E 绿灯     |
+
+**里程碑**: `git tag phase-6-done`
+
+### Phase 7: Content & Pages (Week 4)
+
+**目标**: 内容管道类型安全，页面零类型断言，Telegram 受保护路由
+
+| Task                     | Assignee              | 产出                                                                       | 验收               |
+| ------------------------ | --------------------- | -------------------------------------------------------------------------- | ------------------ |
+| 7.1 RenderedPost type    | content-engineer      | `src/modules/types.ts` ⏸ 新增 `RenderedPost` 接口                          | 类型完整           |
+| 7.2 Post page types      | content-engineer      | `src/pages/posts/[id].astro` ⏸ 使用 `contentPipeline.renderPost()`         | 零断言             |
+| 7.3 Post list simplify   | content-engineer      | `src/pages/posts/index.astro` ⏸ 使用 `contentPipeline.getPublishedPosts()` | 逻辑简化           |
+| 7.4 Protected route impl | build-deploy-engineer | `tgcloud/endpoints/getPostContent.js` ⏸ JWT 验证 + 群成员校验 + 返回 HTML  | 受保护内容路由可用 |
+| 7.5 Verify               | quality-dx-guardian   | `pnpm check + playwright` ⏸ 全绿，RSS/站点地图有效                         | CI 绿灯            |
+
+**里程碑**: `git tag phase-7-done`
+
+---
+
+### Phase 8: Cleanup & Docs (Week 5)
+
+**目标**: 删除死代码，文档同步，CI 全绿
+
+| Task                   | Assignee            | 产出                                                                                                       | 验收                  |
+| ---------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------- |
+| 8.1 Dead code removal  | 全员                | 删除 `.astro`/`.ts` 未使用导出、旧集成、旧组件                                                             | `pnpm check` 无未使用 |
+| 8.2 AGENTS.md update   | quality-dx-guardian | 同步实现状态、命令、架构指针                                                                               | 文档一致              |
+| 8.3 Full CI simulation | quality-dx-guardian | `pnpm check && pnpm build && pnpm exec oxlint . && pnpm exec oxfmt --check && pnpm exec playwright test` ⏸ | 全绿                  |
+
+**里程碑**: `git tag phase-8-done` → **Release v1.0.0**
+
+---
+
+## 质量门禁
+
+每 Phase 完成前必须通过：
+
+| 质量门禁 | 命令                                                 | 标准     |
+| -------- | ---------------------------------------------------- | -------- |
+| 类型检查 | `pnpm check`                                         | 0 errors |
+| Lint     | `pnpm exec oxlint .`                                 | 0 errors |
+| 格式     | `pnpm exec oxfmt --check`                            | 0 diffs  |
+| 构建     | `pnpm build`                                         | success  |
+| 角色专属 | `pnpm exec tsx .agents/scripts/run-gate.ts <role>` ⏸ | 绿灯     |
+
+---
+
+## 回滚策略
+
+| 场景               | 动作                                             |
+| ------------------ | ------------------------------------------------ |
+| Phase 内单任务失败 | `git checkout phase-{N-1}-done` 回滚到上一 Phase |
+| Phase 整体失败     | 同上，保留已完成 Phase 成果                      |
+| Phase 间接口破坏   | 新建 ADR 记录破坏性变更，给 1 Phase 迁移期       |
+
+---
+
+## 技术债登记
+
+| ID     | 描述                             | 优先级 | 计划 Phase | Owner               |
+| ------ | -------------------------------- | ------ | ---------- | ------------------- |
+| TD-001 | daisyUI 5 迁移指南文档化         | 中     | Phase 4    | frontend-architect  |
+| TD-002 | ThemeTokens 增加 `--color-focus` | 低     | Phase 4    | frontend-architect  |
+| TD-003 | `astro:before-swap` 预加载优化   | 低     | Phase 6    | frontend-architect  |
+| TD-004 | 学习脚本自动化集成到 CI          | 中     | Phase 8    | quality-dx-guardian |
+| TD-005 | 跨仓库知识同步机制               | 低     | 后续       | quality-dx-guardian |
+
+---
+
+## 状态追踪
+
+```bash
+# 查看当前 Phase
+cat .phase-current  # 内容如: "3"
+
+# 查看任务状态
+ls .agents/tasks/phase-3/
+# 标记 Phase 完成
+echo "4" > .phase-current
+git tag phase-3-done
+```
+
+---
+
+## 相关文档
+
+- `docs/adr/0001-functional-architecture.md`
+
+- 架构设计
+- `docs/adr/0004-subagent-coordination.md`
+
+- 子智能体协作
+- `docs/adr/0008-agents-knowledge-base-architecture.md`
+
+- 知识库架构
+- `docs/adr/0009-knowledge-update-process.md`
+
+- 知识更新流程
+- `.agents/tasks/PHASE_COMPLETION_TEMPLATE.md` ⏸ - Phase 完成清单

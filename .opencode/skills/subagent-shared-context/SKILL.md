@@ -9,11 +9,11 @@ description: 共享上下文管理 - 项目规范、架构决策记录 (ADR)、�
 ### 位置
 
 ```
-.agents/adr/
-├── 001-component-architecture.md   # 单布局+模块化组件+原生脚本
-├── 002-content-pipeline.md         # satteri+git日期+Mermaid预渲染
-├── 003-deployment-strategy.md      # 三端同步+Cloudflare优先边缘能力
-└── NNN-short-title.md              # 新决策按序号递增
+docs/adr/
+├── 0001-functional-architecture.md   # C4 架构、深度模块边界
+├── 0002-draft-isolation-submodule.md # 草稿私有子模块物理隔离
+├── 0003-deployment-strategy.md       # 多端同步部署（tgcloud 为 Telegram Mini App 目标）
+└── NNNN-short-title.md               # 新决策按序号递增
 ```
 
 ### 格式模板

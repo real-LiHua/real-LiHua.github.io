@@ -1,7 +1,12 @@
 # Mermaid SVG Fix — vnu Filterfile Regex for `stroke-` Attribute Errors
 
-**Date:** 2026-09-02  
+**Date:** 2026-09-02
+
 **Tags:** mermaid, vnu, html-validation, svg, build-pipeline, known-issue
+
+> [!NOTE] 设施状态（2026-10）
+> 项目正按 `REWRITE_PLAN.md` **从零重写**：`src/`、`.github/workflows/`、`.agents/scripts/`、`.agents/tasks/` 均已在工作区就位。
+> 文中 `⏸` 标注对应**尚未落地**的部分。`tgcloud/` 目录从未存在；Bot 源码为根级 `handlers/`、`schema.js`。
 
 ---
 
@@ -11,7 +16,7 @@ During the production build pipeline, the HTML validator (vnu-jar) reported vali
 
 ### Example Error Pattern
 
-```
+```text
 Error: Attribute "stroke-" not allowed on element "path" at this point.
 Error: Bad value "" for attribute "stroke-" on element "path": Expected a color value
 ```
@@ -24,7 +29,7 @@ The Mermaid renderer outputs SVG with attributes like `stroke-=""` (empty stroke
 
 Added a regex pattern to the **vnu filterfile** (`message-filters.txt`) to suppress these known false-positive errors:
 
-```
+```text
 .*stroke-.*
 ```
 
@@ -41,7 +46,7 @@ Added a regex pattern to the **vnu filterfile** (`message-filters.txt`) to suppr
 
 ### Build Pipeline Integration
 
-**Location:** `src/integrations/build-hooks.ts` → `astro:build:done` hook
+**Location:** `src/integrations/build-hooks.ts` ⏸ → `astro:build:done` hook
 
 ```typescript
 run("vnu --skip-non-html --filterfile message-filters.txt dist/client", root);
@@ -49,9 +54,9 @@ run("vnu --skip-non-html --filterfile message-filters.txt dist/client", root);
 
 ### Mermaid Rendering Flow
 
-1. **Content:** Markdown contains ```mermaid code blocks
+1. **Content:** Markdown contains ` ```mermaid ` code blocks
 2. **MDX/HTML:** satteri-mermaid plugin converts to `<pre class="mermaid">...</pre>`
-3. **Build-time:** `src/integrations/mermaid-compile-time.ts` (`astro:build:done`)
+3. **Build-time:** `src/integrations/mermaid-compile-time.ts` ⏸ (`astro:build:done`)
    - Scans `dist/client/**/*.html` for mermaid blocks
    - Renders each to SVG using `mermaid.render()` (via `mermaid-wasm-renderer`)
    - Replaces `<pre class="mermaid">` with `<div class="mermaid">${svg}</div>`
@@ -65,13 +70,13 @@ run("vnu --skip-non-html --filterfile message-filters.txt dist/client", root);
 
 ## Related Files
 
-| File                                             | Purpose                                        |
-| ------------------------------------------------ | ---------------------------------------------- |
-| `message-filters.txt`                            | vnu filterfile with `.*stroke-.*` regex        |
-| `src/integrations/build-hooks.ts`                | Runs vnu with filterfile in `astro:build:done` |
-| `src/integrations/mermaid-compile-time.ts`       | Compile-time Mermaid → SVG rendering           |
-| `.github/workflows/deploy.yml`                   | CI pipeline runs `pnpm build` (includes vnu)   |
-| `.agents/performance/build-weekly-2026-09-02.md` | Incident report and learning                   |
+| File                                               | Purpose                                        |
+| -------------------------------------------------- | ---------------------------------------------- |
+| `message-filters.txt`                              | vnu filterfile with `.*stroke-.*` regex        |
+| `src/integrations/build-hooks.ts` ⏸                | Runs vnu with filterfile in `astro:build:done` |
+| `src/integrations/mermaid-compile-time.ts` ⏸       | Compile-time Mermaid → SVG rendering           |
+| `.github/workflows/deploy.yml`                     | CI pipeline runs `pnpm build` (includes vnu)   |
+| `.agents/performance/build-weekly-2026-09-02.md` ⏸ | Incident report and learning                   |
 
 ---
 
@@ -94,6 +99,6 @@ pnpm build
 # Check vnu step passes (no errors, exit code 0)
 
 # Manual vnu test
-npx vnu --skip-non-html --filterfile message-filters.txt dist/client
+npx vnu --skip-non-html --filterfile message-filters.txt dist/client  # message-filters.txt
 # Should exit 0 with no output (or only non-stroke- errors)
 ```

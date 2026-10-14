@@ -6,33 +6,25 @@ description: 子智能体间通信协议 - 任务领取、进度汇报、阻塞�
 
 ## 核心命令
 
-### `claim-task <task-id> [--assignee <name>]`
-
-领取任务，写入 assignee，创建进度文件
+### `claim-task <task-id> [--assignee <name>]` 领取任务，写入 assignee，创建进度文件
 
 ```bash
 node .agents/scripts/task-claim.ts 1.1 --assignee cli-tool-engineer
 ```
 
-### `report-progress <task-id> <percent> [--msg <message>]`
-
-更新进度百分比和消息，写入 `.progress` 文件
+### `report-progress <task-id> <percent> [--msg <message>]` 更新进度百分比和消息，写入 `.progress` 文件
 
 ```bash
 node .agents/scripts/task-progress.ts 1.1 50 --msg "Implementing update_frontmatter_bool"
 ```
 
-### `report-blocker <task-id> <reason> [--help-from <agent>]`
-
-上报阻塞，可指定需要协助的智能体
+### `report-blocker <task-id> <reason> [--help-from <agent>]` 上报阻塞，可指定需要协助的智能体
 
 ```bash
 node .agents/scripts/task-progress.ts 1.1 --blocked "Need schema type from content-engineer" --help-from content-engineer
 ```
 
-### `complete-task <task-id> [--skip-gate]`
-
-完成任务，运行质量门禁，归档
+### `complete-task <task-id> [--skip-gate]` 完成任务，运行质量门禁，归档
 
 ```bash
 node .agents/scripts/task-complete.ts 1.1

@@ -1,32 +1,29 @@
-// Search Module — Public Interface
-// 深度模块：Pagefind 索引生成 + 搜索 UI 组件 + 主题适配
+// Search Module — deep module.
+//
+// Owns the Pagefind configuration contract. The static index is produced by the
+// build pipeline (see `src/modules/build-pipeline.ts`); this module only defines
+// the defaults consumed by the search UI and the `pagefind.yaml` index config.
+// (docs/adr/0006-pagefind-ui-approach.md, docs/SEARCH_TUNING.md)
 
-export interface SearchConfig {
-  /** 索引文件路径 (相对于站点根目录) */
-  bundlePath?: string; // 默认 "/pagefind/"
-  /** 搜索框占位符 */
-  placeholder?: string; // 默认 "搜索文章..."
-  /** 主题适配: 自动跟随 daisyUI data-theme */
-  theme?: "auto" | "light" | "dark";
-}
+import type { SearchConfig } from "./types";
+
+export const SEARCH_DEFAULTS: Required<SearchConfig> = {
+  bundlePath: "/pagefind/",
+  placeholder: "搜索文章…",
+  theme: "auto",
+};
 
 export interface SearchModule {
-  /** 生成搜索索引 (构建期调用) */
-  generateIndex(distDir: URL): Promise<void>;
-
-  /** 搜索 UI 组件 Props (供 Astro 组件使用) */
-  SearchComponentProps: SearchConfig;
-
-  /** 手动触发搜索 (客户端高级用法) */
-  search(query: string, options?: { filters?: Record<string, string[]> }): Promise<SearchResult[]>;
+  /** Defaults applied when a caller omits fields. */
+  defaults: Required<SearchConfig>;
+  /** Merge caller options over the defaults. */
+  resolve(config?: SearchConfig): Required<SearchConfig>;
 }
 
-export interface SearchResult {
-  url: string;
-  title: string;
-  excerpt: string;
-  meta: Record<string, string[]>;
-  score: number;
-}
+export const searchModule: SearchModule = {
+  defaults: SEARCH_DEFAULTS,
 
-export const searchModule: SearchModule;
+  resolve(config) {
+    return { ...SEARCH_DEFAULTS, ...config };
+  },
+};

@@ -1,19 +1,43 @@
 ---
 import Copyright from "./Copyright.astro";
 
-const site = Astro.site ?? new URL("http://localhost:4321"),
- rssUrl = new URL("/rss.xml", site),
- validatorUrl = `https://validator.w3.org/feed/check.cgi?url=${encodeURIComponent(rssUrl.href)}`;
+const groups = [
+  {
+    title: "内容",
+    links: [
+      { href: "/posts/", label: "全部文章" },
+      { href: "/tags/", label: "标签" },
+      { href: "/about/", label: "关于" },
+    ],
+  },
+  {
+    title: "订阅",
+    links: [
+      { href: "/rss.xml", label: "RSS" },
+      { href: "/sitemap-index.xml", label: "Sitemap" },
+    ],
+  },
+];
 ---
 
-<footer class="border-t border-base-200 mt-24">
-  <div class="max-w-6xl mx-auto px-4 py-8">
-    <div class="flex flex-col items-center gap-2 text-sm opacity-60">
-      <Copyright />
-      <p class="text-xs">由 Astro + daisyUI 强力驱动</p>
-      <a href={validatorUrl} target="_blank" rel="noopener noreferrer">
-        <img src="/valid-rss-rogers.png" alt="Valid RSS" title="Validate my RSS feed" class="h-5 w-auto" width="88" height="31" />
-      </a>
-    </div>
+<footer class="mt-8 border-t border-base-300 bg-base-200/50">
+  <div class="footer sm:footer-horizontal mx-auto max-w-6xl p-6 text-base-content/70">
+    <aside class="max-w-xs">
+      <p class="text-base font-semibold text-base-content">LiHua.dev</p>
+      <p>个人博客：记录文章、笔记与技术实验。</p>
+    </aside>
+    {
+      groups.map((group) => (
+        <nav>
+          <h2 class="footer-title">{group.title}</h2>
+          {group.links.map((link) => (
+            <a class="link link-hover" href={link.href}>
+              {link.label}
+            </a>
+          ))}
+        </nav>
+      ))
+    }
   </div>
+  <Copyright />
 </footer>

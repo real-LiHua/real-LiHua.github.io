@@ -1,10 +1,18 @@
-// Shared Types — 从 content.config.ts 导出的类型契约
-// 供所有模块复用，消除 as unknown as
+// Shared type contracts for the blog.
+//
+// Single source of truth for cross-module types. Every deep module imports its
+// public shapes from here so pages, integrations and client scripts agree on
+// the same contracts (see docs/architecture-map.md — "Interface Contract Matrix").
+//
+// The Zod schemas intentionally mirror `src/content.config.ts`; both must stay
+// in sync. `content.config.ts` is the runtime validator, this file is the type
+// contract other modules compile against.
 
 import type { CollectionEntry } from "astro:content";
 import { z } from "astro/zod";
 
-// ===== Frontmatter Schema (与 content.config.ts 保持同步) =====
+// ===== Frontmatter schema (keep in sync with src/content.config.ts) =====
+
 export const telegramAuthSchema = z
   .object({
     enabled: z.boolean(),
@@ -25,23 +33,26 @@ export const postFrontmatterSchema = z.object({
   updatedDate: z.coerce.date().optional(),
 });
 
-// 类型导出
 export type PostFrontmatter = z.infer<typeof postFrontmatterSchema>;
 export type TelegramAuthConfig = z.infer<typeof telegramAuthSchema>;
 export type BlogCollection = CollectionEntry<"blog">;
 
-// ===== Rendered Types =====
-export interface RenderedPostData {
-  Content: any; // Astro Component
-  headings: Array<{
-    depth: number;
-    slug: string;
-    text: string;
-  }>;
+// ===== Rendered content =====
+
+export interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+export interface RenderedPost {
+  Content: unknown; // Astro component
+  headings: Heading[];
   frontmatter: PostFrontmatter & { id: string };
 }
 
-// ===== Build Pipeline Types =====
+// ===== Build pipeline =====
+
 export interface BuildStageResult {
   name: string;
   success: boolean;
@@ -56,7 +67,20 @@ export interface BuildReport {
   duration: number;
 }
 
-// ===== Search Types =====
+export interface BuildStage {
+  name: string;
+  run: (distDir: URL, logger: BuildLogger) => Promise<void>;
+  timeout?: number;
+}
+
+export interface BuildLogger {
+  info: (message: string) => void;
+  warn: (message: string) => void;
+  error: (message: string) => void;
+}
+
+// ===== Search =====
+
 export interface SearchResult {
   url: string;
   title: string;
@@ -71,7 +95,8 @@ export interface SearchConfig {
   theme?: "auto" | "light" | "dark";
 }
 
-// ===== Theme Types =====
+// ===== Theme =====
+
 export type ThemeMode = "light" | "dark";
 
 export interface ThemeTokens {
@@ -84,47 +109,66 @@ export interface ThemeTokens {
   prose: Record<string, string>;
 }
 
-// ===== Client Runtime Types =====
+// ===== Client runtime (see docs/adr/0007-client-module-registry.md) =====
+
+export interface ClientUtils {
+  query: <T extends Element>(selector: string) => T | null;
+  queryAll: <T extends Element>(selector: string) => NodeListOf<T>;
+  on: (element: Element, event: string, listener: EventListener) => () => void;
+}
+
 export interface ClientContext {
   document: Document;
   window: Window & {
     PagefindComponents?: {
-      configureInstance: (name: string, config: any) => void;
+      configureInstance: (name: string, config: unknown) => void;
     };
   };
   routerEvents: {
     onPageLoad: (fn: () => void) => void;
     onAfterSwap: (fn: () => void) => void;
-    onBeforePreparation: (fn: (event: any) => void) => void;
+    onBeforePreparation?: (fn: (event: unknown) => void) => void;
   };
+  utils: ClientUtils;
 }
 
 export type ClientModuleInit = (ctx: ClientContext) => void | Promise<void>;
 
+export type ClientLifecycleHook = "pageLoad" | "afterSwap";
+
 export interface ClientModuleRegistration {
   name: string;
   init: ClientModuleInit;
-  deps?: string[];
+  /** Module names that must initialise before this one. */
+  dependsOn?: string[];
+  /** Lifecycle hooks to run on (default: both). */
+  runOn?: ClientLifecycleHook[];
+  /** Initialise at most once per document. */
+  once?: boolean;
+  /** Skip initialisation unless the predicate passes. */
+  condition?: (ctx: ClientContext) => boolean;
 }
 
-// ===== UI Component Props Types =====
+export interface ClientRuntime {
+  registerModule(registration: ClientModuleRegistration): void;
+  unregisterModule(name: string): void;
+  getModule(name: string): ClientModuleRegistration | undefined;
+  start(): void;
+  stop(): void;
+}
+
+// ===== UI component props =====
+
 export interface NavLink {
   href: string;
   label: string;
   external?: boolean;
 }
 
-export interface NavbarProps {
-  start?: any;
-  center?: NavLink[];
-  end?: any;
-  mobileLinks?: NavLink[];
-}
-
 export type PostCardVariant = "grid" | "list";
 
 export interface PostCardBaseProps {
-  post: BlogCollection["data"] & { id: string };
+  post: BlogCollection;
 }
 
 export interface PostCardGridProps extends PostCardBaseProps {
@@ -162,11 +206,11 @@ export interface BaseLayoutProps {
   image?: string;
   url?: string;
   canonical?: string;
-  search?: any;
-  children: any;
+  children: unknown;
 }
 
-// ===== Telegram Auth Types =====
+// ===== Telegram auth =====
+
 export interface TelegramAuthWallProps {
   postId: string;
   groupName: string;

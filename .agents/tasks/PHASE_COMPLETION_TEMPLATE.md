@@ -1,8 +1,10 @@
 # Phase Completion Checklist Template
 
-Copy to `.agents/tasks/phase-N/COMPLETION_CHECKLIST.md` when starting a Phase.
+> 复制到 `.agents/tasks/phase-N/COMPLETION_CHECKLIST.md`，在 Phase 启动时创建、结束时填满。
+> 契约见 `.agents/onboarding/03-task-workflow.md` §7。
 
-```markdown
+---
+
 # Phase N: <Phase Title> — Completion Checklist
 
 ## Phase Overview
@@ -21,108 +23,43 @@ Copy to `.agents/tasks/phase-N/COMPLETION_CHECKLIST.md` when starting a Phase.
 | N.2     |       |          |        |            |              |
 | N.3     |       |          |        |            |              |
 
-## Completion Criteria (from REFACTOR_PLAN.md)
+## Completion Criteria
 
-### Verify Commands
+- [ ] 所有任务卡 `status=done`
+- [ ] 所有任务卡 `Outputs` 填写完整
+- [ ] 所有任务卡 `Context`（handoff JSON）完整
 
-- [ ] `pnpm check` — TypeScript + Astro types
-- [ ] `pnpm build` — Full build + validation
-- [ ] `pnpm playwright test` — E2E tests (if applicable)
-- [ ] Phase-specific verify: <command from plan>
+## Knowledge Base Sync
 
-### Knowledge Base Updates
-
-- [ ] **All task cards**: status=done, Outputs filled, Context handoff JSON complete
-- [ ] **Task cards archived**: Moved to `.agents/tasks/archive/phase-N/`
-- [ ] **REFACTOR_PLAN.md**: Phase N checkboxes ticked, any rollback notes added
-- [ ] **CONTEXT.md**: New/changed terms synchronized
-- [ ] **ADRs**: Status updated (Proposed → Accepted/Deprecated)
-- [ ] **Pointers**: `pnpm exec tsx .agents/scripts/scan-pointers.ts` passes
-- [ ] **Contracts**: `pnpm exec tsx .agents/scripts/sync-contracts.ts` passes
-- [ ] **Terms**: `pnpm exec tsx .agents/scripts/check-terms.ts` passes
-
-### Documentation
-
-- [ ] **AGENTS.md**: Updated if new commands/roles/patterns introduced
-- [ ] **Architecture docs**: Updated if module boundaries changed
-- [ ] **CHANGELOG.md**: Entry added (if exists)
+- [ ] 任务卡归档至 `.agents/tasks/archive/phase-N/`
+- [ ] `REWRITE_PLAN.md` 对应阶段勾选
+- [ ] `CONTEXT.md` 新增/变更术语同步
+- [ ] ADR 状态更新（Proposed → Accepted/Deprecated）
+- [ ] 指针扫描通过：`pnpm exec tsx .agents/scripts/scan-pointers.ts`
+- [ ] 契约同步：`pnpm exec tsx .agents/scripts/sync-contracts.ts`
+- [ ] 术语检查：`pnpm exec tsx .agents/scripts/check-terms.ts`
 
 ## Quality Gates
 
-- [ ] All role-specific quality gates passed for completed tasks
-- [ ] No outstanding blockers (all task cards status ≠ blocked)
-- [ ] Regression check: `pnpm exec tsx .agents/scripts/check-regression.ts HEAD~1` passes
+- [ ] 通用门禁：`pnpm check && pnpm build && pnpm exec oxlint . && pnpm exec oxfmt --check`
+- [ ] 各角色专属门禁通过（见 `docs/SUBAGENT_OPERATIONS.md`）
+- [ ] 回归检查通过：`pnpm exec tsx .agents/scripts/check-regression.ts HEAD~1`
 
-## Handoff to Next Phase
+## Documentation
 
-- [ ] Context handoff JSON from each task card reviewed
-- [ ] Blocking dependencies for next Phase identified
-- [ ] Next Phase task cards created with Specs/Contracts filled
-- [ ] Milestone report generated: `.agents/milestones/phase-N.md`
+- [ ] `AGENTS.md` 如有新增命令/角色/模式
+- [ ] 架构文档如有模块边界变更
+- [ ] `CHANGELOG.md` 记录（如存在）
+
+## Handoff
+
+- [ ] Context handoff JSON 已审阅
+- [ ] 下一 Phase 任务卡已创建
+- [ ] 里程碑报告生成：`.agents/milestones/phase-N.md`
 
 ## Sign-off
 
-| Role                | Name | Date | Signature |
-| ------------------- | ---- | ---- | --------- |
-| Phase Lead          |      |      |           |
-| quality-dx-guardian |      |      |           |
-
-## Retrospective Notes
-
-### What Went Well
-
--
--
-
-### What Could Improve
-
--
--
-
-### Action Items for Next Phase
-
-- [ ]
-- [ ]
-
-## Metrics
-
-| Metric                        | Target | Actual |
-| ----------------------------- | ------ | ------ |
-| Tasks completed               | N      |        |
-| Total hours                   |        |        |
-| Blocker count                 | 0      |        |
-| Blocker resolution time (avg) | < 2h   |        |
-| Quality gate pass rate        | 100%   |        |
-| Regression count              | 0      |        |
-```
-
----
-
-## Quick Completion Commands
-
-```bash
-# 1. Archive task cards
-mkdir -p .agents/tasks/archive/phase-N
-mv .agents/tasks/phase-N/*.md .agents/tasks/archive/phase-N/
-mv .agents/tasks/phase-N/*.progress .agents/tasks/archive/phase-N/ 2>/dev/null || true
-
-# 2. Generate milestone report
-cat > .agents/milestones/phase-N.md << 'EOF'
-# Milestone: Phase N Complete
-**Date**: $(date -u +"%Y-%m-%d")
-**Tasks**: $(ls .agents/tasks/archive/phase-N/*.md | wc -l)
-**Duration**: <days> days
-**Key Deliverables**: <list>
-EOF
-
-# 3. Update REFACTOR_PLAN.md checkboxes (manual)
-
-# 4. Run final verification
-pnpm check && pnpm build && pnpm playwright test
-
-# 5. Run knowledge base guards
-pnpm exec tsx .agents/scripts/scan-pointers.ts
-pnpm exec tsx .agents/scripts/check-terms.ts
-pnpm exec tsx .agents/scripts/sync-contracts.ts
-pnpm exec tsx .agents/scripts/check-regression.ts HEAD~1
-```
+| Role                | Name | Date |
+| ------------------- | ---- | ---- |
+| Phase Lead          |      |      |
+| quality-dx-guardian |      |      |

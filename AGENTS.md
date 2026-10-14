@@ -1,660 +1,93 @@
 # AGENTS.md
 
+> [!NOTE] 设施状态（2026-10）
+> 项目正按 `REWRITE_PLAN.md` **从零重写**：`src/`、`.github/workflows/`、`.agents/scripts/`、`.agents/tasks/` 均已在工作区就位。
+> 文中 `⏸` 标注对应**尚未落地**的部分。`tgcloud/` 目录从未存在；Bot 源码为根级 `handlers/`、`schema.js`。
+>
+> **已澄清（2026-10-09）**：上述设施**不从 git 恢复**——项目将**从零重写**，git 历史中的旧实现仅作行为参考。当前状态见 `PROJECT_STATUS.md`，执行计划见 `REWRITE_PLAN.md`。
+
 ## Project Overview
 
-This repository contains **two integrated projects**:
+This repository contains **two integrated projects** sharing a single repo but deploying independently:
 
-1. **Astro 7 Personal Blog** — A personal blog built with **Astro 7** using **MDX** for content, **Tailwind CSS 4** + **daisyUI 5** for styling, and **Pagefind** for client-side search. The blog is deployed to **Codeberg Pages**, **GitHub Pages**, and **IPFS** via Pinata. The **tgcloud Telegram Bot** runs on Telegram's serverless platform.
-
-2. **tgcloud Telegram Bot** — A Telegram Mini App bot running on the **tgcloud** serverless platform (Telegram's serverless platform similar to wrangler/vercel + drizzle-kit). The bot runs on Telegram's V8 isolates and uses the tgcloud SDK for database, Bot API, and HTTP.
-
-### Key Technologies
-
-**Astro Blog:**
-- **Framework:** Astro 7 (Node adapter, standalone mode)
-- **Content:** MDX with Astro Content Collections (glob loader)
-- **Styling:** Tailwind CSS 4 + daisyUI 5 + @tailwindcss/typography
-- **Search:** Pagefind (zero-config static search)
-- **Lint/Format:** oxlint + oxfmt (via lint-staged + Husky)
-- **CLI Tool:** Rust (post-edit) for interactive post management
-- **CI/CD:** GitHub Actions with 3 parallel deployment jobs (Codeberg, GitHub Pages, IPFS); tgcloud bot uses separate deployment
-
-**tgcloud Telegram Bot:**
-- **Platform:** tgcloud (Telegram's serverless platform)
-- **Runtime:** V8 isolates on Telegram's infrastructure
-- **Language:** JavaScript modules (ESM, `.js` extension required)
-- **Database:** Built-in DB with query builder (`db`), no foreign keys, manual migrations
-- **Bot API:** `api` object with auto-unwrapped results, throws `BotApiError` (replaces grammy)
-- **HTTP:** Web-standard `fetch` for outbound requests
-- **Deploy:** `pnpm exec tgcloud push` (code) + `pnpm exec tgcloud migrate` (DB schema)
-
-### Architecture Overview
-
-This repository contains **two integrated projects** that share a single repository but deploy independently:
-
-```
-├── src/                          # Astro 7 Blog (Main Project)
-│   ├── components/               # Astro components (Header, Footer, CodeCopy, etc.)
-│   ├── layouts/                  # BaseLayout (theme, OGP, ClientRouter, Pagefind)
-│   ├── pages/                    # Routes: index, about, posts/[id], tags/, meow.ts, etc.
-│   ├── posts/                    # .md / .mdx blog articles (content collections)
-│   │   └── drafts/               # Drafts determined by path (no frontmatter `draft` field)
-│   ├── scripts/                  # Client-side JS (theme-toggle, scroll-reveal, tilt-card, etc.)
-│   ├── styles/                   # global.css — Tailwind + daisyUI theme vars
-│   ├── utils/                    # Date helpers (dayjs), content utilities
-│   ├── integrations/             # Custom Astro integrations (build-hooks, satteri-config, mermaid)
-│   ├── plugins/                  # Remark/Rehype plugins (mdast-toc)
-│   ├── post-edit/                # Rust CLI source (post-edit binary)
-│   ├── modules/                  # Deep modules with explicit interfaces (types, pipelines, runtime)
-│   └── .agents/                  # Sub-agent orchestration (tasks, scripts, contracts, lifecycle)
-│
-├── tgcloud/                      # tgcloud Telegram Bot (Independent Project)
-│   ├── handlers/                 # Telegram update handlers
-│   │   └── message.js            # Message handler (echo example)
-│   ├── endpoints/                # Mini App endpoints (POST /api/<name>)
-│   ├── schema.js                 # Database schema (tables as named exports)
-│   └── tgcloud.jsonc             # tgcloud project config
-│
-├── .agents/                      # Sub-agent orchestration (shared)
-│   ├── scripts/                  # Core scripts (task-claim, task-progress, task-complete, run-gate, check-regression)
-│   ├── tasks/phase-1..8/         # Task cards (from REFACTOR_PLAN.md)
-│   ├── lifecycle/                # Monthly performance reviews
-│   ├── team/                     # Skills matrix, capacity planning
-│   ├── contracts/                # Interface contracts (TypeScript/Zod)
-│   └── tech-debt/                # Technical debt register
-│
-├── .github/workflows/            # CI/CD pipelines
-│   ├── deploy.yml                # Multi-platform deploy (Astro blog)
-│   └── knowledge-guard.yml       # Knowledge base guards
-│
-├── schema.js                     # Root-level tgcloud schema (symlink to tgcloud/schema.js)
-├── handlers/message.js           # Telegram handler (symlink to tgcloud/handlers/message.js)
-├── tgcloud.jsonc                 # tgcloud project config (if present)
-├── .github/workflows/deploy.yml  # Blog deployment (3-platform)
-├── .github/workflows/knowledge-guard.yml  # Knowledge base guards
-├── .github/pull_request_template.md
-├── Cargo.toml                    # Rust CLI project config
-└── src/modules/*.ts              # Deep module interfaces (Astro Blog)
-```
-
-### Deep Module Boundaries (Astro Blog)
-
-| Module             | Interface                                                                         | Implementation                                          | Consumers                          |
-| ------------------ | --------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------- |
-| `content-pipeline` | `getPublishedPosts()`, `renderPost()`                                             | Astro Content Collections + Zod + satteri               | Pages, RSS, Sitemap, Search        |
-| `build-pipeline`   | `execute(distDir)`, `registerStage()`                                             | 5 stages: Pagefind → lychee → vnu → Mermaid → Watermark | `astro:build:done` hook            |
-| `theme-system`     | `init()`, `toggleTheme()`, CSS tokens                                             | `theme-tokens.css` + daisyUI `@plugin`                  | BaseLayout, Navbar, PagefindSearch |
-| `search`           | `generateIndex()`, `<PagefindSearch />`                                           | Pagefind CLI + modular UI                               | BuildPipeline, Post pages          |
-| `client-runtime`   | `registerModule()`, `start()`                                                     | 9 ClientModules + lifecycle dispatch                    | BaseLayout (single entry)          |
-| `telegram-auth`    | `initClient()`, `AuthWallProps`, `pollAuthStatus()`                               | Frontend wall + JWT polling + Bot API                   | Post page, ClientRuntime           |
-| `ui-components`    | Composite components (Navbar, PostCardGrid/List, Tag, PagefindSearch, BaseLayout) | daisyUI + Tailwind + Astro slots                        | All pages                          |
-
-### tgcloud Telegram Bot Module Boundaries
-
-| Module           | Interface                                                                   | Implementation                              | Consumers                     |
-| ---------------- | --------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------- |
-| `bot-handlers`   | `handleMessage()`, `handleCallbackQuery()`                                  | `tgcloud/handlers/*.js`                     | Telegram Platform             |
-| `bot-endpoints`  | `POST /api/<name>` handlers                                                 | `tgcloud/endpoints/*.js`                    | Mini App Frontend             |
-| `bot-db`         | `db` query builder, `schema.js`                                             | tgcloud SDK `db` + `schema.js`              | Handlers, Endpoints           |
-| `bot-api`        | `api` (Bot API), `fetch` (HTTP), `console`                                  | tgcloud SDK `api`, `fetch`, `console`       | Handlers, Endpoints           |
-| `bot-deploy`     | `push()`, `migrate()`, `run()`, `webhook()`                                 | tgcloud CLI                                 | CI/CD, Local Dev              |
-
-### Integration Points (Astro Blog ↔ tgcloud Bot)
-
-| Integration Point          | Mechanism                                                                 | Data Flow                          |
-| -------------------------- | ------------------------------------------------------------------------- | ---------------------------------- |
-| **Telegram Auth**          | Blog post frontmatter `telegramAuth` → Bot validates group membership     | Blog → Bot (JWT)                   |
-| **Content Sharing**        | Bot reads published posts via `content-pipeline`                          | Blog → Bot (Content API)           |
-| **Search Index**           | Blog generates Pagefind index → Bot can query                             | Blog → Bot (Search)                |
-| **Deployment**             | Independent CI/CD pipelines                                               | Independent                        |
+1. **Astro 7 Personal Blog** — SSG with MDX, Tailwind CSS 4 + daisyUI 5, Pagefind search. Deploys to Codeberg Pages, GitHub Pages, IPFS (Pinata).
+2. **tgcloud Telegram Bot** — Mini App on Telegram's V8 isolates serverless platform. Uses tgcloud SDK for DB, Bot API, HTTP.
 
 ---
 
-## Setup Commands
+## Quick Commands
 
 ```bash
-# Install dependencies (Node 24 + pnpm 11)
-pnpm install
+# Development
+# 依赖 src/ 的命令已可用：dev / check / build / preview / post:edit
+pnpm install          # Node 24 + pnpm 11
+pnpm dev              # http://localhost:4321
+pnpm check            # astro check: TypeScript + Astro types
+pnpm build            # astro build（Pagefind/水印/Mermaid 由 buildPipelineIntegration 提供）
+pnpm preview          # astro build + tgcloud 本地预览
 
-# Start development server at http://localhost:4321
-pnpm dev
+# Code Quality
+pnpm exec oxlint .             # Lint（package.json 无 oxlint 脚本）
+pnpm exec oxfmt --check        # Check formatting
+pnpm exec oxfmt --write        # Fix formatting
 
-# Type-check + build + Pagefind index + HTML validation
-pnpm build
+# Content
+pnpm post:edit        # Rust CLI: manage posts (new/edit/list/delete/publish)
 
-# Preview production build with Wrangler (tgcloud simulator)
-pnpm preview
+# Testing
+pnpm exec playwright test  # E2E tests（Chromium；首次需 pnpm exec playwright install chromium）
 
-# Run Astro CLI commands
-pnpm astro <command>
-
-# Run the Rust post management CLI
-pnpm post:edit
-
-# Audit dependencies
-pnpm audit
-```
-
-### tgcloud Telegram Bot Commands
-
-```bash
-# Check status of local vs cloud
-pnpm status
-
-# Deploy code to tgcloud
-pnpm deploy
-
-# Apply database schema changes
-pnpm exec tgcloud migrate
-
-# Run a handler/endpoint locally
-pnpm run <module> [args]
-
-# Check/sync bot webhook
-pnpm exec tgcloud webhook
-```
+# tgcloud Bot
+pnpm status           # Local vs cloud status
+pnpm deploy           # Push to tgcloud
+pnpm exec tgcloud migrate   # Apply DB schema
+pnpm exec tgcloud run <module>   # Run handler/endpoint locally
+pnpm exec tgcloud webhook   # Check/sync webhook
 ```
 
 ---
 
-## Development Workflow
+## Architecture (Pointers)
 
-### Start Development Server
-
-```bash
-pnpm dev
-# Runs: astro dev
-# Available at: http://localhost:4321
-```
-
-### Build for Production
-
-```bash
-pnpm build
-# Runs: astro build
-# Includes:
-#   - TypeScript type checking (astro check)
-#   - Static site generation
-#   - Pagefind search index generation
-#   - HTML validation (vnu-jar)
-# Output: ./dist/
-```
-
-### Preview Production Build
-
-```bash
-pnpm preview
-# Runs: astro build && tgcloud local dev preview
-# Simulates tgcloud environment locally
-```
-
-### Hot Reload / Watch Mode
-
-- `pnpm dev` includes hot module replacement for components, styles, and content
-- Content changes in `src/posts/` trigger automatic rebuild
-- Rust CLI changes require rebuilding the binary: `cargo build --release -p post-edit`
+| Area                               | Document                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------------ |
+| **System Context (C1)**            | `docs/adr/0001-functional-architecture.md#c1-system-context-系统上下文`  |
+| **Container Boundaries (C2)**      | `docs/adr/0001-functional-architecture.md#c2-container-容器运行时边界`   |
+| **Deep Module Boundaries (C3)**    | `docs/adr/0001-functional-architecture.md#c3-component-模块深度模块边界` |
+| **Code Contracts (C4)**            | `docs/adr/0001-functional-architecture.md#c4-code-关键实现细节`          |
+| **Draft Isolation Strategy**       | `docs/adr/0002-draft-isolation-submodule.md`                             |
+| **Deployment Strategy**            | `docs/adr/0003-deployment-strategy.md`                                   |
+| **Sub-agent Coordination**         | `docs/adr/0004-subagent-coordination.md`                                 |
+| **Theme Token Strategy**           | `docs/adr/0005-theme-token-strategy.md`                                  |
+| **Visual Design Spec**             | `docs/VISUAL_DESIGN_SPEC.md`                                             |
+| **Pagefind UI Approach**           | `docs/adr/0006-pagefind-ui-approach.md`                                  |
+| **Client Module Registry**         | `docs/adr/0007-client-module-registry.md`                                |
+| **Knowledge Base Architecture**    | `docs/adr/0008-agents-knowledge-base-architecture.md`                    |
+| **Knowledge Update Process**       | `docs/adr/0009-knowledge-update-process.md`                              |
+| **Module Dependency Graph**        | `docs/architecture-map.md#模块依赖图-module-dependency-graph`            |
+| **Interface Contract Matrix**      | `docs/architecture-map.md#接口契约矩阵-interface-contract-matrix`        |
+| **Data Flows (Build/Runtime)**     | `docs/architecture-map.md#数据流向-data-flow`                            |
+| **Seam Decisions**                 | `docs/architecture-map.md#模块边界决策记录-seam-decisions`               |
+| **Dependency Evaluation**          | `docs/adr/0010-dependency-evaluation.md`                                 |
+| **Agent Learning Mechanism**       | `docs/adr/0011-agent-learning-mechanism.md`                              |
+| **Refactor Plan**                  | `REFACTOR_PLAN.md`                                                       |
+| **Telegram Auth Comparison**       | `docs/TELEGRAM_AUTH_COMPARISON.md`                                       |
+| **Project Status (authoritative)** | `PROJECT_STATUS.md`                                                      |
+| **Rewrite Plan**                   | `REWRITE_PLAN.md`                                                        |
+| **ADR Index**                      | `docs/adr/README.md`                                                     |
+| **tgcloud Migration (ADR 0012)**   | `docs/adr/0012-tgcloud-migration.md`                                     |
 
 ---
 
-## Testing Instructions
+## Terminology (Single Source)
 
-### End-to-End Tests (Playwright)
-
-```bash
-# Run all E2E tests
-pnpm playwright test
-
-# Run tests with UI
-pnpm playwright test --ui
-
-# Run tests in headed mode
-pnpm playwright test --headed
-
-# Debug tests
-pnpm playwright test --debug
-```
-
-### Type Checking
-
-```bash
-# Run Astro type checking (includes content collection types)
-pnpm check
-# Runs: astro check
-```
-
-### Linting & Formatting
-
-```bash
-# Run oxlint (all files)
-pnpm oxlint
-
-# Run oxfmt (format check)
-pnpm oxfmt --check
-
-# Fix formatting
-pnpm oxfmt --write
-
-# Run both via lint-staged (used in pre-commit)
-pnpm lint-staged
-```
-
-### CI Pipeline
-
-The GitHub Actions workflow (`.github/workflows/deploy.yml`) runs on push to `main` for the **Astro Blog**:
-
-1. **codeberg** — Build + deploy to Codeberg Pages (SSH push)
-2. **github** — Build + deploy to GitHub Pages via `withastro/action`
-3. **ipfs** — Build + pin to IPFS via Pinata
-
-All jobs install lychee for link checking and run `pnpm build`.
-
-**tgcloud Telegram Bot** uses separate deployment via `pnpm deploy` (tgcloud push) and `pnpm exec tgcloud migrate`.
-
----
-
-## Code Style Guidelines
-
-### Linting (oxlint)
-
-- **Config:** `.oxlintrc.json`
-- **Rules:** All categories set to `error` (correctness, suspicious, pedantic, perf, style, restriction, nursery)
-- **Overrides:** Relaxed rules for `.astro`, `astro.config.ts`, `src/pages/**/*.ts`, `src/integrations/**/*.ts`, `.husky/*.ts`
-- **Run:** `pnpm oxlint` or via lint-staged on commit
-
-### Formatting (oxfmt)
-
-- **Config:** `oxfmt.config.ts`
-- **Options:** JSDoc enabled, Tailwind CSS class sorting enabled
-- **Run:** `pnpm oxfmt --check` (verify) or `pnpm oxfmt --write` (fix)
-
-### Pre-commit Hooks (Husky + lint-staged)
-
-- **Config:** `package.json` → `lint-staged` + `.husky/pre-commit.ts`
-- **Runs on staged files:**
-  - `*.{js,mjs,jsx,ts,tsx}` → oxlint + oxfmt
-  - `*.astro` → oxlint
-  - `*.css` → oxlint + oxfmt
-  - Other files → oxfmt only
-
-### File Organization
-
-- **Components:** PascalCase (e.g., `CodeCopy.astro`, `PostCard.astro`)
-- **Pages:** Kebab-case routes (e.g., `posts/[id].astro`, `tags/[tag].astro`)
-- **Scripts:** Kebab-case (e.g., `theme-toggle.ts`, `scroll-reveal.ts`)
-- **Styles:** `global.css` for Tailwind + daisyUI imports
-- **Utilities:** camelCase functions in `src/utils/`
-- **Modules:** `src/modules/` — each exports a single interface object
-
-### Import Patterns
-
-```typescript
-// Astro built-ins
-import { defineCollection } from "astro:content";
-import { glob } from "astro/loaders";
-
-// External packages
-import { z } from "astro/zod";
-import dayjs from "dayjs";
-
-// Internal modules (use @ alias if configured, otherwise relative)
-import { contentPipeline } from "@/modules";
-import { formatDate } from "../utils/date";
-```
-
----
-
-## Build and Deployment
-
-### Build Process
-
-```bash
-pnpm build
-```
-
-**Output structure:**
-
-```
-dist/
-├── client/          # Static assets for Pages deployments
-│   ├── _astro/
-│   ├── pagefind/
-│   ├── posts/
-│   ├── tags/
-│   ├── index.html
-│   └── ...
-└── server/          # Server bundle (tgcloud)
-    └── entry.mjs
-```
-
-### Deployment Targets
-
-| Target           | URL                               | Method                  |
-| ---------------- | --------------------------------- | ----------------------- |
-| **tgcloud**      | `https://<your-bot>.tgcloud.ai`   | `pnpm deploy` (tgcloud push) |
-| **Codeberg Pages** | `https://lihua.codeberg.page`     | SSH bare repo push      |
-| **GitHub Pages** | `https://real-LiHua.github.io`    | `actions/deploy-pages`  |
-| **IPFS**         | Via Pinata gateway                | `ipfs add` + Pinata pin |
-
-### Environment Variables
-
-| Variable           | Description                     | Required         |
-| ------------------ | ------------------------------- | ---------------- |
-| `SITE_URL`         | Base URL for sitemap, RSS, OGP  | Yes (build)      |
-| `TG_API_TOKEN`     | tgcloud API token               | Deploy only      |
-| `CODEBERG_PAGES`   | SSH private key for Codeberg    | Deploy only      |
-| `PINATA_JWT_TOKEN` | Pinata API JWT                  | IPFS deploy only |
-
-### Local Preview of Deployed Builds
-
-```bash
-# tgcloud local dev preview
-pnpm preview
-
-# Static preview (any static server)
-pnpm exec serve dist/client
-```
-
----
-
-## Pull Request Guidelines
-
-### Branch & Commit
-
-- Work on feature branches off `main`
-- Conventional commit format encouraged:
-  - `feat: add search highlighting`
-  - `fix: resolve theme toggle hydration`
-  - `chore: update dependencies`
-
-### Required Checks Before Merge
-
-All must pass in CI:
-
-```bash
-# Local equivalents
-pnpm check          # TypeScript + Astro types
-pnpm build          # Full build + validation
-pnpm oxlint         # Linting
-pnpm oxfmt --check  # Formatting
-```
-
-### PR Title Format
-
-```
-[component] Brief description
-
-# Examples:
-[posts] Add reading progress indicator
-[layout] Fix OGP image generation
-[cli] Add draft filtering to post-edit
-```
-
-### Review Requirements
-
-- At least 1 approval for non-trivial changes
-- No CI failures
-- No lint/type errors
-- New features should include tests (Playwright for E2E)
-
----
-
-## Content Management
-
-### Creating Posts
-
-Posts live in `src/posts/` as `.md` or `.mdx` files:
-
-```markdown
----
-title: "Post Title"
-publishDate: 2026-08-26
-description: "Optional description"
-tags: ["tag1", "tag2"]
-authors: ["author"]
-image: "/path/to/image.png"
-updatedDate: 2026-08-27
----
-
-Content here...
-```
-
-**Drafts:** Place in `src/posts/drafts/` — they are excluded from production builds automatically (no `draft: true` frontmatter needed).
-
-> **Note:** Draft isolation via private Git submodule is planned (see `docs/adr/0002-draft-isolation-submodule.md`). Currently uses path-based filtering.
-
-### Rust CLI: Post Management
-
-```bash
-# Interactive menu
-pnpm post:edit
-
-# Commands available:
-# - new: Create new post (prompts for frontmatter)
-# - edit: Edit existing post (fuzzy search via skim)
-# - list: List all posts with metadata
-# - delete: Delete a post
-# - publish: Move draft to published
-# - unpublish: Move published to drafts
-```
-
-### Content Collections Schema
-
-Defined in `src/content.config.ts`:
-
-- `title` (required, string)
-- `publishDate` (optional, date)
-- `updatedDate` (optional, date)
-- `description` (optional, string)
-- `tags` (optional, string[])
-- `authors` (optional, string[])
-- `image` (optional, string)
-- `telegramAuth` (optional, object with `enabled`, `groupId`, `groupName`, `customMessage`)
-
-Types exported from `src/modules/types.ts` for cross-module reuse.
-
----
-
-## Common Tasks
-
-### Add a New Component
-
-1. Create `src/components/MyComponent.astro`
-2. Import and use in layouts/pages
-3. Add styles in component `<style>` or `global.css`
-4. Run `pnpm check` to verify types
-
-### Add a New Page Route
-
-1. Create `src/pages/new-route.astro` or `src/pages/new-route/[param].astro`
-2. Export `getStaticPaths()` for dynamic routes
-3. Use `BaseLayout` for consistent structure
-4. Run `pnpm dev` to test
-
-### Modify Theme / Styling
-
-- **Colors/theme:** Edit `src/styles/theme-tokens.css` (single source of truth for light/dark/prose tokens)
-- **Tailwind config:** Uses Tailwind CSS 4 (no config file, uses CSS-first)
-- **Typography:** `@tailwindcss/typography` for prose content (variables in theme-tokens.css)
-- **Syntax highlighting:** `src/styles/shiki.css` (Expressive Code theme)
-
-### Update Dependencies
-
-```bash
-# Check for updates
-pnpm audit
-
-# Update all (interactive)
-pnpm update --interactive
-
-# Update specific
-pnpm add -D package@latest
-```
-
-### Debugging
-
-| Issue                | Solution                                                 |
-| -------------------- | -------------------------------------------------------- |
-| Build fails on types | Run `pnpm check` for detailed errors                     |
-| Styles not applying  | Check daisyUI class names, run `pnpm build`              |
-| Content not showing  | Verify frontmatter matches schema in `content.config.ts` |
-| Search not working   | Ensure `pnpm build` ran (generates Pagefind index)       |
-| Hydration errors     | Check client scripts for `isBrowser` guards              |
-| Rust CLI not found   | Run `cargo build --release -p post-edit`                 |
-
----
-
-## Security Considerations
-
-- **Secrets:** Never commit secrets; use GitHub Actions secrets for deploy credentials
-- **Origin check:** `astro.config.ts` has `security: { checkOrigin: false }` for dev flexibility
-- **Content Security Policy:** Strict CSP via meta tags in `BaseLayout.astro` (see `docs/SECURITY_WHITEPAPER.md`)
-- **Dependencies:** `pnpm audit` runs in CI; review advisories before merging
-- **Link checking:** lychee runs in CI to catch broken links
-- **Telegram Bot Token:** Only in tgcloud secret, never in repo or build output
-- **Watermark:** Zero-width character blind watermark on original articles (build pipeline stage)
-
-Full security baseline: `docs/SECURITY_WHITEPAPER.md`
-
----
-
-## Performance Notes
-
-- **Images:** Use Astro's `<Image />` component or optimize manually
-- **Fonts:** `@fontsource/twinkle-star` self-hosted; consider `preload`
-- **CSS:** `lightningcss` minification in production (`astro.config.ts`)
-- **HTML:** `astro-minify-html-swc` minifies production output
-- **Search:** Pagefind index is ~100KB gzipped; loads async
-- **JS:** Minimal client-side JS; most interactivity via small vanilla modules via `client-runtime`
-
----
-
-## Troubleshooting
-
-### Build Errors
-
-```bash
-# Clear cache and rebuild
-rm -rf '.astro' 'dist' 'node_modules'
-pnpm install
-pnpm build
-```
-
-### Port Already in Use
-
-```bash
-# Kill process on 4321
-lsof -ti:4321 | xargs kill -9
-```
-
-### Type Errors After Dependency Update
-
-```bash
-pnpm check  # Shows exact errors
-# Fix types or add @types/ packages
-```
-
-### Husky Pre-commit Fails
-
-```bash
-# Run manually to see errors
-pnpm lint-staged
-
-# Or fix formatting
-pnpm oxfmt --write
-```
-
-### Pagefind Search Not Working
-
-- Ensure `pagefind` runs during build (included in `astro build`)
-- Check `dist/client/pagefind/` exists
-- Verify `BaseLayout` includes Pagefind UI via `<PagefindSearch />` component
-
----
-
-## Technical Reference (from Official Docs)
-
-### Astro 7 Content Collections
-
-- **Glob Loader** (`astro/loaders`): `glob({ pattern: "**/*.{md,mdx}", base: "./src/posts" })` — 支持 `generateId`、`retainBody` (v5.17+)、`pattern` 数组
-- **Schema** (`astro/zod`): Zod 4 语法，`z.coerce.date()`、`z.array(z.string())`、`.optional()`、`.nullable()`，自动生成 TS 类型
-- **Markdown 处理器**: **Satteri** (`@astrojs/markdown-satteri`) 替代已弃用的 remark/rehype，提供 `MdastPlugin`/`HastPlugin` 插件系统（heading IDs、外链标记、Mermaid 渲染、日期自动填充、表格对齐）
-- **Render**: `render(entry)` → `{ Content, headings, remarkPluginFrontmatter }`，`Content` 为 Astro 组件
-- **查询**: `getCollection("blog", filter?)`、`getEntry("blog", id)`、`getEntries()`
-- **RSS**: `@astrojs/rss` + `pagesGlobToRssItems(import.meta.glob)` 或 `rssSchema` 强制字段
-- **Sitemap**: `@astrojs/sitemap` v3.7+ 支持 `chunks` 分片、`namespaces` 排除、`ChangeFreqEnum`
-
-### Astro Integrations & Hooks
-
-- **钩子**: `astro:config:setup` (配置)、`astro:build:start` (构建前)、`astro:build:done` (构建后)、`astro:routes:resolved` (路由解析后)
-- **IntegrationResolvedRoute**: `pattern`、`component`、`prerender`、`params`、`generateId`
-- **Logger**: `astro:build:done` 等钩子接收 `logger: AstroIntegrationLogger`
-
-### View Transitions (SPA Mode)
-
-- **ClientRouter**: `<ClientRouter fallback="animate|swap|none" />`，`animate` 默认模拟转场
-- **生命周期**: `astro:before-preparation` → `astro:after-preparation` → `astro:before-swap` → `astro:after-swap` → `astro:page-load`
-- **脚本重执行**: `<script is:inline data-astro-rerun>` 强制每次导航执行，或监听 `astro:page-load`
-- **转场指令**: `transition:name`、`transition:animate` (fade/slide/custom)、`transition:persist`
-- **表单**: `<form data-astro-reload>` 退出 SPA 模式
-
-### Middleware
-
-- `src/middleware/index.ts` 导出 `onRequest(context, next)`，可读写 `context.locals` 跨组件共享
-- 预渲染时运行，按需渲染时每请求运行，Cookie/Headers 仅 SSR 可用
-
-### Image Optimization
-
-- **Sharp** (默认): `image.service.entrypoint: 'astro/assets/services/sharp'`，配置 `limitInputPixels`、`webp`/`jpeg`/`avif`/`png` encoder 选项
-- **Passthrough**: `passthroughImageService()` 绕过处理，适配 tgcloud 等边缘环境
-- **Endpoint**: `image.endpoint.route` 自定义图片服务路由
-
-### Tailwind CSS 4 + daisyUI 5
-
-- **CSS-first**: `@import "tailwindcss"; @plugin "@tailwindcss/typography"; @plugin "daisyui";`
-- **主题**: `@plugin "daisyui/theme" { name: "light"; prefersdark: false; color-scheme: "light"; --color-*: ... }`
-- **Typography**: `@tailwindcss/typography` 通过 `--tw-prose-*` CSS 变量控制，`[data-theme="dark"]` 覆盖
-- **Vite 插件**: `@tailwindcss/vite` 集成
-
-### Pagefind
-
-- **模块化 UI**: `Instance({ bundlePath })` + `Input({ containerElement })` + `ResultList({ containerElement, resultTemplate })`
-- **声明式**: `<pagefind-config base-url="/" bundle-path="/pagefind/"><pagefind-input><pagefind-results>`
-- **CSS 变量**: `--pagefind-ui-primary`、`--pagefind-ui-background`、`--pagefind-ui-text`、`body.dark` 覆盖
-- **结果模板**: `<script type="text/pagefind-template">` 内部 `{{ meta.title }}`、`{{ url | safeUrl }}`、`{{+ excerpt +}}`
-
-### Oxlint / Oxfmt
-
-- **配置**: `.oxlintrc.json` (ESLint 兼容) 或 `oxlint.config.ts` (`defineConfig`)，支持 `overrides` 按 glob 差异化
-- **类型感知**: `typeAware: true` 需 `oxlint-tsgolint`，规则前缀 `typescript/`
-- **Oxfmt**: `oxfmt.config.ts` (`defineConfig`)，`embeddedLanguageFormatting: "auto"`，Tailwind class 排序内置
-- **忽略**: `.oxfmtrc.json` `ignorePatterns: ["dist/**", "*.min.js"]`
+**All terms defined in `CONTEXT.md`** (49 terms) — do not redefine elsewhere. Consult it before coining a new term; add new terms there first, then use them here.
 
 ---
 
 ## Sub-Agent Orchestration
 
-This project uses a **sub-agent framework** for parallel development across 6 specialized roles.
-
-### Quick Start
-
-```bash
-# View task board
-ls .agents/tasks/phase-1/
-
-# Claim a task (example)
-pnpm exec tsx .agents/scripts/task-claim.ts 1.1 --assignee content-engineer
-
-# Update progress (every 30 min)
-pnpm exec tsx .agents/scripts/task-progress.ts 1.1 50 --msg "Exported types"
-
-# Report blocker (>15 min stuck)
-pnpm exec tsx .agents/scripts/task-progress.ts 1.1 --blocked "Need schema" --help-from quality-dx-guardian
-
-# Complete task (runs quality gates)
-pnpm exec tsx .agents/scripts/task-complete.ts 1.1
-```
-
-### Roles
+### 6 Roles
 
 | Role ID                     | Type        | Focus                                 | Quality Gate            |
 | --------------------------- | ----------- | ------------------------------------- | ----------------------- |
@@ -665,107 +98,268 @@ pnpm exec tsx .agents/scripts/task-complete.ts 1.1
 | `search-discovery-engineer` | Complicated | Pagefind index, Search UI, algorithms | Pagefind index exists   |
 | `quality-dx-guardian`       | Enabling    | oxlint/oxfmt/TS/Playwright/ADR        | Full Playwright suite   |
 
-### Key Directories
-
-```
-.agents/
-├── scripts/           # Core scripts (task-claim, task-progress, task-complete, run-gate, check-regression)
-├── tasks/phase-1..8/  # Task cards (from REFACTOR_PLAN.md)
-├── lifecycle/         # Monthly performance reviews
-├── team/              # Skills matrix, capacity planning
-├── contracts/         # Interface contracts (TypeScript/Zod)
-└── tech-debt/         # Technical debt register
-```
-
-### Workflow Rules
-
-1. **Read task card first** — `.agents/tasks/phase-X/N.md`
-2. **Heartbeat every 30 min** — `task-progress <id> <percent> --msg "..."`
-3. **Block >15 min → report** — `task-progress --blocked "..." --help-from <role>`
-4. **Declare outputs before complete** — list files in task card
-5. **Gate auto-runs on complete** — common + role-specific
-
-Full operations guide: `docs/SUBAGENT_OPERATIONS.md`
-
----
-
-## Architecture References
-
-| Document                                              | Purpose                                                             |
-| ----------------------------------------------------- | ------------------------------------------------------------------- |
-| `CONTEXT.md`                                          | Domain glossary (33 core terms)                                     |
-| `docs/adr/0001-functional-architecture.md`            | C4 model + deep module boundaries                                   |
-| `docs/adr/0002-draft-isolation-submodule.md`          | Draft isolation via private Git submodule                           |
-| `docs/adr/0003-subagent-responsibilities-controls.md` | 6 roles, lifecycle, comms, quality gates                            |
-| `docs/adr/0004-agents-knowledge-base-architecture.md` | Knowledge base 3-tier architecture + context pointers               |
-| `docs/adr/0005-knowledge-update-process.md`           | L0-L3 trigger layers, automation scripts, CI guards                 |
-| `docs/architecture-map.md`                            | Mermaid dependency graph, data flows, seam decisions                |
-| `docs/SECURITY_WHITEPAPER.md`                         | Threat model, CSP, auth, build pipeline security, incident response |
-| `REFACTOR_PLAN.md`                                    | 8-phase refactor plan with verification & rollback                  |
-| `src/modules/index.ts`                                | Unified module exports                                              |
-
----
-
-## Additional Context
-
-### Monorepo Notes
-
-This is a single-package repository. No workspace commands needed.
-
-### Key Files for Agents
-
-| File                                    | Purpose                                                        |
-| --------------------------------------- | -------------------------------------------------------------- |
-| `astro.config.ts`                       | Astro configuration, integrations, adapter                     |
-| `src/content.config.ts`                 | Content collections schema                                     |
-| `package.json`                          | Scripts, dependencies, lint-staged config                      |
-| `.oxlintrc.json`                        | Linting rules                                                  |
-| `oxfmt.config.ts`                       | Formatting config                                              |
-| `.github/workflows/deploy.yml`          | CI/CD pipeline (4-platform deploy)                             |
-| `.github/workflows/knowledge-guard.yml` | Knowledge base guards (pointers, terms, contracts, regression) |
-| `.github/pull_request_template.md`      | PR template with KB impact checklist                           |
-| `Cargo.toml`                            | Rust CLI project config                                        |
-| `src/modules/*.ts`                      | Deep module interfaces                                         |
-| `schema.js`                             | tgcloud database schema                                        |
-| `handlers/message.js`                   | Telegram message handler                                       |
-
-### Useful Commands Reference
+### Daily Commands
 
 ```bash
-# Development
-pnpm dev              # Start dev server
-pnpm check            # Type check
-pnpm build            # Production build
-
-# Code quality
-pnpm oxlint           # Lint
-pnpm oxfmt --check    # Check formatting
-pnpm oxfmt --write    # Fix formatting
-
-# Content
-pnpm post:edit        # Manage posts (Rust CLI)
-
-# Testing
-pnpm playwright test  # E2E tests
-
-# Deploy (local preview)
-pnpm preview          # tgcloud local dev preview
-
-# tgcloud Telegram Bot
-pnpm status           # Check local vs cloud status
-pnpm deploy           # Deploy to tgcloud
-pnpm exec tgcloud migrate   # Apply database schema changes
-pnpm run <module>           # Run handler/endpoint locally (tgcloud run)
-pnpm exec tgcloud webhook   # Check/sync bot webhook
+# View tasks
+ls .agents/tasks/phase-1/
+# Claim task
+pnpm exec tsx .agents/scripts/task-claim.ts 1.1 --assignee content-engineer
+# Heartbeat (every 30 min)
+pnpm exec tsx .agents/scripts/task-progress.ts 1.1 50 --msg "Exported types"
+# Report blocker (>15 min stuck)
+pnpm exec tsx .agents/scripts/task-progress.ts 1.1 --blocked "Need schema" --help-from quality-dx-guardian
+# Complete (runs quality gates)
+pnpm exec tsx .agents/scripts/task-complete.ts 1.1
 ```
 
-# Sub-agent ops
-pnpm exec tsx .agents/scripts/task-claim.ts <id> --assignee <role>
-pnpm exec tsx .agents/scripts/run-gate.ts <role>
-pnpm exec tsx .agents/scripts/check-regression.ts HEAD~1
+**Rules**: Read task card first → Heartbeat every 30min → Block >15min = report → Declare outputs before complete → Gates auto-run on complete.
 
-# Knowledge Base Guards
-pnpm exec tsx .agents/scripts/scan-pointers.ts [--fix] [--report]
-pnpm exec tsx .agents/scripts/check-terms.ts [--report]
-pnpm exec tsx .agents/scripts/sync-contracts.ts [--report]
+Full guide: `docs/SUBAGENT_OPERATIONS.md`
+
+---
+
+## Development Workflow
+
+### Branch & Commit
+
+- Feature branches off `main`
+- Conventional commits: `feat:`, `fix:`, `chore:`
+
+### Required Checks
+
+```bash
+pnpm check && pnpm build && pnpm exec oxlint . && pnpm exec oxfmt --check
+```
+
+### PR Template
+
+`.github/pull_request_template.md` — includes KB impact checklist.
+
+---
+
+## Content Management
+
+### Creating Posts
+
+`src/posts/*.md` or `*.mdx` with frontmatter:
+
+```yaml
+title: "Post Title"
+publishDate: 2026-08-26
+description: "Optional"
+tags: ["tag1", "tag2"]
+authors: ["author"]
+image: "/path/to/image.png"
+updatedDate: 2026-08-27
+```
+
+### Drafts
+
+Place in `src/posts/drafts/` — excluded from production builds automatically (path-based filtering).
+
+> **Planned**: Physical isolation via private Git submodule → `docs/adr/0002-draft-isolation-submodule.md`
+
+### Schema
+
+Defined in `src/content.config.ts` (Zod via `astro/zod`). Types exported from `src/modules/types.ts`.
+
+---
+
+## Security Baseline
+
+- **Secrets**: Never commit; use GitHub Actions secrets（`.github/workflows/`）
+- **CSP**: Strict via `BaseLayout.astro` meta tags ⏸
+- **Dependencies**: `pnpm audit` — 本地手动执行（`pnpm audit`），CI ⏸
+- **Links**: `lychee` — 本地手动执行，CI ⏸
+- **Bot Token**: Only in tgcloud secret
+- **Watermark**: Zero-width chars on original articles
+
+Full: `docs/SECURITY_WHITEPAPER.md`
+
+---
+
+## Key Files Reference
+
+| File                                    | Purpose                                |
+| --------------------------------------- | -------------------------------------- |
+| `astro.config.ts`                       | Astro config, integrations, adapter    |
+| `package.json`                          | Scripts, deps, lint-staged             |
+| `.oxlintrc.json`                        | Lint rules                             |
+| `oxfmt.config.ts`                       | Format config                          |
+| `Cargo.toml`                            | Rust CLI config                        |
+| `.github/pull_request_template.md`      | PR template with KB impact checklist   |
+| `src/content.config.ts`                 | Content collections schema             |
+| `.github/workflows/deploy.yml`          | 4-platform CI/CD                       |
+| `.github/workflows/knowledge-guard.yml` | KB guards (pointers, terms, contracts) |
+| `src/modules/*.ts`                      | Deep module interfaces                 |
+| `schema.js`                             | tgcloud DB schema                      |
+| `handlers/message.js`                   | Telegram handler                       |
+
+---
+
+## Knowledge Base Maintenance
+
+| Trigger                 | Action                                              | Script                               |
+| ----------------------- | --------------------------------------------------- | ------------------------------------ |
+| **L0: Code change**     | Auto-reflect (scripts, types, interfaces)           | —                                    |
+| **L1: Phase done**      | Archive tasks, sync CONTEXT.md, update ADRs         | `scan-pointers.ts`, `check-terms.ts` |
+| **L2: Breaking change** | Update contracts, task cards, create ADR            | `sync-contracts.ts`                  |
+| **L3: Monthly**         | Pointer scan, term check, regression, health report | CI: `knowledge-guard.yml`            |
+
+PRs must declare KB impact in template. CI 运行 pointer/term/contract 检查（advisory，见 `knowledge-guard.yml`）；本地手动执行：`pnpm exec tsx .agents/scripts/{scan-pointers,check-terms,sync-contracts}.ts`。
+
+---
+
+## Current State
+
+`src/`（Astro 博客源码）、`.agents/scripts/`、`.agents/tasks/`、`.github/workflows/`、`src/post-edit/`（Rust CLI）均已在工作区就位，并通过 `pnpm check`、`pnpm build`、`oxlint`、`oxfmt --check` 与 Playwright E2E。`REFACTOR_PLAN.md` 的 8 个 Phase 已执行完毕（记录见 `IMPLEMENTATION_PROGRESS.md`）；项目按 `REWRITE_PLAN.md` **从零重写**（不从 git 恢复）。根级 `handlers/message.js`、`schema.js`、`tgcloud.jsonc` 为 tgcloud Bot 源码；`tgcloud/` 目录从未存在。文中 `⏸` 标注对应**尚未落地**的部分（如 CSP meta、CI 中的 `pnpm audit`、草稿物理隔离子模块），当前权威状态见 `PROJECT_STATUS.md`。
+
+---
+
+## Skill Usage Guide
+
+> **Rule**: When the task matches a skill's description, **invoke the skill first** before writing code or making decisions. Skills provide up-to-date patterns, API references, and project-specific conventions.
+
+### Core Project Skills (Always Relevant)
+
+| Skill                        | When to Use                                       | Trigger Keywords                                          |
+| ---------------------------- | ------------------------------------------------- | --------------------------------------------------------- |
+| `daisyui`                    | **Always** when writing HTML/JSX/Astro components | Any UI component, styling, class names                    |
+| `daisyui-colors`             | When defining/using color tokens, theme variables | `--color-*`, `theme-tokens.css`, dark mode                |
+| `daisyui-config`             | When configuring daisyUI plugins, themes          | `@plugin "daisyui"`, `@plugin "daisyui/theme"`            |
+| `daisyui-usage`              | When applying daisyUI component patterns          | `btn`, `card`, `navbar`, `modal`, `dropdown`              |
+| `context7-mcp` / `find-docs` | **Always** when using any library/framework API   | Astro, Tailwind, Pagefind, Satteri, Zod, Playwright, etc. |
+
+### Task-Type Skills (Match by Task)
+
+| Skill                         | When to Use                                                            | Trigger Keywords                                                     |
+| ----------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `frontend-design`             | Designing new UI, reshaping existing, aesthetic direction              | "design", "UI", "visual", "typography", "distinctive"                |
+| `codebase-design`             | Designing module interfaces, finding deepening opportunities           | "module boundary", "interface", "seam", "deep module"                |
+| `vercel-composition-patterns` | Refactoring components with boolean props, building flexible APIs      | "compound components", "render props", "boolean props"               |
+| `web-design-guidelines`       | Reviewing UI for accessibility, UX, best practices                     | "review UI", "accessibility", "audit design", "UX review"            |
+| `web-perf`                    | Audit, diagnose, optimize website loading, Core Web Vitals, Lighthouse | "performance", "web vitals", "lighthouse", "load time", "CLS", "LCP" |
+| `create-implementation-plan`  | New features, refactoring, upgrades - before writing code              | "plan", "implement", "refactor", "upgrade", "新依赖引入"             |
+| `refactor-plan`               | Multi-file refactors needing sequencing, scoping, safety               | "refactor across files", "plan refactor"                             |
+| `refactor`                    | Surgical improvements: extract, rename, break down, type safety        | "extract function", "rename", "type safety", "code smell"            |
+| `tdd`                         | Building features/fixes test-first, red-green-refactor                 | "test-first", "TDD", "red-green-refactor"                            |
+| `diagnosing-bugs`             | Hard bugs, performance regressions, "debug this"                       | "diagnose", "debug", "broken", "slow", "failing"                     |
+| `prototype`                   | Throwaway prototypes to answer design questions                        | "prototype", "sanity-check", "explore UI"                            |
+| `canvas-design`               | Creating posters, art, diagrams, static visual designs                 | "poster", "diagram", "visual art", "design artifact"                 |
+| `role-architect`              | System architecture, module boundaries, tech selection, scalability    | "architecture", "system design", "module boundary", "tech selection" |
+
+### Documentation & Knowledge Skills
+
+| Skill                | When to Use                                                                                               | Trigger Keywords                                                                 |
+| -------------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `create-agentsmd`    | Generating/updating AGENTS.md for a repository                                                            | "AGENTS.md", "agent instructions"                                                |
+| `create-readme`      | Creating README.md for project                                                                            | "README", "project documentation"                                                |
+| `writing-for-agents` | Creating/editing skills, AGENTS.md, CLAUDE.md                                                             | "write skill", "edit AGENTS.md", "agent docs"                                    |
+| `domain-modeling`    | Building project glossary, CONTEXT.md, ADRs                                                               | "glossary", "CONTEXT.md", "ADR", "terminology"                                   |
+| `research`           | Investigating against primary sources, capturing findings                                                 | "research", "investigate", "gather docs", "compare", "选型", "新依赖"            |
+| `agent-learning`     | Capturing pitfalls, patterns, decisions during development; session retros; monthly knowledge aggregation | "learning", "pitfall", "pattern", "decision", "retro", "lessons learned", "复盘" |
+
+### Sub-Agent Orchestration Skills (For Multi-Agent Work)
+
+| Skill                       | When to Use                                               | Trigger Keywords                                  |
+| --------------------------- | --------------------------------------------------------- | ------------------------------------------------- |
+| `subagent-planning`         | Dependency topology, parallelism, milestone breakdown     | "plan phase", "parallel tasks", "dependencies"    |
+| `subagent-lifecycle`        | Activation, dormancy, degradation, retirement             | "onboard agent", "retire agent", "monthly review" |
+| `subagent-onboarding`       | Environment setup, knowledge transfer, probation          | "new agent", "onboard", "trial period"            |
+| `subagent-recruitment`      | Role design, candidate evaluation, hiring                 | "hire agent", "role design", "recruit"            |
+| `subagent-team-composition` | Capacity planning, skill matrix, load balancing           | "team composition", "capacity", "skill matrix"    |
+| `subagent-performance`      | KPIs, monitoring, feedback, promotion                     | "performance review", "KPI", "metrics"            |
+| `subagent-communication`    | Task claiming, progress, blockers, context passing        | "task-claim", "task-progress", "blocked"          |
+| `subagent-handoff`          | Deliverables, acceptance, rollback points, dependencies   | "handoff", "transition", "deliverables"           |
+| `subagent-quality-gate`     | Pre-checklists, automated acceptance, regression blocking | "quality gate", "pre-check", "acceptance"         |
+| `subagent-shared-context`   | Project specs, ADRs, interface contracts                  | "shared context", "contracts", "ADR"              |
+
+### Infrastructure & Process Skills
+
+| Skill                        | When to Use                                                                         | Trigger Keywords                                                         |
+| ---------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `setup-pre-commit`           | Adding Husky, lint-staged, typecheck, tests to repo                                 | "pre-commit", "husky", "lint-staged"                                     |
+| `git-commit`                 | Conventional commits, intelligent staging, message gen                              | "commit", "conventional commit", "stage"                                 |
+| `git-guardrails-claude-code` | Blocking dangerous git commands (push, reset --hard)                                | "git hooks", "block push", "safety"                                      |
+| `github-issues`              | Creating/managing issues, labels, milestones, dependencies                          | "create issue", "bug report", "feature request"                          |
+| `code-review`                | Review changes since fixed point (commit/branch) for standards + spec compliance    | "review code", "review PR", "code review", "standards", "spec"           |
+| `security-audit`             | Security guidance, vulnerability review, penetration testing for codebases/APIs/CLI | "security audit", "vulnerability", "penetration test", "security review" |
+| `opencode`                   | OpenCode config, migration V1→V2, plugins, MCP servers, providers, models, themes   | "opencode config", "opencode migrate", "opencode plugin", "mcp server"   |
+| `migrate-to-shoehorn`        | Replacing `as` assertions with @total-typescript/shoehorn                           | "shoehorn", "test assertions", "partial test data"                       |
+| `wizard`                     | Interactive bash wizards for human-only steps                                       | "wizard", "provision", "credentials", "manual steps"                     |
+| `report`                     | Reporting OpenCode issues with diagnostics                                          | "report bug", "opencode issue"                                           |
+
+### Role-Specific Skill Mapping
+
+| Role                        | Primary Skills                                                                                                         | Secondary Skills                                                                                                                                  |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `frontend-architect`        | `daisyui*`, `frontend-design`, `vercel-composition-patterns`, `web-design-guidelines`, `web-perf`                      | `codebase-design`, `prototype`, `create-implementation-plan`, `agent-learning`                                                                    |
+| `content-engineer`          | `context7-mcp` (Astro, Satteri, Zod), `domain-modeling`, `tdd`                                                         | `refactor`, `create-implementation-plan`, `agent-learning`                                                                                        |
+| `build-deploy-engineer`     | `context7-mcp` (Astro, CI/CD, Pagefind), `create-implementation-plan`, `refactor-plan`                                 | `diagnosing-bugs`, `setup-pre-commit`, `research` (依赖体积/构建影响), `agent-learning`, `security-audit`                                         |
+| `cli-tool-engineer`         | `context7-mcp` (Rust, Clap, Cargo), `tdd`, `refactor`                                                                  | `create-implementation-plan`, `migrate-to-shoehorn`, `research` (Rust 依赖评估), `agent-learning`, `opencode`                                     |
+| `search-discovery-engineer` | `context7-mcp` (Pagefind), `frontend-design`, `prototype`                                                              | `codebase-design`, `tdd`, `create-implementation-plan`, `agent-learning`, `web-perf`                                                              |
+| `quality-dx-guardian`       | `context7-mcp` (Oxlint, Oxfmt, Playwright, TypeScript), `setup-pre-commit`, `codebase-design`, `web-design-guidelines` | `refactor-plan`, `domain-modeling`, `writing-for-agents`, `research` (依赖守护 CI), `agent-learning`, `code-review`, `security-audit`, `opencode` |
+
+### Decision Flowchart
+
+```text
+Task received
+    │
+    ├─► Writing UI/Components?          → daisyui, daisyui-usage, daisyui-colors
+    ├─► Using library/framework API?    → context7-mcp / find-docs (REQUIRED)
+    ├─► Designing architecture/module?  → codebase-design, vercel-composition-patterns, role-architect
+    ├─► Creating visual design/art?     → canvas-design
+    ├─► Refactoring multi-file?         → refactor-plan → refactor
+    ├─► Building feature test-first?    → tdd
+    ├─► Debugging hard bug/perf issue?  → diagnosing-bugs
+    ├─► Web performance issue?          → web-perf
+    ├─► Writing/updating agent docs?    → writing-for-agents, create-agentsmd
+    ├─► Building domain glossary/ADR?   → domain-modeling
+    ├─► Managing sub-agents?            → subagent-* (match specific need)
+    ├─► Setting up CI/git hooks?        → setup-pre-commit, git-commit, git-guardrails
+    ├─► Need new dependency?            → research → create-implementation-plan → 0010-dependency-evaluation.md
+    ├─► Hit a pitfall/pattern/decision? → agent-learning → @learning:* / session retro
+    ├─► Security review needed?         → security-audit
+    ├─► Code review needed?             → code-review
+    ├─► OpenCode config/migration?      → opencode
+    └─► Research needed?                → research
+```
+
+### Common Mistakes to Avoid
+
+| ❌ Don't                                   | ✅ Do                                           |
+| ------------------------------------------ | ----------------------------------------------- |
+| Guess API signatures from memory           | Invoke `context7-mcp` for current docs          |
+| Write CSS without daisyUI tokens           | Use `daisyui-colors` + `theme-tokens.css`       |
+| Refactor without plan                      | Run `refactor-plan` first                       |
+| Debug by random changes                    | Use `diagnosing-bugs` loop                      |
+| Design UI in isolation                     | Use `frontend-design` + `web-design-guidelines` |
+| Skip skill for "simple" tasks              | Skills encode project-specific conventions      |
+| Add dependency without L1/L2/L3 evaluation | Follow `0010-dependency-evaluation.md` 三层评估 |
+| 忽略许可证/安全/体积审计                   | CI 自动拦截 + 人工复核                          |
+| 引入依赖无 ADR 记录 (架构级)               | 创建 ADR 记录选型理由、退出策略                 |
+
+### Quick Reference Card
+
+```bash
+# Most common skill invocations in this project:
+skill daisyui                 # Before ANY component work
+skill context7-mcp           # Before ANY library usage (Astro, Tailwind, Pagefind, etc.)
+skill codebase-design        # Before defining module interfaces
+skill create-implementation-plan  # Before multi-file features/refactors
+skill frontend-design        # Before new UI/visual decisions
+skill web-perf               # Before performance optimization
+skill tdd                    # Before new feature/bug fix
+skill writing-for-agents     # Before editing AGENTS.md, skills, CLAUDE.md
+skill domain-modeling        # Before updating CONTEXT.md, creating ADRs
+skill agent-learning         # Capture pitfall/pattern/decision during dev
+skill security-audit         # Before security review / pen test
+skill code-review            # Before PR review (standards + spec)
+skill opencode               # Before OpenCode config/migration
+
+# Learning commands
+pnpm exec tsx .agents/scripts/extract-learning.ts --output .agents/learning/extracted.md
+pnpm exec tsx .agents/scripts/aggregate-learning.ts --month 2026-10
+pnpm exec tsx .agents/scripts/learning-index.ts --rebuild --stats
 ```

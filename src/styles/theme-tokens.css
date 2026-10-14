@@ -1,0 +1,91 @@
+/*
+ * Theme tokens — single source of truth for the design palette.
+ * (docs/adr/0005-theme-token-strategy.md, Option A)
+ *
+ * Raw palette values live here as `--palette-*` custom properties. daisyUI
+ * semantic colors in `global.css` reference these variables, so switching
+ * `data-theme` flips the whole palette with zero JS style computation.
+ */
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Brand + neutral palette */
+  --palette-brand-50: #f0f9ff;
+  --palette-brand-100: #e0f2fe;
+  --palette-brand-300: #7dd3fc;
+  --palette-brand-500: #0ea5e9;
+  --palette-brand-600: #0284c7;
+  --palette-accent-500: #d946ef;
+
+  --palette-slate-50: #f8fafc;
+  --palette-slate-100: #f1f5f9;
+  --palette-slate-200: #e2e8f0;
+  --palette-slate-300: #cbd5e1;
+  --palette-slate-700: #334155;
+  --palette-slate-800: #1e293b;
+  --palette-slate-900: #0f172a;
+  --palette-slate-950: #020617;
+
+  --palette-sky-500: #0ea5e9;
+  --palette-emerald-500: #10b981;
+  --palette-amber-500: #f59e0b;
+  --palette-rose-500: #f43f5e;
+
+  /* Typography (Tailwind prose) follows the same palette */
+  --tw-prose-body: var(--palette-slate-700);
+  --tw-prose-headings: var(--palette-slate-900);
+  --tw-prose-lead: var(--palette-slate-700);
+  --tw-prose-links: var(--palette-brand-600);
+  --tw-prose-bold: var(--palette-slate-900);
+  --tw-prose-counters: var(--palette-slate-700);
+  --tw-prose-bullets: var(--palette-slate-300);
+  --tw-prose-hr: var(--palette-slate-200);
+  --tw-prose-quotes: var(--palette-slate-900);
+  --tw-prose-quote-borders: var(--palette-slate-200);
+  --tw-prose-captions: var(--palette-slate-700);
+  --tw-prose-code: var(--palette-slate-900);
+  --tw-prose-pre-code: var(--palette-slate-100);
+  --tw-prose-pre-bg: var(--palette-slate-950);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --palette-brand-50: #0c1a2a;
+  --palette-brand-100: #075985;
+  --palette-brand-300: #38bdf8;
+  --palette-brand-500: #38bdf8;
+  --palette-brand-600: #7dd3fc;
+  --palette-accent-500: #f0abfc;
+
+  --palette-slate-50: #0f172a;
+  --palette-slate-100: #1e293b;
+  --palette-slate-200: #334155;
+  --palette-slate-300: #94a3b8;
+  --palette-slate-700: #cbd5e1;
+  --palette-slate-800: #f1f5f9;
+  --palette-slate-900: #f8fafc;
+  --palette-slate-950: #020617;
+
+  --palette-sky-500: #38bdf8;
+  --palette-emerald-500: #34d399;
+  --palette-amber-500: #fbbf24;
+  --palette-rose-500: #fb7185;
+
+  --tw-prose-body: var(--palette-slate-300);
+  --tw-prose-headings: var(--palette-slate-100);
+  --tw-prose-lead: var(--palette-slate-300);
+  --tw-prose-links: var(--palette-brand-600);
+  --tw-prose-bold: var(--palette-slate-100);
+  --tw-prose-counters: var(--palette-slate-300);
+  --tw-prose-bullets: var(--palette-slate-700);
+  --tw-prose-hr: var(--palette-slate-200);
+  --tw-prose-quotes: var(--palette-slate-100);
+  --tw-prose-quote-borders: var(--palette-slate-200);
+  --tw-prose-captions: var(--palette-slate-300);
+  --tw-prose-code: var(--palette-slate-100);
+  --tw-prose-pre-code: var(--palette-slate-100);
+  --tw-prose-pre-bg: var(--palette-slate-950);
+}

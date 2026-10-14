@@ -1,5 +1,9 @@
 # 架构图谱
 
+> [!NOTE] 设施状态（2026-10）
+> 项目正按 `REWRITE_PLAN.md` **从零重写**：`src/`、`.github/workflows/`、`.agents/scripts/`、`.agents/tasks/` 均已在工作区就位。
+> 文中 `⏸` 标注对应**尚未落地**的部分。`tgcloud/` 目录从未存在；Bot 源码为根级 `handlers/`、`schema.js`。
+
 ## 模块依赖图 (Module Dependency Graph)
 
 ```mermaid
@@ -33,6 +37,23 @@ graph TD
     CR --> TA2[TelegramAuth Client]
     CR --> GF[GravatarFallback]
 
+    %% TelegramAuthModule 内部架构 (分层降级)
+    TA --> TA_Strategy[resolveAuthStrategy]
+    TA --> TA_UI[renderAuthUI 多入口UI]
+    TA --> TA_Flow[startAuthFlow 多入口流程]
+
+    TA_UI --> TA_Deeplink[Deep Link 入口]
+    TA_UI --> TA_Widget[Login Widget 入口]
+    TA_UI --> TA_MiniApp[Mini App 入口]
+    TA_UI --> TA_Fallback[降级切换面板]
+
+    TA_Flow --> TA_DeeplinkFlow[startDeeplinkPolling]
+    TA_Flow --> TA_WidgetFlow[loadTelegramWidget]
+    TA_Flow --> TA_MiniAppFlow[监听 miniapp-auth]
+
+    TA_Fallback --> TA_Cookie[Cookie偏好记忆]
+    TA_Fallback --> TA_Reload[location.reload 重新解析]
+
     %% UI 组件依赖
     UI --> Navbar
     UI --> PostCardGrid
@@ -48,31 +69,34 @@ graph TD
     Pages --> SM
     Pages --> TA
 
-    %% 外部系统
+    %% 外部系统与端点
     CP -.-> AstroContent[Astro Content Collections]
     BP -.-> AstroHooks[astro:build:done]
     SM -.-> PagefindCLI[Pagefind CLI]
-    TA -.-> TelegramBot[Grammy Bot]
+    TA -.-> T_Deeplink[Bot API: /start]
+    TA -.-> T_Widget[Endpoint: /callback]
+    TA -.-> T_MiniApp[Endpoint: /miniapp]
+    TA -.-> T_Protected[受保护路由: /protected]
     CR -.-> ViewTransitions[astro:transitions]
 ```
 
 ## 接口契约矩阵 (Interface Contract Matrix)
 
-| Module                 | Exported Interface   | Key Methods                                                          | Consumers                                |
-| ---------------------- | -------------------- | -------------------------------------------------------------------- | ---------------------------------------- |
-| **ContentPipeline**    | `ContentPipeline`    | `getPublishedPosts()`, `renderPost(id)`                              | Pages, RSS, Sitemap, Search Index        |
-| **BuildPipeline**      | `BuildPipeline`      | `execute(distDir)`, `registerStage()`                                | `astro.config.ts` (integration)          |
-| **ThemeSystem**        | `ThemeSystem`        | `init()`, `toggleTheme()`, `onThemeChange()`                         | `BaseLayout`, `Navbar`, `PagefindSearch` |
-| **SearchModule**       | `SearchModule`       | `generateIndex()`, `<PagefindSearch />`                              | `buildPipeline`, `Posts pages`           |
-| **ClientRuntime**      | `ClientRuntime`      | `registerModule()`, `start()`                                        | `BaseLayout` (single entry)              |
-| **TelegramAuthModule** | `TelegramAuthModule` | `initClient()`, `AuthWallProps`, `pollAuthStatus()`                  | `PostPage`, `ClientRuntime`              |
-| **UIComponents**       | Component Factories  | `Navbar`, `PostCardGrid/List`, `Tag`, `PagefindSearch`, `BaseLayout` | All Pages                                |
+| Module                 | Exported Interface   | Key Methods                                                                         | Consumers                                |
+| ---------------------- | -------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------- |
+| **ContentPipeline**    | `ContentPipeline`    | `getPublishedPosts()`, `renderPost(id)`                                             | Pages, RSS, Sitemap, Search Index        |
+| **BuildPipeline**      | `BuildPipeline`      | `execute(distDir)`, `registerStage()`                                               | `astro.config.ts` (integration)          |
+| **ThemeSystem**        | `ThemeSystem`        | `init()`, `toggleTheme()`, `onThemeChange()`                                        | `BaseLayout`, `Navbar`, `PagefindSearch` |
+| **SearchModule**       | `SearchModule`       | `generateIndex()`, `<PagefindSearch />`                                             | `buildPipeline`, `Posts pages`           |
+| **ClientRuntime**      | `ClientRuntime`      | `registerModule()`, `start()`                                                       | `BaseLayout` (single entry)              |
+| **TelegramAuthModule** | `TelegramAuthModule` | `initClient()`, `AuthWallProps`, `pollAuthStatus()`, `loadProtectedContent(postId)` | `PostPage`, `ClientRuntime`              |
+| **UIComponents**       | Component Factories  | `Navbar`, `PostCardGrid/List`, `Tag`, `PagefindSearch`, `BaseLayout`                | All Pages                                |
 
 ## 数据流向 (Data Flow)
 
 ### 构建时
 
-```
+```text
 src/posts/*.md
     │
     ▼
@@ -108,7 +132,7 @@ src/posts/*.md
 
 ### 运行时 (客户端)
 
-```
+```text
 用户访问页面
     │
     ▼
@@ -124,7 +148,7 @@ src/posts/*.md
     │       │       ├──▶ registerModule(ScrollReveal)
     │       │       ├──▶ registerModule(TiltCard)
     │       │       ├──▶ registerModule(CodeCopy)
-    │       │       ├──▶ registerModule(TelegramAuth) ──▶ 认证墙轮询
+    │       │       ├──▶ registerModule(TelegramAuth) ──▶ 认证墙引导 + 轮询 + AJAX 注入
     │       │       └──▶ registerModule(GravatarFallback)
     │       │
     │       └──▶ routerEvents 分发
@@ -142,7 +166,8 @@ src/posts/*.md
     │
     └──▶ <main><slot /></main> (页面内容)
             │
-            ├──▶ PostPage: <TelegramAuthWall /> 或 <Content />
+            ├──▶ PostPage: <TelegramAuthWall /> (引导去 Telegram) + <Content /> (公开部分)
+            │       └──▶ 验证通过后：AJAX GET /api/posts/[id]/protected → 注入完整内容
             │       └──▶ TOC 侧边栏 / 移动端面板
             │
             └──▶ PostList: <PostCardGrid posts={[]} />
@@ -174,7 +199,7 @@ src/posts/*.md
 
 ## 迁移路径 (Migration Path)
 
-```
+```text
 Phase 1: Types      → src/modules/types.ts (完成)
 Phase 2: Pipeline   → build-pipeline.ts 替换 4 旧集成
 Phase 3: Components → Navbar 复合 + PostCard 变体分离

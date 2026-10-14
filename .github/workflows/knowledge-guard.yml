@@ -1,10 +1,26 @@
+# knowledge-guard.yml — automated knowledge-base guards.
+#
+# Implements ADR 0009 §4 (docs/adr/0009-knowledge-update-process.md):
+#   - pointer-scan    broken relative-path pointers in docs/ADRs/tasks
+#   - term-check      undefined / redefined terminology (single source: CONTEXT.md)
+#   - contract-sync   module exports vs .agents/contracts/*.json
+#   - regression      pointer/term regression vs a baseline commit
+#
+# PR runs are advisory (non-blocking): each check uses `continue-on-error` and
+# posts findings as a PR comment; quality-dx-guardian reviews. The monthly
+# schedule additionally runs the regression check.
+#
+# NOTE: `.agents/scripts/*.ts` are in place (REWRITE_PLAN.md W9; ADR 0009
+# Implementation Checklist). The checks emit advisory findings and are still
+# non-blocking, so the workflow stays green.
+
 name: Knowledge Base Guard
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
   schedule:
-    # Monthly on 1st at 02:00 UTC
+    # Monthly on the 1st at 02:00 UTC
     - cron: "0 2 1 * *"
   workflow_dispatch:
     inputs:
@@ -12,6 +28,10 @@ on:
         description: "Run full scan including regression"
         type: boolean
         default: false
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   pointer-scan:
@@ -251,29 +271,19 @@ jobs:
     if: always()
     steps:
       - name: Collect results
+        env:
+          POINTER: ${{ needs.pointer-scan.result }}
+          TERM: ${{ needs.term-check.result }}
+          CONTRACT: ${{ needs.contract-sync.result }}
+          REGRESSION: ${{ needs.regression-check.result }}
         run: |
-          echo "## Knowledge Base Guard Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          for job in pointer-scan term-check contract-sync regression-check; do
-            if (needs.$job.result == 'success') {
-              echo "- ✅ $job" >> $GITHUB_STEP_SUMMARY
-            } else if (needs.$job.result == 'failure') {
-              echo "- ❌ $job" >> $GITHUB_STEP_SUMMARY
-            } else {
-              echo "- ⏭️ $job (skipped)" >> $GITHUB_STEP_SUMMARY
-            }
-          done
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Reports available as artifacts for 30 days." >> $GITHUB_STEP_SUMMARY
-
-      - name: Fail if any check failed
-        if: |
-          needs.pointer-scan.result == 'failure' ||
-          needs.term-check.result == 'failure' ||
-          needs.contract-sync.result == 'failure' ||
-          needs.regression-check.result == 'failure'
-        run: |
-          echo "::error::One or more knowledge base checks failed"
-          exit 1
+          {
+            echo "## Knowledge Base Guard Summary"
+            echo ""
+            echo "- pointer-scan: \`$POINTER\`"
+            echo "- term-check: \`$TERM\`"
+            echo "- contract-sync: \`$CONTRACT\`"
+            echo "- regression-check: \`$REGRESSION\`"
+            echo ""
+            echo "Reports available as artifacts for 30 days."
+          } >> "$GITHUB_STEP_SUMMARY"

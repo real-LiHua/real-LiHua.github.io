@@ -1,0 +1,36 @@
+// tgcloud project configuration — Telegram Mini App / Bot backend.
+//
+// ASSUMPTION: @tgcloud/cli@0.1.2 does not read this file. The CLI discovers the
+// project via the `.tgcloud/` state directory and treats the layout as
+// path-driven (`schema.js` at the root; `handlers/*.js`; `lib/**`). This file is
+// kept as the declarative record of the project shape per docs/tgcloud-sdk.md
+// and docs/adr/0012-tgcloud-migration.md. When the CLI gains config support
+// (or is upgraded), this becomes the source of truth.
+//
+// Deploy:  pnpm deploy                # tgcloud push
+// Migrate: pnpm exec tgcloud migrate  # apply schema.js (use --yes in CI)
+// Webhook: pnpm exec tgcloud webhook sync
+
+{
+  "name": "real-lihua-blog-bot",
+  "runtime": "v8",
+
+  // Bot update handlers live in handlers/, one file per Telegram update type.
+  // The file name IS the update type; handlers/message.js is the /start
+  // deep-link auth entry point.
+  "entrypoint": "handlers/message.js",
+
+  // Mini App / auth endpoints are part of W7 scope but not yet implemented
+  // (ADR 0012 §4): miniapp.js, callback.js, status.js, protected.js.
+  "endpoints": {},
+
+  // Database tables declared in schema.js (see docs/adr/0012 §4).
+  "database": {
+    "tables": ["profiles", "groups", "postAuth", "sessions", "groupMembers", "pendingAuth"],
+  },
+
+  // Runtime secrets (tgcloud Secret store; see .env.example [TG]).
+  // TELEGRAM_BOT_TOKEN — Bot API calls; JWT_SECRET — HS256 signing for
+  // short-lived deep-link JWTs.
+  "secrets": ["TELEGRAM_BOT_TOKEN", "JWT_SECRET"],
+}

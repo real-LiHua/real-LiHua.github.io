@@ -1,56 +1,45 @@
-import favicons from "astro-favicons";
-import { buildHooksIntegration } from "./src/integrations/build-hooks";
-import { satteriConfigIntegration } from "./src/integrations/satteri-config";
-import { watermarkIntegration } from "./src/integrations/watermark";
 import { defineConfig } from "astro/config";
-import minify from "astro-minify-html-swc";
-import mdx from "@astrojs/mdx";
-import node from "@astrojs/node";
-import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
-import { execSync } from "node:child_process";
-
-const isDev = process.env.NODE_ENV === "development";
-
-// Fetch bot username at build time (non-dev only)
-let telegramBotUsername = "your_bot";
-if (!isDev) {
-  try {
-    // Use getSecret via a small script that runs with Astro's env
-    const result = execSync("pnpm tsx scripts/fetch-bot-username.ts", {
-      encoding: "utf-8",
-      stdio: ["ignore", "pipe", "pipe"],
-      env: { ...process.env, NODE_ENV: "production" },
-    });
-    telegramBotUsername = result.trim() || "your_bot";
-    console.log(`[build] Telegram bot username: @${telegramBotUsername}`);
-  } catch (error) {
-    console.warn("[build] Failed to fetch bot username, using fallback:", error);
-  }
-}
+import mdx from "@astrojs/mdx";
+import sitemap from "@astrojs/sitemap";
+import { satteri } from "@astrojs/markdown-satteri";
+import node from "@astrojs/node";
+import { mermaid as satteriMermaid } from "@xingwangzhe/satteri-mermaid";
+import { pluginLanguageBadge as expressiveCodeLanguageBadge } from "expressive-code-language-badge";
+import minifyHtml from "astro-minify-html-swc";
+import { buildPipelineIntegration } from "./src/integrations/build-pipeline";
+import { satteriExternalLinks } from "./src/plugins/satteri-external-links";
 
 export default defineConfig({
   adapter: node({
     mode: "standalone",
   }),
-  integrations: [
-    favicons(),
-    mdx(),
-    sitemap(),
-    satteriConfigIntegration(),
-    ...(isDev
-      ? []
-      : [minify(), watermarkIntegration(String(process.env.SITE_URL ?? "http://localhost:4321"))]),
-    buildHooksIntegration(),
-  ],
-  security: { checkOrigin: false },
-  site: process.env.SITE_URL ?? "http://localhost:4321",
-  trailingSlash: "ignore",
+  build: {
+    assets: "assets",
+    inlineStylesheets: "auto",
+  },
+  compressHTML: true,
+  integrations: [mdx(), sitemap(), minifyHtml(), buildPipelineIntegration()],
+  markdown: {
+    processor: satteri({
+      mdastPlugins: [satteriMermaid(), expressiveCodeLanguageBadge()],
+      hastPlugins: [satteriExternalLinks()],
+    }),
+    shikiConfig: {
+      themes: { dark: "github-dark", light: "github-light" },
+      wrap: true,
+    },
+    syntaxHighlight: "shiki",
+  },
+  prefetch: {
+    defaultStrategy: "viewport",
+    prefetchAll: true,
+  },
+  site: "https://real-lihua.github.io",
   vite: {
-    build: { cssMinify: "lightningcss" },
     plugins: [tailwindcss()],
-    define: {
-      "import.meta.env.TELEGRAM_BOT_USERNAME": JSON.stringify(telegramBotUsername),
+    ssr: {
+      noExternal: ["@xingwangzhe/satteri-mermaid", "mermaid"],
     },
   },
 });

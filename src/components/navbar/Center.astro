@@ -1,1 +1,29 @@
-<!-- Unused - merged into Navigation.astro -->
+---
+// Navbar center — primary navigation.
+import type { NavLink } from "@/modules/types";
+
+const links: NavLink[] = [
+  { href: "/", label: "首页" },
+  { href: "/posts/", label: "文章" },
+  { href: "/tags/", label: "标签" },
+  { href: "/about/", label: "关于" },
+];
+
+const current = Astro.url.pathname;
+const isActive = (href: string): boolean =>
+  href === "/" ? current === "/" : current.startsWith(href);
+---
+
+<div class="navbar-center hidden lg:flex">
+  <ul class="menu menu-horizontal gap-1 px-1">
+    {
+      links.map((link) => (
+        <li>
+          <a href={link.href} aria-current={isActive(link.href) ? "page" : undefined}>
+            {link.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</div>

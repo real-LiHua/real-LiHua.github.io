@@ -1,14 +1,25 @@
 ---
 description: 搜索发现工程师 - 负责 Pagefind 索引、搜索 UI、标签系统、推荐算法
 mode: subagent
-permission:
-  read: allow
-  write: ask
-  edit: ask
-  glob: allow
-  grep: allow
-  bash: deny
-  task: allow
+permissions:
+  - action: read
+    resource: "*"
+    effect: allow
+  - action: edit
+    resource: "*"
+    effect: ask
+  - action: glob
+    resource: "*"
+    effect: allow
+  - action: grep
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "*"
+    effect: allow
 ---
 
 # 搜索发现工程师
@@ -19,10 +30,18 @@ permission:
 
 ## 职责范围
 
-- `src/components/navbar/SearchBar.astro` - 搜索按钮、Cmd/Ctrl+K 快捷键、移动端/桌面端 UI
-- `src/layouts/BaseLayout.astro` - Pagefind modal 集成、搜索脚本加载
-- `src/integrations/build-hooks.ts` - Pagefind 索引生成（`astro:build:done`）
-- `public/pagefind/` - 开发模式 symlink → `dist/client/pagefind/`
+- `src/components/navbar/SearchBar.astro`
+
+- 搜索按钮、Cmd/Ctrl+K 快捷键、移动端/桌面端 UI
+- `src/layouts/BaseLayout.astro`
+
+- Pagefind modal 集成、搜索脚本加载
+- `src/integrations/build-hooks.ts`
+
+- Pagefind 索引生成（`astro:build:done`）
+- `public/pagefind/`
+
+- 开发模式 symlink → `dist/client/pagefind/`
 - 标签页面：`src/pages/tags/index.astro`、`src/pages/tags/[tag].astro`
 - 搜索相关度优化、中文分词、结果排序
 - **新增**：搜索遥测分析、个性化推荐、语义搜索原型
@@ -31,16 +50,32 @@ permission:
 
 - **Pagefind 仅构建时索引** - 开发模式通过 symlink
 - **排除草稿** - `data-pagefind-body` 仅在已发布文章页
-- **搜索 UI** - daisyUI `modal` + `input` + `kbd` 快捷键提示
+- **搜索 UI** - daisyUI `modal`
+
+* `input`
+
+* `kbd` 快捷键提示
+
 - **无语义搜索** - 当前仅全文检索，不引入向量嵌入
 - **零配置原则** - Pagefind 默认配置优先，自定义仅在必要时
 
 ## 关键文件
 
-- `src/components/navbar/SearchBar.astro` - 搜索触发按钮
-- `src/layouts/BaseLayout.astro` - `<script src="/pagefind/pagefind.js">` + `<search>` 组件
-- `src/integrations/build-hooks.ts` - `pagefind` CLI 调用、`ln -sf` symlink
-- `src/pages/tags/` - 标签索引与单标签列表
+- `src/components/navbar/SearchBar.astro`
+
+- 搜索触发按钮
+- `src/layouts/BaseLayout.astro`
+
+- `<script src="/pagefind/pagefind.js">`
+
+* `<search>` 组件
+
+- `src/integrations/build-hooks.ts`
+
+- `pagefind` CLI 调用、`ln -sf` symlink
+- `src/pages/tags/`
+
+- 标签索引与单标签列表
 
 ## 工作模式
 
@@ -209,11 +244,15 @@ inbound_messages:
 
 - Add query suggestions for zero-result queries
 - Boost tag weight in ranking (currently 1.2x, propose 1.5x)
-- Prototype semantic search with `sentence-transformers` + `onnxruntime-web`
+- Prototype semantic search with `sentence-transformers`
+
+* `onnxruntime-web`
 
 ## Learning
 
 - Pagefind `excerpt` length 160 optimal for Chinese
 - `data-pagefind-weight` on headings significantly improves relevance
-- `sort` by `date` + `relevance` hybrid best for blog
+- `sort` by `date`
+
+* `relevance` hybrid best for blog
 ```

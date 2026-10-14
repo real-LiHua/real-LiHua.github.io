@@ -1,0 +1,16 @@
+# CODEOWNERS
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# 单一维护者模式：所有路径默认由 @real-LiHua 拥有。
+
+* @real-LiHua
+
+# 文档与知识库（术语单一源头、架构指针、ADR）
+/docs/       @real-LiHua
+/AGENTS.md   @real-LiHua
+/CONTEXT.md  @real-LiHua
+/README.md   @real-LiHua
+
+# 仓库配置、Issue / PR 模板与工作流
+# ⏸ .github/workflows/ 已移除，待重建；规则先行保留。
+/.github/    @real-LiHua

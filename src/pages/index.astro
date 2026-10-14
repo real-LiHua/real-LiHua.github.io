@@ -1,69 +1,49 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import PostCard from "../components/common/PostCard.astro";
-import { sortByDate } from "../utils/date";
-import { type CollectionEntry, render } from "astro:content";
-import { getPublishedPosts } from "../utils/content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PostCard from "@/components/common/PostCard.astro";
+import { contentPipeline } from "@/modules/content-pipeline";
 
-const blogPosts = await getPublishedPosts(),
- posts: (CollectionEntry<"blog">["data"] & { id: string })[] =
-  await Promise.all(
-    blogPosts.map(async (post) => {
-      const { remarkPluginFrontmatter } = await render(post);
-      return { ...remarkPluginFrontmatter, ...post.data, id: post.id };
-    }),
-  ),
- sortedPosts = sortByDate(posts),
- recentPosts = sortedPosts.slice(0, 6),
- hasMore = sortedPosts.length > 6;
+const posts = await contentPipeline.getPublishedPosts();
+const recent = posts.slice(0, 6);
 ---
 
-<BaseLayout title="李华的博客">
-  <div class="relative overflow-hidden">
-
-    <div class="relative max-w-6xl mx-auto px-4 py-24 sm:py-32">
+<BaseLayout
+  title="LiHua.dev"
+  description="个人博客：记录文章、笔记与技术实验。"
+  pagefind={true}
+>
+  <section class="hero rounded-box bg-base-200 py-16">
+    <div class="hero-content text-center">
       <div class="max-w-2xl">
-        <div class="flex items-center gap-3 mb-4">
-          <img src="https://gravatar.com/avatar/9743ba359d77c45acd627d1c02001ed803dbe4f541521cb4dbd30a068f680478?s=48" alt="" class="w-8 h-8 rounded-full reveal" data-gravatar-fallback="https://gravatar.loli.net/avatar/9743ba359d77c45acd627d1c02001ed803dbe4f541521cb4dbd30a068f680478?s=48" />
-          <span class="text-sm font-mono opacity-40 reveal reveal-delay-1">l i h u a</span>
-        </div>
-        <h1 class="text-4xl sm:text-5xl font-medium tracking-tight text-balance reveal reveal-delay-1">
-          李华的博客
+        <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">
+          记录 <span class="text-primary">想法</span> 的地方
         </h1>
-        <p class="text-lg opacity-60 mt-4 max-w-lg text-balance leading-relaxed reveal reveal-delay-2">
-          一些乱七八糟的想法和踩过的坑。
+        <p class="py-6 text-base-content/70">
+          文章、笔记与技术实验。用 Astro 构建，支持全文搜索、深浅色主题与 Telegram 认证阅读。
         </p>
-      </div>
-    </div>
-  </div>
-
-  <div class="max-w-6xl mx-auto px-4 pb-24">
-    <div class="flex items-center gap-3 mb-8 reveal">
-      <span class="h-px flex-grow bg-base-200"></span>
-      <span class="text-xs font-mono tracking-widest opacity-40">LATEST</span>
-      <span class="h-px flex-grow bg-base-200"></span>
-    </div>
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-      {recentPosts.map((post, idx) => (
-        <div class:list={["reveal", `reveal-delay-${Math.min(idx + 1, 4)}`]}>
-          <PostCard post={post} />
+        <div class="flex flex-wrap justify-center gap-3">
+          <a class="btn btn-primary" href="/posts/">浏览文章</a>
+          <a class="btn" href="/about/">关于本站</a>
         </div>
-      ))}
-    </div>
-    {hasMore && (
-      <div class="text-center mt-10 reveal">
-        <a href="/posts" class="btn btn-ghost rounded-full px-8">
-          查看全部文章
-          <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-          </svg>
-        </a>
       </div>
-    )}
-  </div>
-  <script>
-    import "../scripts/gravatar-fallback";
-    import "../scripts/scroll-reveal";
-    import "../scripts/tilt-card";
-  </script>
+    </div>
+  </section>
+
+  {
+    recent.length > 0 && (
+      <section class="mt-12">
+        <div class="mb-6 flex items-end justify-between">
+          <h2 class="text-2xl font-semibold">最新文章</h2>
+          <a class="link link-hover text-sm" href="/posts/">
+            查看全部 →
+          </a>
+        </div>
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {recent.map((post, index) => (
+            <PostCard post={post} variant="grid" revealIndex={index} />
+          ))}
+        </div>
+      </section>
+    )
+  }
 </BaseLayout>

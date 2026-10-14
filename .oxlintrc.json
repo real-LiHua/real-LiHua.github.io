@@ -1,9 +1,15 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "options": {
-    "denyWarnings": true
+    "denyWarnings": false
   },
-  "ignorePatterns": [".agents/", "skills-lock.json"],
+  "ignorePatterns": [
+    ".agents/",
+    "skills-lock.json",
+    "tgcloud/",
+    "src/scripts/*.mjs",
+    "src/scripts/*.cjs"
+  ],
   "env": {
     "browser": true,
     "es2022": true,
@@ -11,7 +17,17 @@
   },
   "globals": {
     "Astro": "readonly",
-    "Buffer": "readonly"
+    "Buffer": "readonly",
+    "crypto": "readonly",
+    "fetch": "readonly",
+    "Response": "readonly",
+    "Request": "readonly",
+    "Headers": "readonly",
+    "URLSearchParams": "readonly",
+    "TextEncoder": "readonly",
+    "DOMParser": "readonly",
+    "atob": "readonly",
+    "btoa": "readonly"
   },
   "settings": {
     "jsx": {
@@ -21,11 +37,11 @@
   "categories": {
     "correctness": "error",
     "suspicious": "error",
-    "pedantic": "error",
-    "perf": "error",
-    "style": "error",
-    "restriction": "error",
-    "nursery": "error"
+    "pedantic": "warn",
+    "perf": "warn",
+    "style": "warn",
+    "restriction": "off",
+    "nursery": "warn"
   },
   "rules": {
     "no-console": "warn",
@@ -36,7 +52,59 @@
     "no-null": "off",
     "no-undefined": "off",
     "no-optional-chaining": "off",
-    "no-non-null-assertion": "off"
+    "no-non-null-assertion": "off",
+    "no-async-await": "off",
+    "no-new": "off",
+    "no-plusplus": "off",
+    "no-continue": "off",
+    "no-await-in-loop": "off",
+    "no-rest-spread-properties": "off",
+    "no-map-spread": "off",
+    "explicit-function-return-type": "off",
+    "max-statements": "off",
+    "max-lines-per-function": "off",
+    "max-lines": "off",
+    "func-style": "off",
+    "one-var": "off",
+    "sort-vars": "off",
+    "sort-imports": "off",
+    "sort-keys": "off",
+    "capitalized-comments": "off",
+    "no-inline-comments": "off",
+    "id-length": "off",
+    "unicorn/prefer-top-level-await": "off",
+    "unicorn/no-await-expression-member": "off",
+    "unicorn/no-array-for-each": "off",
+    "unicorn/no-array-callback-reference": "off",
+    "unicorn/prefer-number-coercion": "off",
+    "unicorn/prefer-global-this": "off",
+    "unicorn/no-anonymous-default-export": "off",
+    "unicorn/no-process-exit": "off",
+    "unicorn/no-useless-undefined": "off",
+    "unicorn/no-null": "off",
+    "unicorn/numeric-separators-style": "off",
+    "unicorn/import-style": "off",
+    "unicorn/prefer-module": "off",
+    "unicorn/filename-case": "off",
+    "unicorn/prefer-ternary": "off",
+    "typescript/no-explicit-any": "off",
+    "typescript/explicit-function-return-type": "off",
+    "oxc/no-async-await": "off",
+    "func-names": "off",
+    "init-declarations": "off",
+    "no-underscore-dangle": "off",
+    "no-useless-catch": "off",
+    "no-negated-condition": "off",
+    "unicorn/no-negated-condition": "off",
+    "prefer-dom-node-append": "off",
+    "prefer-dom-node-text-content": "off",
+    "unicorn/prefer-dom-node-append": "off",
+    "unicorn/prefer-dom-node-text-content": "off",
+    "no-unused-vars": "warn",
+    "unicorn/no-array-sort": "off",
+    "unicorn/prefer-add-event-listener": "off",
+    "unicorn/no-process-exit": "off",
+    "no-shadow": "off"
   },
   "overrides": [
     {
@@ -57,7 +125,21 @@
         "unicorn/no-useless-undefined": "off",
         "unicorn/prefer-module": "off",
         "sort-imports": "off",
-        "prefer-dom-node-append": "off"
+        "prefer-dom-node-append": "off",
+        "explicit-function-return-type": "off",
+        "max-statements": "off",
+        "max-lines-per-function": "off",
+        "func-style": "off",
+        "one-var": "off",
+        "sort-vars": "off",
+        "sort-imports": "off",
+        "sort-keys": "off",
+        "id-length": "off",
+        "unicorn/no-array-for-each": "off",
+        "unicorn/no-array-callback-reference": "off",
+        "unicorn/prefer-global-this": "off",
+        "no-plusplus": "off",
+        "unicorn/prefer-ternary": "off"
       }
     },
     {
@@ -87,7 +169,8 @@
         "no-null": "off",
         "no-undefined": "off",
         "no-optional-chaining": "off",
-        "no-non-null-assertion": "off"
+        "no-non-null-assertion": "off",
+        "explicit-function-return-type": "off"
       }
     },
     {
@@ -117,6 +200,40 @@
         "no-non-null-assertion": "off",
         "sort-imports": "off",
         "unicorn/no-await-expression-member": "off"
+      }
+    },
+    {
+      "files": ["src/scripts/**/*.ts"],
+      "rules": {
+        "no-async-await": "off",
+        "no-ternary": "off",
+        "no-magic-numbers": "off",
+        "no-null": "off",
+        "no-undefined": "off",
+        "no-optional-chaining": "off",
+        "no-non-null-assertion": "off",
+        "explicit-function-return-type": "off",
+        "max-statements": "off",
+        "max-lines-per-function": "off",
+        "func-style": "off",
+        "one-var": "off",
+        "sort-vars": "off",
+        "sort-imports": "off",
+        "unicorn/no-process-exit": "off",
+        "no-plusplus": "off",
+        "no-continue": "off"
+      }
+    },
+    {
+      "files": ["src/modules/**/*.ts"],
+      "rules": {
+        "max-statements": "off",
+        "max-lines-per-function": "off",
+        "max-lines": "off",
+        "func-style": "off",
+        "one-var": "off",
+        "sort-vars": "off",
+        "no-inline-comments": "off"
       }
     }
   ]

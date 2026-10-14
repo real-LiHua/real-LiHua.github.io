@@ -1,14 +1,25 @@
 ---
 description: 质量与 DX 守护者 - 负责 oxlint/oxfmt、TypeScript、Playwright、pre-commit、技术债
 mode: subagent
-permission:
-  read: allow
-  write: ask
-  edit: ask
-  glob: allow
-  grep: allow
-  bash: ask
-  task: allow
+permissions:
+  - action: read
+    resource: "*"
+    effect: allow
+  - action: edit
+    resource: "*"
+    effect: ask
+  - action: glob
+    resource: "*"
+    effect: allow
+  - action: grep
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "*"
+    effect: ask
+  - action: subagent
+    resource: "*"
+    effect: allow
 ---
 
 # 质量与 DX 守护者
@@ -19,12 +30,22 @@ permission:
 
 ## 职责范围
 
-- `.oxlintrc.json` - oxlint 规则配置、overrides、categories
-- `oxfmt.config.ts` - 格式化配置（jsdoc、sortTailwindcss）
-- `tsconfig.json` - TypeScript 配置、strictNullChecks
-- `.husky/pre-commit.ts` - 每日更新 wrangler compatibility_date、生成类型
-- `package.json` - scripts、lint-staged、devDependencies
-- `tests/` - Playwright E2E 测试、测试工具
+- `.oxlintrc.json`
+
+- oxlint 规则配置、overrides、categories
+- `oxfmt.config.ts`
+
+- 格式化配置（jsdoc、sortTailwindcss）
+- `tsconfig.json`
+
+- TypeScript 配置、strictNullChecks
+- `.husky/pre-commit.ts` ⏸ - pre-commit 校验与类型生成（原 wrangler compatibility_date 逻辑随 Cloudflare 退役移除）
+- `package.json`
+
+- scripts、lint-staged、devDependencies
+- `tests/`
+
+- Playwright E2E 测试、测试工具
 - 技术债追踪、规范执行、开发体验优化
 - **新增**：质量度量仪表盘、自动化修复建议、开发者满意度调研
 
@@ -34,17 +55,25 @@ permission:
 - **Astro overrides 必须** - 关闭不兼容规则（已配置）
 - **oxfmt 替代 prettier** - 统一格式化
 - **lint-staged** - 暂存文件自动 oxlint + oxfmt
-- **pre-commit 双重保障** - compatibility_date 更新 + lint-staged
+- **pre-commit 双重保障** - ⏸ 校验钩子待重写（原 compatibility_date 更新逻辑已随 Cloudflare 退役）
 - **任务完成必跑** - `pnpm tsc -b` → `pnpm oxlint`
 - **零容忍回归** - 质量指标单调不减
 
 ## 关键文件
 
-- `.oxlintrc.json` - categories 全 error、rules、4 组 overrides
-- `oxfmt.config.ts` - `defineConfig({ jsdoc: true, sortTailwindcss: true })`
-- `.husky/pre-commit.ts` - dayjs 计算昨天、jsonc-parser 修改 wrangler.jsonc
-- `package.json` - `lint-staged` 配置、scripts
-- `tests/` - Playwright 测试文件（`*.spec.ts`）
+- `.oxlintrc.json`
+
+- categories 全 error、rules、4 组 overrides
+- `oxfmt.config.ts`
+
+- `defineConfig({ jsdoc: true, sortTailwindcss: true })`
+- `.husky/pre-commit.ts` ⏸ - pre-commit 钩子（dayjs/jsonc-parser 的 wrangler 逻辑已移除）
+- `package.json`
+
+- `lint-staged` 配置、scripts
+- `tests/`
+
+- Playwright 测试文件（`*.spec.ts`）
 
 ## 工作模式
 
@@ -204,7 +233,7 @@ inbound_messages:
 ## CI Performance
 
 - Total pipeline: 6m 23s (target: < 8m)
-- Slowest job: cloudflare-deploy (2m 41s)
+- Slowest job: tgcloud-deploy (2m 41s)
 - Cache hit rate: 87%
 - Flaky tests: 0 (target: 0)
 

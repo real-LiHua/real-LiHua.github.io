@@ -1,19 +1,21 @@
 ---
+// Optional explicit copy button. The `code-copy` client module also auto-injects
+// a button into every highlighted `<pre>`; this component is for cases where a
+// caller wants to place/annotate the control itself.
+interface Props {
+  target?: string;
+  label?: string;
+}
 
+const { target = "pre", label = "复制代码" } = Astro.props as Props;
 ---
 
-<script>
-  import "../scripts/code-copy";
-</script>
-
-<style>
-  .inline-code-copy:hover {
-    background-color: oklch(90% 0 0deg);
-  }
-
-  /* stylelint-disable selector-pseudo-class-no-unknown */
-  :global(.dark) .inline-code-copy:hover {
-    background-color: oklch(30% 0 0deg);
-  }
-  /* stylelint-enable selector-pseudo-class-no-unknown */
-</style>
+<button
+  type="button"
+  class="btn btn-xs btn-ghost"
+  data-code-copy
+  data-target={target}
+  aria-label={label}
+>
+  {label}
+</button>

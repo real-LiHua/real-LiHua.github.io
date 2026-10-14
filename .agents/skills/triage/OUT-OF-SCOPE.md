@@ -69,9 +69,7 @@ The reason should be substantive: not "we don't want this" but why. Good reasons
 
 The reason should be durable. Avoid referencing temporary circumstances ("we're too busy right now"); those aren't real rejections, they're deferrals.
 
-## When to check `.out-of-scope/`
-
-During triage (Step 1: Gather context), read all files in `.out-of-scope/`. When evaluating a new issue:
+## When to check `.out-of-scope/` During triage (Step 1: Gather context), read all files in `.out-of-scope/`. When evaluating a new issue:
 
 - Check if the request matches an existing out-of-scope concept
 - Matching is by concept similarity, not keyword: "night theme" matches `dark-mode.md`
@@ -83,9 +81,7 @@ The maintainer may:
 - **Reconsider**: the out-of-scope file gets deleted or updated, and the issue proceeds through normal triage
 - **Disagree**: the issues are related but distinct, proceed with normal triage
 
-## When to write to `.out-of-scope/`
-
-Only when an **enhancement** (not a bug) is *rejected* as `wontfix`. This applies to enhancement PRs exactly as it does to issues: a rejected PR is recorded here so the same request doesn't return as fresh code.
+## When to write to `.out-of-scope/` Only when an **enhancement** (not a bug) is *rejected* as `wontfix`. This applies to enhancement PRs exactly as it does to issues: a rejected PR is recorded here so the same request doesn't return as fresh code.
 
 Do **not** write here when something is closed as `wontfix` because it's **already implemented**. That's a built feature, not a rejected one; recording it would poison the dedup checks with false rejections. Instead, the closing comment points to where the feature already lives.
 

@@ -48,12 +48,22 @@ description: >-
 
   </example>
 mode: subagent
-permission:
-  bash: deny
-  edit: deny
-  glob: deny
-  grep: deny
-  lsp: deny
+permissions:
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: glob
+    resource: "*"
+    effect: deny
+  - action: grep
+    resource: "*"
+    effect: deny
+  - action: lsp
+    resource: "*"
+    effect: deny
 ---
 
 You are a senior security architect specializing in Role-Based Access Control (RBAC) and Identity & Access Management (IAM). You design, validate, and audit role systems with a focus on least-privilege principles, separation of duties, and regulatory compliance.

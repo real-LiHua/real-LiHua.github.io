@@ -1,6 +1,7 @@
 # Dependency Matrix — Key Dependencies & Update Policies
 
-**Date:** 2026-09-02  
+**Date:** 2026-09-02
+
 **Tags:** dependencies, package-management, update-policy, security, maintenance, pnpm
 
 ---
@@ -17,80 +18,107 @@ This document catalogs the project's **critical dependencies**, their update pol
 
 | Package              | Current  | Policy                                | Notes                                                         |
 | -------------------- | -------- | ------------------------------------- | ------------------------------------------------------------- |
-| `astro`              | ^7.2.10  | **Major: Manual** / Minor/Patch: Auto | Core framework; major upgrades require migration guide review |
+| `astro`              | ^7.3.5   | **Major: Manual** / Minor/Patch: Auto | Core framework; major upgrades require migration guide review |
 | `@astrojs/check`     | ^0.9.10  | Follows Astro                         | Type-checking integration                                     |
 | `@astrojs/mdx`       | ^7.0.8   | Follows Astro                         | MDX support                                                   |
-| `@astrojs/node`      | ^11.1.5  | Follows Astro                         | Node adapter for Cloudflare Workers                           |
+| `@astrojs/node`      | ^11.1.6  | Follows Astro                         | Node adapter (standalone mode, see astro.config.ts)           |
 | `@astrojs/rss`       | ^4.0.19  | Minor/Patch: Auto                     | RSS feed generation                                           |
 | `@astrojs/sitemap`   | ^3.7.4   | Minor/Patch: Auto                     | Sitemap generation                                            |
-| `@astrojs/ts-plugin` | ^1.10.11 | Follows Astro                         | VS Code TS plugin                                             |
+| `@astrojs/ts-plugin` | ^1.10.12 | Follows Astro                         | VS Code TS plugin                                             |
 
 ### 2. Content Pipeline (MDX / Markdown / Mermaid)
 
-| Package                        | Current  | Policy            | Notes                                                         |
-| ------------------------------ | -------- | ----------------- | ------------------------------------------------------------- |
-| `@astrojs/markdown-satteri`    | ^0.3.8   | Minor/Patch: Auto | Satteri markdown processor                                    |
-| `satteri`                      | ^0.10.5  | Minor/Patch: Auto | Core markdown processor                                       |
-| `@xingwangzhe/satteri-mermaid` | ^0.7.7   | **Pin Minor**     | Mermaid integration; breaking changes possible                |
-| `mermaid`                      | ^11.17.2 | **Pin Minor**     | Diagram rendering; SVG output issues (see mermaid-svg-fix.md) |
-| `@mermaid-js/mermaid-cli`      | ^11.16.0 | Follows mermaid   | CLI for build-time rendering                                  |
-| `mermaid-wasm-renderer`        | ^0.3.1   | **Pin Patch**     | WASM renderer; known SVG bug; consider fork/fix               |
-| `mdast-util-toc`               | ^7.1.0   | Minor/Patch: Auto | Table of contents generation                                  |
+| Package                          | Current  | Policy            | Notes                                                           |
+| -------------------------------- | -------- | ----------------- | --------------------------------------------------------------- |
+| `@astrojs/markdown-satteri`      | ^0.3.8   | Minor/Patch: Auto | Satteri markdown processor                                      |
+| `satteri`                        | ^0.10.5  | Minor/Patch: Auto | Core markdown processor                                         |
+| `@xingwangzhe/satteri-mermaid`   | ^0.7.9   | **Pin Minor**     | Mermaid integration; breaking changes possible                  |
+| `mermaid`                        | ^11.17.2 | **Pin Minor**     | Diagram rendering; SVG output issues (see mermaid-svg-fix.md)   |
+| `@mermaid-js/mermaid-cli`        | ^11.17.0 | Follows mermaid   | CLI for build-time rendering                                    |
+| `mermaid-wasm-renderer`          | ^0.3.1   | **Pin Patch**     | WASM renderer; known SVG bug; consider fork/fix                 |
+| `mdast-util-toc`                 | ^7.1.0   | Minor/Patch: Auto | ⏸ 暂未使用：目录改由 Astro `render().headings` 生成；待评估移除 |
+| `expressive-code-language-badge` | ^1.1.0   | Minor/Patch: Auto | Language badge for expressive-code blocks                       |
+| `@shikijs/colorized-brackets`    | ^4.5.0   | Follows shiki     | Colorized brackets in code blocks                               |
+| `hast-util-from-html`            | ^2.0.3   | Minor/Patch: Auto | HTML → hast conversion (content transforms)                     |
+| `hast-util-to-html`              | ^9.0.5   | Minor/Patch: Auto | hast → HTML serialization (content transforms)                  |
+| `hast-util-to-text`              | ^4.0.2   | Minor/Patch: Auto | hast → plain text (excerpts / search text)                      |
+| `dayjs`                          | ^1.11.23 | Minor/Patch: Auto | Date formatting                                                 |
 
 ### 3. Styling (Tailwind CSS 4 + daisyUI 5)
 
-| Package                   | Current | Policy             | Notes                                                       |
-| ------------------------- | ------- | ------------------ | ----------------------------------------------------------- |
-| `tailwindcss`             | ^4.3.3  | **Major: Manual**  | CSS-first config (no tailwind.config.js); v4 is major shift |
-| `@tailwindcss/vite`       | ^4.3.3  | Follows Tailwind   | Vite plugin for Tailwind 4                                  |
-| `@tailwindcss/typography` | ^0.5.20 | Minor/Patch: Auto  | Prose styling                                               |
-| `daisyui`                 | ^5.7.24 | **Minor: Caution** | Component library; class name changes between minors        |
-| `animate.css`             | ^4.1.1  | Minor/Patch: Auto  | Animations                                                  |
+| Package                    | Current | Policy             | Notes                                                       |
+| -------------------------- | ------- | ------------------ | ----------------------------------------------------------- |
+| `tailwindcss`              | ^4.3.3  | **Major: Manual**  | CSS-first config (no tailwind.config.js); v4 is major shift |
+| `@tailwindcss/vite`        | ^4.3.3  | Follows Tailwind   | Vite plugin for Tailwind 4                                  |
+| `@tailwindcss/typography`  | ^0.5.20 | Minor/Patch: Auto  | Prose styling                                               |
+| `daisyui`                  | ^5.7.47 | **Minor: Caution** | Component library; class name changes between minors        |
+| `animate.css`              | ^4.1.1  | Minor/Patch: Auto  | Animations                                                  |
+| `@tailwindcss/postcss`     | ^4.3.3  | Follows Tailwind   | PostCSS integration for Tailwind 4                          |
+| `@fontsource/twinkle-star` | ^5.3.0  | Minor/Patch: Auto  | Web font (Fontsource)                                       |
+| `@shopify/draggable`       | ^1.2.1  | Minor/Patch: Auto  | Drag-and-drop interactions in UI                            |
 
 ### 4. Build & Validation Tools
 
 | Package                 | Current  | Policy            | Notes                                                           |
 | ----------------------- | -------- | ----------------- | --------------------------------------------------------------- |
 | `pagefind`              | ^1.5.2   | Minor/Patch: Auto | Search indexing; CLI stable                                     |
-| `vnu-jar`               | ^26.8.30 | **Pin Minor**     | HTML validator; Java-based; version = validator.nu release date |
-| `lychee`                | (binary) | **Manual**        | Link checker; installed in CI via curl; update via release tag  |
+| `vnu-jar`               | ^26.10.2 | **Pin Minor**     | HTML validator; Java-based; version = validator.nu release date |
+| `lychee`                | (cargo)  | **Manual**        | Link checker; Cargo dev-dep (0.24.2); CI curl install           |
 | `astro-minify-html-swc` | ^0.1.12  | Minor/Patch: Auto | HTML minification                                               |
-| `astro-favicons`        | ^3.1.6   | Minor/Patch: Auto | Favicon generation                                              |
+| `astro-favicons`        | ^3.1.8   | Minor/Patch: Auto | Favicon generation                                              |
+| `tsx`                   | ^4.23.15 | Minor/Patch: Auto | TypeScript script runner                                        |
+| `execa`                 | ^10.1.0  | Minor/Patch: Auto | Process execution for build scripts                             |
+| `tinyglobby`            | ^0.2.17  | Minor/Patch: Auto | Fast glob utility for scripts                                   |
+| `jsonc-parser`          | ^3.3.1   | Minor/Patch: Auto | JSONC parsing (config files)                                    |
 
 ### 5. Code Quality (Lint/Format/Type)
 
-| Package        | Current | Policy            | Notes                                     |
-| -------------- | ------- | ----------------- | ----------------------------------------- |
-| `oxlint`       | ^1.80.0 | Minor/Patch: Auto | Linter; fast Rust-based                   |
-| `oxfmt`        | ^0.57.0 | Minor/Patch: Auto | Formatter; JSDoc + Tailwind class sorting |
-| `typescript`   | ^6.0.3  | **Major: Manual** | TS 6 is beta; pin until stable            |
-| `@types/hast`  | ^3.0.5  | Follows hast      | Type definitions                          |
-| `@types/mdast` | ^4.0.4  | Follows mdast     | Type definitions                          |
+| Package             | Current | Policy            | Notes                                     |
+| ------------------- | ------- | ----------------- | ----------------------------------------- |
+| `oxlint`            | ^1.86.0 | Minor/Patch: Auto | Linter; fast Rust-based                   |
+| `oxfmt`             | ^0.57.0 | Minor/Patch: Auto | Formatter; JSDoc + Tailwind class sorting |
+| `typescript`        | ^6.0.3  | **Major: Manual** | TS 6 is beta; pin until stable            |
+| `@types/hast`       | ^3.0.5  | Follows hast      | Type definitions                          |
+| `@types/mdast`      | ^4.0.4  | Follows mdast     | Type definitions                          |
+| `markdownlint`      | ^0.41.1 | Minor/Patch: Auto | Markdown rules library                    |
+| `markdownlint-cli2` | ^0.23.3 | Minor/Patch: Auto | Markdown linter CLI                       |
+| `husky`             | ^9.1.7  | Minor/Patch: Auto | Git hooks (`.husky/` )                    |
+| `lint-staged`       | ^17.6.0 | Minor/Patch: Auto | Pre-commit staged file checks             |
 
 ### 6. Deployment & Runtime
 
-| Package                   | Current  | Policy            | Notes                  |
-| ------------------------- | -------- | ----------------- | ---------------------- |
-| `wrangler`                | ^4.127.1 | Minor/Patch: Auto | Cloudflare Workers CLI |
-| `@cloudflare/vite-plugin` | ^1.54.2  | Follows wrangler  | Vite plugin for CF     |
-| `pinata`                  | ^2.5.6   | Minor/Patch: Auto | IPFS pinning SDK       |
-| `helia`                   | ^6.1.4   | Minor/Patch: Auto | IPFS implementation    |
-| `@helia/strings`          | ^5.1.1   | Follows helia     | String utilities       |
+| Package                   | Current  | Policy            | Notes                                      |
+| ------------------------- | -------- | ----------------- | ------------------------------------------ |
+| `wrangler`                | (已移除) | —                 | ⏸ 不在 package.json；Cloudflare 部署已退役 |
+| `@cloudflare/vite-plugin` | (已移除) | —                 | ⏸ 不在 package.json；未采用                |
+| `pinata`                  | ^2.5.6   | Minor/Patch: Auto | IPFS pinning SDK                           |
+| `helia`                   | ^6.1.4   | Minor/Patch: Auto | IPFS implementation                        |
+| `@helia/strings`          | ^5.1.1   | Follows helia     | String utilities                           |
+| `@tgcloud/cli`            | ^0.1.2   | Minor/Patch: Auto | tgcloud 部署/运维 CLI（当前主部署路径）    |
+| `gaxios`                  | ^7.3.1   | Minor/Patch: Auto | HTTP client (Telegram API 调用)            |
 
 ### 7. CLI Tool (Rust)
 
-| Package                | Current | Policy            | Notes                                                 |
-| ---------------------- | ------- | ----------------- | ----------------------------------------------------- |
-| `post-edit`            | (local) | **Manual**        | Cargo workspace; `cargo build --release -p post-edit` |
-| `grammy`               | ^1.46.0 | Minor/Patch: Auto | Telegram bot framework (for post-edit bot)            |
-| `@grammyjs/auto-retry` | ^2.0.2  | Follows grammy    | Retry middleware                                      |
+| Package                | Current  | Policy     | Notes                                                                  |
+| ---------------------- | -------- | ---------- | ---------------------------------------------------------------------- |
+| `post-edit`            | (local)  | **Manual** | Cargo package；`src/post-edit/` ；`cargo build --release -p post-edit` |
+| `grammy`               | (未采用) | —          | ⏸ 不在 package.json；Telegram bot 框架未引入                           |
+| `@grammyjs/auto-retry` | (未采用) | —          | ⏸ 不在 package.json；随 grammy 一并未采用                              |
 
 ### 8. Testing
 
-| Package           | Current | Policy            | Notes                    |
-| ----------------- | ------- | ----------------- | ------------------------ |
-| `playwright`      | ^1.62.1 | Minor/Patch: Auto | E2E testing              |
-| `@playwright/mcp` | ^0.0.77 | **Pin Patch**     | MCP server; experimental |
+| Package            | Current  | Policy            | Notes                                       |
+| ------------------ | -------- | ----------------- | ------------------------------------------- |
+| `playwright`       | ^1.63.0  | Minor/Patch: Auto | Browser automation (driver package)         |
+| `@playwright/mcp`  | ^0.0.77  | **Pin Patch**     | MCP server; experimental                    |
+| `@playwright/test` | (未安装) | —                 | ⏸ 不在 package.json；E2E 测试需先补装与配置 |
+
+### 9. Miscellaneous
+
+| Package      | Current | Policy            | Notes                       |
+| ------------ | ------- | ----------------- | --------------------------- |
+| `the-answer` | ^1.0.0  | Minor/Patch: Auto | Easter egg dependency (42)  |
+| `skills`     | ^1.7.0  | Minor/Patch: Auto | Open agent skills ecosystem |
 
 ---
 
@@ -135,12 +163,12 @@ pnpm audit --fix
 
 ## Dependency Health Checks
 
-| Check                 | Command                          | Frequency        |
-| --------------------- | -------------------------------- | ---------------- |
-| Outdated packages     | `pnpm outdated`                  | Weekly           |
-| Audit vulnerabilities | `pnpm audit`                     | Per PR + Weekly  |
-| Lockfile integrity    | `pnpm install --frozen-lockfile` | CI (every build) |
-| Bundle size impact    | `pnpm build` + analyze dist      | Per major update |
+| Check                 | Command                          | Frequency          |
+| --------------------- | -------------------------------- | ------------------ |
+| Outdated packages     | `pnpm outdated`                  | Weekly             |
+| Audit vulnerabilities | `pnpm audit`                     | Per PR + Weekly    |
+| Lockfile integrity    | `pnpm install --frozen-lockfile` | CI (every build) ⏸ |
+| Bundle size impact    | `pnpm build` + analyze dist      | Per major update   |
 
 ---
 
@@ -155,7 +183,7 @@ pnpm audit --fix
 
 ### Tailwind CSS 4
 
-- **Config:** CSS-first (`@import "tailwindcss"` in `global.css`)
+- **Config:** CSS-first (`@import "tailwindcss"` in `global.css` )
 - **No `tailwind.config.js`** — migration from v3 complete
 - **Breaking Changes:** Watch for `@theme` syntax changes in minors
 
@@ -167,7 +195,7 @@ pnpm audit --fix
 
 ### vnu-jar Versioning
 
-- **Version = Date:** `26.8.30` = 2026-08-30 (validator.nu release)
+- **Version = Date:** `26.10.2` = 2026-10-02 (validator.nu release)
 - **Update:** Monthly or when HTML spec changes
 - **Filterfile:** Must be reviewed after vnu updates (new error codes)
 
@@ -180,7 +208,7 @@ pnpm audit --fix
 | `package.json`                 | Dependencies, scripts, lint-staged  |
 | `pnpm-lock.yaml`               | Locked versions (committed)         |
 | `pnpm-workspace.yaml`          | Workspace config (Rust + Node)      |
-| `.github/workflows/deploy.yml` | CI runs audit + build               |
+| `.github/workflows/deploy.yml` | CI runs audit ⏸                     |
 | `oxfmt.config.ts`              | Formatter config (Tailwind sorting) |
 | `.oxlintrc.json`               | Linter config (all error)           |
 
@@ -190,7 +218,7 @@ pnpm audit --fix
 
 - [ ] **Lockfile committed** — `pnpm-lock.yaml` always in git
 - [ ] **No `*` versions** — All deps use `^` or `~` or exact
-- [ ] **Audit in CI** — `pnpm audit` runs on every deploy
+- [ ] **Audit in CI** — `pnpm audit` runs on every deploy ⏸（CI 工作流）
 - [ ] **Review changelogs** — Before updating daisyUI, mermaid, Astro major
 - [ ] **Test build locally** — `pnpm build` must pass before PR
 - [ ] **Visual regression** — Check daisyUI components after update

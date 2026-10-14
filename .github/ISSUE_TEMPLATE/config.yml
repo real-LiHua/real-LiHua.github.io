@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Policy
+    url: https://github.com/real-LiHua/real-LiHua.github.io/blob/main/SECURITY.md
+    about: 请勿通过公开 Issue 报告安全漏洞；安全报告流程见 SECURITY.md。
+  - name: Security Whitepaper
+    url: https://github.com/real-LiHua/real-LiHua.github.io/blob/main/docs/SECURITY_WHITEPAPER.md
+    about: 安全架构、威胁模型、CSP、认证与密钥管理策略。
+  - name: Contributing Guide
+    url: https://github.com/real-LiHua/real-LiHua.github.io/blob/main/CONTRIBUTING.md
+    about: 贡献流程、提交规范、必需检查与依赖评估要求。

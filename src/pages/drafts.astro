@@ -1,53 +1,25 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import PostCard from "../components/common/PostCard.astro";
-import { sortByDate } from "../utils/date";
-import { type CollectionEntry, render } from "astro:content";
-import { getDraftPosts } from "../utils/content";
+// Drafts are only served in development; in production this route redirects home.
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PostCard from "@/components/common/PostCard.astro";
+import { contentPipeline } from "@/modules/content-pipeline";
 
-const devEnv = import.meta.env.DEV;
-if (!devEnv) {
-  return new Response(null, {
-    status: 404,
-    statusText: "Not Found",
-  });
+export const prerender = false;
+
+if (!import.meta.env.DEV) {
+  return Astro.redirect("/");
 }
 
-const blogPosts = await getDraftPosts(),
- posts: (CollectionEntry<"blog">["data"] & { id: string })[] =
-  await Promise.all(
-    blogPosts.map(async (post) => {
-      const { remarkPluginFrontmatter } = await render(post);
-      return { ...remarkPluginFrontmatter, ...post.data, id: post.id };
-    }),
-  ),
- sortedPosts = sortByDate(posts);
+const drafts = await contentPipeline.getDraftPosts();
 ---
 
-<BaseLayout title="草稿">
-  <div class="max-w-6xl mx-auto px-4 py-24">
-    <div class="max-w-2xl mx-auto">
-      <div class="mb-12 reveal">
-        <h1 class="text-3xl font-medium">草稿</h1>
-        <p class="text-sm opacity-50 mt-1">Drafts</p>
-      </div>
-      {
-        sortedPosts.length === 0 ? (
-          <p class="text-center opacity-60 py-12 reveal reveal-delay-1">暂无草稿</p>
-        ) : (
-          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {sortedPosts.map((post, idx) => (
-              <div class:list={["reveal", `reveal-delay-${Math.min(idx + 1, 4)}`]}>
-                <PostCard post={post} />
-              </div>
-            ))}
-          </div>
-        )
-      }
-    </div>
+<BaseLayout title="草稿" description="草稿文章（仅开发环境可见）。">
+  <div class="alert alert-warning mb-6">
+    <span>这些是草稿（位于 <code>src/posts/drafts/</code>），不会出现在生产构建中。</span>
   </div>
-  <script>
-    import "../scripts/scroll-reveal";
-    import "../scripts/tilt-card";
-  </script>
+  <h1 class="text-3xl font-bold">草稿</h1>
+
+  <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {drafts.map((post, index) => <PostCard post={post} variant="grid" revealIndex={index} />)}
+  </div>
 </BaseLayout>
