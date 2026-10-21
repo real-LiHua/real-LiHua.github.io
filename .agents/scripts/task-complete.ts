@@ -15,8 +15,16 @@
  *
  * 规格: .agents/onboarding/01-communication-protocol.md · 02-quality-gates.md §5/§10
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  realpathSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   findRepoRoot,
   ROLE_IDS,
@@ -40,6 +48,95 @@ interface TaskProgress {
 }
 
 const REPO_ROOT = findRepoRoot();
+const TASK_ID_PATTERN = /^\d+(?:\.\d+)+$/u;
+
+interface LearningTemplateResult {
+  path: string;
+  created: boolean;
+}
+
+function assertTaskId(taskId: string): void {
+  if (!TASK_ID_PATTERN.test(taskId)) {
+    throw new Error(`Invalid task ID "${taskId}". Expected dot-separated numeric components.`);
+  }
+}
+
+function taskCardTitle(repoRoot: string, taskId: string): string {
+  const phaseDir = join(repoRoot, ".agents", "tasks", `phase-${taskId.split(".")[0]}`);
+  if (!existsSync(phaseDir)) return `Task ${taskId}`;
+  const card = readdirSync(phaseDir).find(
+    (file) => file === `${taskId}.md` || (file.startsWith(`${taskId}-`) && file.endsWith(".md")),
+  );
+  if (!card) return `Task ${taskId}`;
+  const heading = readFileSync(join(phaseDir, card), "utf8")
+    .split(/\r?\n/u)
+    .find((line) => /^#\s+\S/u.test(line));
+  return heading?.replace(/^#\s+/u, "").trim() || `Task ${taskId}`;
+}
+
+export function formatLearningTemplate(
+  taskId: string,
+  title: string,
+  assignee: RoleId,
+  completedAt: Date,
+): string {
+  const date = completedAt.toISOString().slice(0, 10);
+  return `# Session Learning: ${title}
+
+## 任务信息
+
+- **Task ID:** ${taskId}
+- **Title:** ${title}
+- **Date:** ${date}
+- **Assignee:** ${assignee}
+
+## 遇到的问题 (Pitfalls)
+
+| 问题 | 现象 | 根因 | 解决方案 | 耗时 |
+| ---- | ---- | ---- | -------- | ---- |
+
+## 决策记录 (Decisions)
+
+| 决策 | 理由 | 替代方案 | ADR |
+| ---- | ---- | -------- | --- |
+
+## 可复用模式 (Patterns)
+
+（填写可复用模式）
+
+## 标签 (Tags)
+
+\`\`\`text
+\`\`\`
+`;
+}
+
+export function createTaskLearningTemplate(
+  repoRoot: string,
+  taskId: string,
+  assignee: RoleId,
+  completedAt: Date,
+): LearningTemplateResult {
+  assertTaskId(taskId);
+  const date = completedAt.toISOString().slice(0, 10);
+  const month = date.slice(0, 7);
+  const directory = join(repoRoot, ".agents", "learning", "sessions", month);
+  const path = join(directory, `session-${taskId}.md`);
+  mkdirSync(directory, { recursive: true });
+  try {
+    writeFileSync(
+      path,
+      formatLearningTemplate(taskId, taskCardTitle(repoRoot, taskId), assignee, completedAt),
+      { encoding: "utf8", flag: "wx" },
+    );
+    return { path, created: true };
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "EEXIST") {
+      return { path, created: false };
+    }
+    throw error;
+  }
+}
 
 function readJson<T>(path: string): T | null {
   try {
@@ -120,6 +217,12 @@ function main(): void {
     console.error("✗ 缺少任务 ID，例如: task-complete.ts 1.1");
     process.exit(1);
   }
+  try {
+    assertTaskId(taskId);
+  } catch (error) {
+    console.error(`✗ ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(1);
+  }
 
   const progressFile = taskPath(taskId, "progress");
   if (!progressFile) {
@@ -180,6 +283,12 @@ function main(): void {
   }
 
   const passed = gate.overall === "pass";
+  if (passed) {
+    const learningTemplate = createTaskLearningTemplate(REPO_ROOT, taskId, role, new Date());
+    console.log(
+      `  学习复盘模板${learningTemplate.created ? "已创建" : "已存在未覆盖"}: ${relative(REPO_ROOT, learningTemplate.path)}`,
+    );
+  }
   const updated: TaskProgress = {
     ...progress,
     assignee: role,
@@ -205,4 +314,17 @@ function main(): void {
   process.exit(passed ? 0 : 1);
 }
 
-main();
+const isMainModule = (() => {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  try {
+    return (
+      pathToFileURL(realpathSync(entry)).href ===
+      pathToFileURL(realpathSync(fileURLToPath(import.meta.url))).href
+    );
+  } catch {
+    return false;
+  }
+})();
+
+if (isMainModule) main();

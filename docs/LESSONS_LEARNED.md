@@ -1,6 +1,6 @@
 # Lessons Learned — 知识沉淀库
 
-**更新频率**: 月度 (配合 `aggregate-learning.ts` ⏸)
+**更新频率**: 月度 (配合 `aggregate-learning.ts`)
 **来源**: `.agents/learning/sessions/` 月度聚合 + 人工审核
 **用途**: 指导后续开发、避免重复踩坑、最佳实践传递
 
@@ -119,4 +119,4 @@
 
 ---
 
-> **维护规则**: 月度运行 `pnpm exec tsx .agents/scripts/aggregate-learning.ts --month YYYY-MM` ⏸ → 人工审核 → 更新本文件 → 同步更新 ADR/CONTEXT.md/技能文档
+> **维护规则**: 月度运行 `pnpm exec tsx .agents/scripts/aggregate-learning.ts --month YYYY-MM`（报告写入 `.agents/learning/aggregated/`）→ 人工审核 → 更新本文件 → 同步更新 ADR/CONTEXT.md/技能文档

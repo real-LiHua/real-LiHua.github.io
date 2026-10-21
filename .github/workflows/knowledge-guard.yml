@@ -114,6 +114,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Test learning utilities
+        run: pnpm exec tsx --test .agents/scripts/extract-learning.test.ts .agents/scripts/aggregate-learning.test.ts .agents/scripts/learning-index.test.ts .agents/scripts/task-complete.test.ts
+
       - name: Check terms
         id: terms
         run: |

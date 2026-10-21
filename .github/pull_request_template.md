@@ -93,6 +93,7 @@
 
 **Did this work uncover any pitfalls, patterns, or decisions worth capturing?**
 
+- `task-complete.ts` creates `.agents/learning/sessions/<UTC YYYY-MM>/session-<task-id>.md` after the quality gate passes; fill it in before submitting the PR.
 - [ ] **No new learning points**
 - [ ] **New learning captured** — Recorded in:
 

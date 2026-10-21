@@ -56,19 +56,19 @@ flowchart LR
 
 ## 3. 阶段明细
 
-| 阶段 | 目标                       | 主要产出                                                                        | 依赖   | 验收                                        | 规格参考                                                 |
-| ---- | -------------------------- | ------------------------------------------------------------------------------- | ------ | ------------------------------------------- | -------------------------------------------------------- |
-| W0   | 规格冻结 ✅                | 决策点已锁定（§5）                                                              | —      | 术语单一来源、无自相矛盾                    | `docs/**`、`PROJECT_STATUS.md`                           |
-| W1   | 项目骨架                   | `astro.config.ts`、`tsconfig.json`、`package.json`、目录树                      | W0     | `pnpm install && pnpm check` 通过           | `docs/GETTING_STARTED.md`、`AGENTS.md`                   |
-| W2   | 内容与类型                 | `content.config.ts`、`modules/types.ts`、`content-pipeline.ts`                  | W1     | `pnpm check` 0 error；示例文章可渲染        | `docs/CONTENT_GUIDE.md`、白皮书 §4.2                     |
-| W3   | 构建管线                   | `integrations/build-hooks.ts`、`build-pipeline.ts`、`pagefind.yaml`             | W2     | `pnpm build`；`dist/client/pagefind/` 生成  | `REFACTOR_PLAN.md` Phase 2、`IMPLEMENTATION_PROGRESS.md` |
-| W4   | 主题与 UI                  | `theme-tokens.css`、`global.css`、`components/**`、`BaseLayout`                 | W2     | 深浅色切换；daisyUI 语义类可用              | ADR 0005、`docs/VISUAL_DESIGN_SPEC.md`                   |
-| W5   | 客户端运行时               | `modules/client-runtime.ts`、`scripts/**`、`client-entry.ts`                    | W4     | View Transitions 下模块仅初始化一次         | ADR 0007                                                 |
-| W6   | 搜索                       | `modules/search.ts`、`components/PagefindSearch.astro`                          | W3、W4 | 索引生成且搜索可用                          | ADR 0006、`docs/SEARCH_TUNING.md`                        |
-| W7   | TelegramAuth + tgcloud Bot | `modules/telegram-auth.ts`、`handlers/message.js`、`schema.js`、`tgcloud.jsonc` | W2     | `tgcloud run` 本地可跑；受保护路由生效      | 白皮书 §4、ADR 0012、`docs/TELEGRAM_AUTH_COMPARISON.md`  |
-| W8   | Rust CLI                   | `src/post-edit/main.rs`                                                         | W1     | `cargo test && cargo clippy && cargo audit` | `docs/POST_EDIT_CLI.md`                                  |
-| W9   | CI/CD 与部署               | `.github/workflows/deploy.yml`、`knowledge-guard.yml`                           | W3、W7 | workflow 语法正确；各目标可部署             | `docs/DEPLOYMENT.md`、ADR 0003                           |
-| W10  | 测试与门禁                 | `playwright.config.ts`、`tests/e2e/**`                                          | W4–W7  | `pnpm exec playwright test` 通过            | `docs/TESTING.md`                                        |
+| 阶段 | 目标                       | 主要产出                                                                        | 依赖   | 验收                                                                            | 规格参考                                                 |
+| ---- | -------------------------- | ------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| W0   | 规格冻结 ✅                | 决策点已锁定（§5）                                                              | —      | 术语单一来源、无自相矛盾                                                        | `docs/**`、`PROJECT_STATUS.md`                           |
+| W1   | 项目骨架                   | `astro.config.ts`、`tsconfig.json`、`package.json`、目录树                      | W0     | `pnpm install && pnpm check` 通过                                               | `docs/GETTING_STARTED.md`、`AGENTS.md`                   |
+| W2   | 内容与类型                 | `content.config.ts`、`modules/types.ts`、`content-pipeline.ts`                  | W1     | `pnpm check` 0 error；示例文章可渲染                                            | `docs/CONTENT_GUIDE.md`、白皮书 §4.2                     |
+| W3   | 构建管线                   | `integrations/build-hooks.ts`、`build-pipeline.ts`、`pagefind.yaml`             | W2     | `pnpm build`；`dist/client/pagefind/` 生成                                      | `REFACTOR_PLAN.md` Phase 2、`IMPLEMENTATION_PROGRESS.md` |
+| W4   | 主题与 UI                  | `theme-tokens.css`、`global.css`、`components/**`、`BaseLayout`                 | W2     | 深浅色切换；daisyUI 语义类可用                                                  | ADR 0005、`docs/VISUAL_DESIGN_SPEC.md`                   |
+| W5   | 客户端运行时               | `modules/client-runtime.ts`、`scripts/**`、`client-entry.ts`                    | W4     | View Transitions 下模块仅初始化一次                                             | ADR 0007                                                 |
+| W6   | 搜索                       | `modules/search.ts`、`components/PagefindSearch.astro`                          | W3、W4 | 索引生成且搜索可用                                                              | ADR 0006、`docs/SEARCH_TUNING.md`                        |
+| W7   | TelegramAuth + tgcloud Bot | `modules/telegram-auth.ts`、`handlers/message.js`、`schema.js`、`tgcloud.jsonc` | W2     | 受保护路由生效；Bot 需在隔离的 tgcloud 测试环境验证（`tgcloud run` 是云端执行） | 白皮书 §4、ADR 0012、`docs/TELEGRAM_AUTH_COMPARISON.md`  |
+| W8   | Rust CLI                   | `src/post-edit/main.rs`                                                         | W1     | `cargo test && cargo clippy && cargo audit`                                     | `docs/POST_EDIT_CLI.md`                                  |
+| W9   | CI/CD 与部署               | `.github/workflows/deploy.yml`、`knowledge-guard.yml`                           | W3、W7 | workflow 语法正确；各目标可部署                                                 | `docs/DEPLOYMENT.md`、ADR 0003                           |
+| W10  | 测试与门禁                 | `playwright.config.ts`、`tests/e2e/**`                                          | W4–W7  | `pnpm exec playwright test` 通过                                                | `docs/TESTING.md`                                        |
 
 ---
 

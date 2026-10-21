@@ -329,9 +329,9 @@ jobs:
 - .agents/scripts/scan-pointers.ts (待实现)
 - .agents/scripts/check-terms.ts (待实现)
 - .agents/scripts/sync-contracts.ts (待实现)
-- .agents/scripts/extract-learning.ts (待实现)
-- .agents/scripts/aggregate-learning.ts (待实现)
-- .agents/scripts/learning-index.ts (待实现)
+- .agents/scripts/extract-learning.ts
+- .agents/scripts/aggregate-learning.ts
+- .agents/scripts/learning-index.ts
 
 ## Implementation Checklist
 
@@ -339,12 +339,14 @@ jobs:
 - [ ] 实现 check-terms.ts
 - [ ] 实现 sync-contracts.ts
 - [ ] 增强 check-regression.ts
-- [ ] 实现 extract-learning.ts
-- [ ] 实现 aggregate-learning.ts
-- [ ] 实现 learning-index.ts
-- [ ] 创建 .github/workflows/knowledge-guard.yml
-- [ ] 创建 .github/workflows/dependency-guard.yml
-- [ ] 更新 PR 模板强制知识库影响字段
+- [x] 实现 extract-learning.ts
+- [x] 实现 aggregate-learning.ts
+- [x] 实现 learning-index.ts
+- [x] 在 task-complete.ts 门禁通过后生成会话复盘模板（详见 ADR 0011）
+- [x] 编写学习捕获与月度归纳操作流程: docs/LEARNING_WORKFLOW.md
+- [x] 创建 .github/workflows/knowledge-guard.yml
+- [x] 创建 .github/workflows/dependency-guard.yml
+- [x] 更新 PR 模板强制知识库影响字段
 - [ ] 创建 Phase 结束清单模板
 - [ ] 创建月度巡检清单模板
 - [ ] 编写操作手册: docs/KNOWLEDGE_UPDATE_PROCESS.md

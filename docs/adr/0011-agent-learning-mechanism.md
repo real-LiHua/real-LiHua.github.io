@@ -125,7 +125,7 @@ pnpm exec tsx .agents/scripts/extract-learning.ts --output .agents/learning/extr
 │   ├── 2026-10/
 │   │   ├── session-3.4-navbar-refactor.md
 │   │   └── session-5.2-pagefind-config.md
-│   └── index.json         # 会话索引: id, task, date, tags, assignee
+│   └── index.json         # 全局会话索引: id, task, date, tags, assignee
 ├── extracted/             # L1 注释提取结果
 │   └── extracted-<timestamp>.md
 ├── patterns/              # L3 归纳模式 (人工整理)
@@ -139,12 +139,12 @@ pnpm exec tsx .agents/scripts/extract-learning.ts --output .agents/learning/extr
 
 ### 4. 自动化集成点
 
-| 集成点                  | 触发时机     | 动作                           |
-| ----------------------- | ------------ | ------------------------------ |
-| `task-complete.ts`      | 任务完成     | 生成 L2 会话模板，提醒填写     |
-| `extract-learning.ts` ⏸ | 手动/CI 定时 | 扫描源码 `@learning` 注释 → L2 |
-| `knowledge-guard.yml`   | 月度         | 提取高频标签 → 建议 L3 归纳    |
-| PR 模板                 | PR 提交      | 必填 "Learning Notes" 字段     |
+| 集成点                | 触发时机 | 动作                                            |
+| --------------------- | -------- | ----------------------------------------------- |
+| `task-complete.ts`    | 任务完成 | 生成 L2 会话模板，提醒填写                      |
+| `extract-learning.ts` | 手动运行 | 扫描源码 `@learning` 注释 → L1                  |
+| `knowledge-guard.yml` | CI/月度  | 运行学习工具单测；L3 汇总由维护者手动运行并审核 |
+| PR 模板               | PR 提交  | 必填 "Learning Notes" 字段                      |
 
 ---
 
@@ -188,10 +188,10 @@ pnpm exec tsx .agents/scripts/aggregate-learning.ts --month 2026-10
 
 | 脚本                    | 功能                                        | 状态   |
 | ----------------------- | ------------------------------------------- | ------ |
-| `extract-learning.ts`   | 扫描源码 `@learning:*` 注释，按标签分类输出 | 待实现 |
-| `aggregate-learning.ts` | 按月聚合 L2 会话，生成高频标签/模式报告     | 待实现 |
-| `learning-index.ts`     | 维护 `.agents/learning/index.json` 全局索引 | 待实现 |
-| `task-complete.ts` 集成 | 任务完成时生成会话模板                      | 待增强 |
+| `extract-learning.ts`   | 扫描源码 `@learning:*` 注释，按标签分类输出 | 已实现 |
+| `aggregate-learning.ts` | 按月聚合 L2 会话，生成高频标签/模式报告     | 已实现 |
+| `learning-index.ts`     | 维护 `.agents/learning/index.json` 全局索引 | 已实现 |
+| `task-complete.ts` 集成 | 门禁通过后创建会话模板，已有记录不覆盖      | 已实现 |
 
 ---
 
@@ -224,14 +224,22 @@ pnpm exec tsx .agents/scripts/aggregate-learning.ts --month 2026-10
 ## Implementation Checklist
 
 - [ ] 创建 `.agents/learning/` 目录结构
-- [ ] 实现 `extract-learning.ts` (正则提取 `@learning:*`)
-- [ ] 实现 `aggregate-learning.ts` (月度聚合)
-- [ ] 实现 `learning-index.ts` (索引维护)
-- [ ] 增强 `task-complete.ts` 生成会话模板
-- [ ] 更新 `.github/pull_request_template.md` 增加 Learning Notes
+- [x] 实现 `extract-learning.ts` (正则提取 `@learning:*`)
+- [x] 实现 `aggregate-learning.ts` (月度聚合)
+- [x] 实现 `learning-index.ts` (索引维护)
+- [x] 增强 `task-complete.ts` 生成会话模板
 - [ ] 创建 `docs/LESSONS_LEARNED.md` 模板
-- [ ] 创建 `.agents/skills/agent-learning/SKILL.md` 技能文档
-- [ ] 月度知识归纳流程文档化
+- [x] 创建 `.agents/skills/agent-learning/SKILL.md` 技能文档
+- [x] 月度知识归纳流程文档化（`docs/LEARNING_WORKFLOW.md`）
+- [x] 更新 `.github/pull_request_template.md` 增加 Learning Notes
+
+`aggregate-learning.ts` 读取 `.agents/learning/sessions/<YYYY-MM>/` 下的 Markdown 会话，按标签统计并汇总坑点、决策、模式条目数；默认报告写入 `.agents/learning/aggregated/<YYYY-MM>.md`。报告仅供人工审核，不会自动修改 `docs/LESSONS_LEARNED.md`。
+
+`learning-index.ts --rebuild` 按路径顺序重建 `.agents/learning/index.json`，记录会话 `id`、相对路径、标题、任务 ID、日期、标签与 assignee；`--stats` 同时输出会话数和不同标签数。索引不含文件系统时间戳，重复运行在输入不变时不会重写文件。
+
+`task-complete.ts` 仅在质量门禁通过后创建 `.agents/learning/sessions/<UTC YYYY-MM>/session-<task-id>.md`。模板包含任务卡标题、任务 ID、UTC 日期、assignee 和 Pitfalls/Decisions/Patterns/Tags 区域；重跑时保留已有记录，门禁失败或 `--skip-gate` 不会生成模板。
+
+提取、索引、聚合与人工晋升步骤见 `docs/LEARNING_WORKFLOW.md`。当前 CI 会验证学习工具测试；月度聚合和 L3 晋升仍由维护者手动触发与审核。
 
 ---
 
@@ -242,3 +250,4 @@ pnpm exec tsx .agents/scripts/aggregate-learning.ts --month 2026-10
 - `docs/adr/0004-subagent-coordination.md` (任务完成流程)
 - `.agents/scripts/task-complete.ts` (任务完成脚本)
 - `.github/pull_request_template.md` (PR 模板)
+- `docs/LEARNING_WORKFLOW.md` (操作流程)
