@@ -28,7 +28,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@xingwangzhe/satteri-mermaid": "^0.7.7",
     "animate.css": "^4.1.1",
-    "astro": "^7.2.10",
+    "astro": "^7.3.3",
     "daisyui": "^5.7.24",
     "expressive-code-language-badge": "^1.1.0",
     "gaxios": "^7.3.1",
