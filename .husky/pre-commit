@@ -1,1 +1,12 @@
+#!/usr/bin/env sh
+set -eu
+
 pnpm exec lint-staged
+
+git diff --cached --name-only --diff-filter=ACMRD \
+  | sed -n 's#^openspec/changes/\([^/]*\)/specs/.*\.md$#\1#p' \
+  | sort -u \
+  | while IFS= read -r change; do
+      [ -n "$change" ] || continue
+      pnpm exec openspec validate "$change" --strict
+    done

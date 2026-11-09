@@ -34,4 +34,4 @@ slug = "0.1.6"
 
 [[bin]]
 name = "post-edit"
-path = "src/post-edit/main.rs"
+path = "src/rust/main.rs"

@@ -30,9 +30,10 @@
     "node_modules/**",
     "dist/**",
     ".astro/**",
-    ".agents/skills/**",
     ".agents/learning/**",
     ".agents/reports/**",
+    ".*/**/{command{,s},prompts,skills,workflows}/**",
+    "openspec/changes/spec-realignment/**",
     "CHANGELOG.md",
   ],
 }

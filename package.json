@@ -3,70 +3,77 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "astro dev",
+    "dev": "pnpm run build && astro dev",
     "check": "astro check",
     "build": "astro build",
     "audit": "pnpm audit --registry https://registry.npmjs.org/",
-    "preview": "astro build && pnpm exec tgcloud dev",
+    "preview": "pnpm run build && astro preview",
     "astro": "astro",
+    "openspec": "openspec",
     "prepare": "husky",
     "deploy": "tgcloud push",
     "status": "tgcloud status",
     "run": "tgcloud run",
     "migrate": "tgcloud migrate",
     "webhook": "tgcloud webhook",
-    "tgcloud:setup": "tgcloud run scripts/setup-db.js",
     "post:edit": "cargo run -p post-edit --",
     "verify:watermark": "tsx src/scripts/verify-watermark.ts",
     "test": "playwright test",
+    "test:unit": "tsx --test tests/unit/*.test.ts",
     "test:ui": "playwright test --ui",
     "test:chromium": "playwright test --project=chromium",
-    "lint:md": "markdownlint-cli2 \"**/*.md\""
+    "lint:md": "markdownlint-cli2 \"**/*.md\"",
+    "prepare:font": "node scripts/prepare-maple-font.mjs",
+    "test:font": "node --test scripts/prepare-maple-font.test.mjs",
+    "check:font-output": "node scripts/check-font-output.mjs",
+    "test:font-output": "node --test scripts/check-font-output.test.mjs",
+    "test:markdown-dependencies": "node --test scripts/check-markdown-dependencies.test.mjs"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.10",
     "@astrojs/markdown-satteri": "^0.3.8",
     "@astrojs/mdx": "^7.0.8",
-    "@astrojs/node": "^11.1.6",
+    "@astrojs/node": "^11.1.9",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
     "@astrojs/ts-plugin": "^1.10.12",
-    "@fontsource/twinkle-star": "^5.3.0",
-    "@helia/strings": "^5.1.1",
-    "@shopify/draggable": "^1.2.1",
+    "@orama/orama": "^3.1.18",
+    "@orama/plugin-astro": "^3.1.18",
+    "@orama/stopwords": "^3.1.18",
+    "@orama/tokenizers": "^3.1.18",
     "@tailwindcss/typography": "^0.5.20",
-    "@tailwindcss/vite": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.4",
     "@xingwangzhe/satteri-mermaid": "^0.7.9",
     "animate.css": "^4.1.1",
-    "astro": "^7.3.5",
-    "daisyui": "^5.7.47",
+    "astro": "^7.4.5",
+    "astro-webmcp": "^0.6.0",
     "expressive-code-language-badge": "^1.1.0",
-    "gaxios": "^7.3.1",
-    "helia": "^6.1.4",
     "mdast-util-toc": "^7.1.0",
     "mermaid": "^11.17.2",
-    "pinata": "^2.5.6",
     "satteri": "^0.10.5",
-    "tailwindcss": "^4.3.3",
-    "the-answer": "^1.0.0",
+    "tailwindcss": "^4.3.4",
+    "tw-animate-css": "^1.4.0",
     "typescript": "^6.0.3"
   },
   "devDependencies": {
-    "@mermaid-js/mermaid-cli": "^11.17.0",
+    "@astrojs/check": "^0.9.12",
+    "@fission-ai/openspec": "^1.16.0",
+    "@fontsource/twinkle-star": "^5.3.0",
+    "@mermaid-js/mermaid-cli": "^11.17.1",
     "@playwright/mcp": "^0.0.77",
-    "@playwright/test": "^1.64.0",
-    "@shikijs/colorized-brackets": "^4.5.0",
-    "@tailwindcss/postcss": "^4.3.3",
+    "@playwright/test": "^1.64.1",
+    "@shadcn/lint": "^0.2.5",
+    "@shikijs/colorized-brackets": "^4.6.0",
+    "@tailwindcss/postcss": "^4.3.4",
     "@tgcloud/cli": "^0.1.2",
     "@types/hast": "^3.0.5",
     "@types/mdast": "^4.0.4",
     "astro-favicons": "^3.1.8",
     "astro-minify-html-swc": "^0.1.12",
     "dayjs": "^1.11.23",
-    "execa": "^10.1.0",
+    "execa": "^10.2.1",
     "hast-util-from-html": "^2.0.3",
-    "hast-util-to-html": "^9.0.5",
-    "hast-util-to-text": "^4.0.2",
+    "hast-util-to-html": "^9.0.6",
+    "hast-util-to-text": "^4.0.3",
     "husky": "^9.1.7",
     "jsonc-parser": "^3.3.1",
     "lint-staged": "^17.6.0",
@@ -74,33 +81,34 @@
     "markdownlint-cli2": "^0.23.3",
     "mermaid-wasm-renderer": "^0.3.1",
     "oxfmt": "^0.57.0",
-    "oxlint": "^1.86.0",
-    "pagefind": "^1.5.2",
-    "playwright": "^1.64.0",
-    "skills": "^1.7.0",
+    "oxlint": "^1.91.0",
+    "playwright": "^1.64.1",
+    "shadcn": "^4.23.0",
+    "skills": "^1.7.6",
     "tinyglobby": "^0.2.17",
     "tsx": "^4.23.15",
-    "vnu-jar": "^26.10.2"
+    "vite-plugin-font": "^5.1.2",
+    "vnu-jar": "^26.11.4"
   },
   "lint-staged": {
     "*.{js,mjs,jsx,ts,tsx}": [
-      "oxlint",
-      "oxfmt"
+      "oxlint --no-error-on-unmatched-pattern",
+      "oxfmt --no-error-on-unmatched-pattern"
     ],
     "*.astro": [
-      "oxlint"
+      "oxlint --no-error-on-unmatched-pattern"
     ],
     "*.css": [
-      "oxlint",
-      "oxfmt"
+      "oxlint --no-error-on-unmatched-pattern",
+      "oxfmt --no-error-on-unmatched-pattern"
     ],
     "*.{md,mdx}": [
       "markdownlint-cli2 --fix",
-      "oxfmt"
+      "oxfmt --no-error-on-unmatched-pattern"
     ],
     "!(*.css|*.js|*.mjs|*.jsx|*.ts|*.tsx|*.astro|*.rs|*.md|*.mdx)": [
-      "oxfmt"
+      "oxfmt --no-error-on-unmatched-pattern"
     ]
   },
-  "packageManager": "pnpm@11.3.0"
+  "packageManager": "pnpm@12.16.1"
 }
