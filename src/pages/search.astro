@@ -1,0 +1,14 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import SiteSearch from "../components/SiteSearch.astro";
+
+export const prerender = true;
+---
+
+<SiteLayout title="搜索">
+  <section class="page-intro">
+    <p class="eyebrow">站内查找</p>
+    <h1>搜索</h1>
+  </section>
+  <SiteSearch idPrefix="page" initialSearch />
+</SiteLayout>

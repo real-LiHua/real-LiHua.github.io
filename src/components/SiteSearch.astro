@@ -1,0 +1,148 @@
+---
+import Icon from "./Icon.astro";
+
+interface Props {
+  idPrefix: string;
+  initialSearch?: boolean;
+}
+
+const { idPrefix, initialSearch = false } = Astro.props;
+---
+
+<form
+  class="search-form"
+  action="/search/"
+  method="get"
+  data-site-search
+  data-initial-search={initialSearch ? "true" : undefined}
+>
+  <label for={`${idPrefix}-search-query`}>搜索文章</label>
+  <div class="search-row">
+    <input id={`${idPrefix}-search-query`} name="q" type="search" data-search-input />
+    <button type="submit" aria-label="搜索" title="搜索"><Icon name="search" /></button>
+  </div>
+</form>
+<p class="search-status" data-search-status role="status" aria-live="polite"></p>
+<ul class="search-results" data-search-results></ul>
+
+<script>
+  import { searchProperties, searchSchema } from "../lib/search-config";
+  import type { SearchDocument } from "../lib/search";
+
+  type SearchDatabase = Awaited<ReturnType<typeof createSearch>>;
+  let searchPromise: Promise<SearchDatabase> | undefined;
+
+  async function createSearch() {
+    const [{ create, load, search }, { createSearchTokenizer }] = await Promise.all([
+      import("@orama/orama"),
+      import("../lib/search-tokenizer"),
+    ]);
+
+    const response = await fetch("/search-index.json");
+    if (!response.ok) {
+      throw new Error(`Search index request failed with ${response.status}`);
+    }
+
+    const index = await response.json();
+    const database = create({
+      schema: searchSchema,
+      components: { tokenizer: createSearchTokenizer() },
+    });
+    load(database, index);
+
+    return { database, search };
+  }
+
+  function getSearch() {
+    searchPromise ??= createSearch().catch((error: unknown) => {
+      searchPromise = undefined;
+      throw error;
+    });
+    return searchPromise;
+  }
+
+  async function searchSite(
+    searchTerm: string,
+    searchStatus: HTMLElement,
+    searchResults: HTMLUListElement,
+  ) {
+    const query = searchTerm.trim();
+    searchResults.replaceChildren();
+
+    if (!query) {
+      searchStatus.textContent = "请输入搜索关键词。";
+      return;
+    }
+
+    try {
+      const { database, search } = await getSearch();
+      const result = await search(database, {
+        term: query,
+        properties: [...searchProperties],
+        tolerance: 0,
+        limit: 20,
+      });
+
+      if (result.count === 0) {
+        searchStatus.textContent = "没有找到匹配文章。";
+        return;
+      }
+
+      for (const hit of result.hits) {
+        const data = hit.document as SearchDocument;
+        const item = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = data.url;
+        link.textContent = data.title || data.url;
+        item.append(link);
+
+        if (data.isPreview) {
+          const preview = document.createElement("p");
+          preview.className = "preview-note";
+          preview.textContent = "预览示例";
+          item.append(preview);
+        }
+
+        if (data.description) {
+          const description = document.createElement("p");
+          description.textContent = data.description;
+          item.append(description);
+        }
+
+        searchResults.append(item);
+      }
+
+      searchStatus.textContent = `找到 ${result.count} 篇文章。`;
+    } catch {
+      searchResults.replaceChildren();
+      searchStatus.textContent = "搜索暂时不可用，请稍后重试。";
+    }
+  }
+
+  const searchForms = document.querySelectorAll<HTMLFormElement>("[data-site-search]");
+
+  for (const form of searchForms) {
+    const input = form.querySelector<HTMLInputElement>("[data-search-input]");
+    const searchStatus = form.nextElementSibling;
+    const searchResults = searchStatus?.nextElementSibling;
+
+    if (
+      !input ||
+      !(searchStatus instanceof HTMLElement) ||
+      !(searchResults instanceof HTMLUListElement)
+    ) {
+      continue;
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void searchSite(input.value, searchStatus, searchResults);
+    });
+
+    if (form.dataset.initialSearch !== undefined) {
+      const initialQuery = new URLSearchParams(window.location.search).get("q") ?? "";
+      input.value = initialQuery;
+      void searchSite(initialQuery, searchStatus, searchResults);
+    }
+  }
+</script>
