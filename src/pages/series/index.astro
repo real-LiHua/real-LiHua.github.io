@@ -1,0 +1,30 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import Icon from "../../components/Icon.astro";
+import { getCollection } from "astro:content";
+import { assertUniqueSeriesPositions } from "../../lib/content-validation";
+
+export const prerender = true;
+
+const posts = await getCollection("posts");
+assertUniqueSeriesPositions(posts);
+const series = new Map(
+  posts.flatMap((post) =>
+    post.data.series
+      ? [[post.data.series.id, post.data.series.title] as const]
+      : [],
+  ),
+);
+---
+
+<SiteLayout title="文章系列">
+  <section class="page-intro">
+    <p class="eyebrow"><a href="/posts/" title="文章索引"><Icon name="arrowLeft" /><span class="sr-only">文章索引</span></a></p>
+    <h1>文章系列</h1>
+  </section>
+  <ul class="post-list">
+    {[...series].sort((first, second) => first[1].localeCompare(second[1])).map(([id, title]) => (
+      <li><article><h2><a href={`/series/${id}/`}>{title}</a></h2></article></li>
+    ))}
+  </ul>
+</SiteLayout>

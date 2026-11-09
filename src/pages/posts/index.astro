@@ -1,26 +1,65 @@
 ---
-import BaseLayout from "@/layouts/BaseLayout.astro";
-import PostCard from "@/components/common/PostCard.astro";
-import { contentPipeline } from "@/modules/content-pipeline";
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import Icon from "../../components/Icon.astro";
+import { getCollection } from "astro:content";
+import { assertUniqueSeriesPositions } from "../../lib/content-validation";
 
-const posts = await contentPipeline.getPublishedPosts();
+export const prerender = true;
+
+const collectionPosts = await getCollection("posts");
+assertUniqueSeriesPositions(collectionPosts);
+const posts = collectionPosts.sort(
+  (first, second) =>
+    second.data.publishedAt.valueOf() - first.data.publishedAt.valueOf() ||
+    first.id.localeCompare(second.id),
+);
+const years = [...new Set(posts.map((post) => post.data.publishedAt.getUTCFullYear()))].sort(
+  (first, second) => second - first,
+);
+const topics = new Map(
+  posts.flatMap((post) => post.data.topics.map((topic) => [topic.slug, topic.name] as const)),
+);
 ---
 
-<BaseLayout title="文章" description="全部文章存档。" pagefind={true}>
-  <header class="flex items-end justify-between">
-    <h1 class="text-3xl font-bold">文章</h1>
-    <p class="text-sm text-base-content/60">共 {posts.length} 篇</p>
-  </header>
-
-  {
-    posts.length === 0 ? (
-      <p class="mt-8 text-base-content/60">暂无文章。</p>
-    ) : (
-      <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {posts.map((post, index) => (
-          <PostCard post={post} variant="grid" revealIndex={index} />
-        ))}
-      </div>
-    )
-  }
-</BaseLayout>
+<SiteLayout title="文章">
+  <section class="page-intro">
+    <p class="eyebrow">文章索引</p>
+    <h1>文章</h1>
+  </section>
+  <p class="archive-preview-note">预览示例 · 以下内容仅用于界面预览</p>
+  <section class="archive-discovery" aria-labelledby="archive-discovery-title">
+    <h2 id="archive-discovery-title">浏览文章</h2>
+    <div class="archive-browse-grid">
+      <nav class="archive-browse-group" aria-label="按年份浏览">
+        <h3>年份</h3>
+        <ul class="archive-link-list">
+          {years.map((year) => <li><a href={`/posts/years/${year}/`}>{year}</a></li>)}
+        </ul>
+      </nav>
+      <nav class="archive-browse-group" aria-label="按主题浏览">
+        <h3>主题</h3>
+        <ul class="archive-link-list">
+          {[...topics].sort((first, second) => first[1].localeCompare(second[1])).map(([slug, name]) => (
+            <li><a href={`/topics/${slug}/`}>{name}</a></li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+    <nav class="archive-utilities" aria-label="其他浏览方式">
+      <a href="/series/" title="浏览文章系列"><Icon name="book" /><span class="sr-only">浏览文章系列</span></a>
+      <a href="/rss.xml" title="订阅 RSS"><Icon name="rss" /><span class="sr-only">订阅 RSS</span></a>
+    </nav>
+  </section>
+  <h2 class="archive-list-heading">全部文章</h2>
+  <ul class="post-list">
+    {posts.map((post) => (
+      <li>
+        <article>
+          <p class="post-meta">{post.data.publishedAt.toISOString().slice(0, 10)} · {post.data.readingTime}</p>
+          <h2><a href={`/posts/${post.id}/`}>{post.data.title}</a></h2>
+          <p>{post.data.description}</p>
+        </article>
+      </li>
+    ))}
+  </ul>
+</SiteLayout>

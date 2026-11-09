@@ -1,0 +1,42 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import Icon from "../../components/Icon.astro";
+import { getCollection } from "astro:content";
+import { assertUniqueSeriesPositions } from "../../lib/content-validation";
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts");
+  assertUniqueSeriesPositions(posts);
+  const series = new Map(
+    posts.flatMap((post) =>
+      post.data.series ? [[post.data.series.id, post.data.series.title] as const] : [],
+    ),
+  );
+  return [...series].map(([id, title]) => ({ params: { id }, props: { title } }));
+}
+
+const { title } = Astro.props;
+const posts = (await getCollection("posts"))
+  .filter((post) => post.data.series?.id === Astro.params.id)
+  .sort((first, second) => first.data.series!.order - second.data.series!.order);
+---
+
+<SiteLayout title={title}>
+  <section class="page-intro">
+    <p class="eyebrow"><a href="/series/" title="文章系列"><Icon name="arrowLeft" /><span class="sr-only">文章系列</span></a></p>
+    <h1>{title}</h1>
+  </section>
+  <ol class="post-list series-list">
+    {posts.map((post) => (
+      <li>
+        <article>
+          <p class="post-meta">第 {post.data.series?.order} 篇 · {post.data.publishedAt.toISOString().slice(0, 10)}</p>
+          <h2><a href={`/posts/${post.id}/`}>{post.data.title}</a></h2>
+          <p>{post.data.description}</p>
+        </article>
+      </li>
+    ))}
+  </ol>
+</SiteLayout>

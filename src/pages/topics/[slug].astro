@@ -1,0 +1,49 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import Icon from "../../components/Icon.astro";
+import { getCollection } from "astro:content";
+import { assertUniqueSeriesPositions } from "../../lib/content-validation";
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts");
+  assertUniqueSeriesPositions(posts);
+  const topics = new Map(
+    posts.flatMap((post) => post.data.topics.map((topic) => [topic.slug, topic.name] as const)),
+  );
+  return [...topics.keys()].map((slug) => ({ params: { slug } }));
+}
+
+const slug = Astro.params.slug ?? "";
+const allPosts = await getCollection("posts");
+const topic = allPosts.flatMap((post) => post.data.topics).find((item) => item.slug === slug);
+if (!topic) throw new Error(`Missing topic "${slug}"`);
+
+const posts = allPosts
+  .filter((post) => post.data.topics.some((item) => item.slug === slug))
+  .sort(
+    (first, second) =>
+      second.data.publishedAt.valueOf() - first.data.publishedAt.valueOf() ||
+      first.id.localeCompare(second.id),
+  );
+---
+
+<SiteLayout title={topic.name}>
+  <section class="page-intro">
+    <p class="eyebrow"><a href="/posts/" title="文章索引"><Icon name="arrowLeft" /><span class="sr-only">文章索引</span></a></p>
+    <h1>{topic.name}</h1>
+  </section>
+  <p class="preview-note">预览示例 · 以下内容仅用于界面预览</p>
+  <ul class="post-list">
+    {posts.map((post) => (
+      <li>
+        <article>
+          <p class="post-meta">{post.data.publishedAt.toISOString().slice(0, 10)} · {post.data.readingTime}</p>
+          <h2><a href={`/posts/${post.id}/`}>{post.data.title}</a></h2>
+          <p>{post.data.description}</p>
+        </article>
+      </li>
+    ))}
+  </ul>
+</SiteLayout>
