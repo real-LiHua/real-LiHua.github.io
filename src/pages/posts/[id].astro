@@ -25,6 +25,8 @@ const authConfig = frontmatter.telegramAuth;
 const requiresAuth = telegramAuth.requiresAuth(authConfig);
 const env = import.meta.env as Record<string, string | undefined>;
 const botUsername = env.PUBLIC_TG_BOT_USERNAME ?? "your_bot";
+const siteUrl = Astro.site ?? Astro.url;
+const postUrl = new URL(`/posts/${post.id}/`, siteUrl).toString();
 ---
 
 <BaseLayout
@@ -37,6 +39,15 @@ const botUsername = env.PUBLIC_TG_BOT_USERNAME ?? "your_bot";
   image={frontmatter.image}
   pagefind={!requiresAuth}
   noindex={requiresAuth}
+  jsonLd={{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "首页", item: new URL("/", siteUrl).toString() },
+      { "@type": "ListItem", position: 2, name: "文章", item: new URL("/posts/", siteUrl).toString() },
+      { "@type": "ListItem", position: 3, name: frontmatter.title, item: postUrl },
+    ],
+  }}
 >
   <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_16rem]">
     <article class="prose mx-auto w-full max-w-none" data-article>

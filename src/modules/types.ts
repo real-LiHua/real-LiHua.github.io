@@ -13,23 +13,40 @@ import { z } from "astro/zod";
 
 // ===== Frontmatter schema (keep in sync with src/content.config.ts) =====
 
+/** Input ceilings — mirrored from `src/content.config.ts` (see LIMITS there). */
+export const FRONTMATTER_LIMITS = {
+  title: 200,
+  description: 500,
+  image: 2048,
+  tag: 50,
+  tags: 20,
+  author: 100,
+  authors: 10,
+  groupId: 64,
+  groupName: 200,
+  customMessage: 1000,
+} as const;
+
+const tagSchema = z.string().max(FRONTMATTER_LIMITS.tag);
+const authorSchema = z.string().max(FRONTMATTER_LIMITS.author);
+
 export const telegramAuthSchema = z
   .object({
     enabled: z.boolean(),
-    groupId: z.string(),
-    groupName: z.string().optional(),
-    customMessage: z.string().optional(),
+    groupId: z.string().max(FRONTMATTER_LIMITS.groupId),
+    groupName: z.string().max(FRONTMATTER_LIMITS.groupName).optional(),
+    customMessage: z.string().max(FRONTMATTER_LIMITS.customMessage).optional(),
   })
   .optional();
 
 export const postFrontmatterSchema = z.object({
-  authors: z.array(z.string()).optional(),
-  description: z.string().optional().nullable(),
-  image: z.string().optional(),
+  authors: z.array(authorSchema).max(FRONTMATTER_LIMITS.authors).optional(),
+  description: z.string().max(FRONTMATTER_LIMITS.description).optional().nullable(),
+  image: z.string().max(FRONTMATTER_LIMITS.image).optional(),
   publishDate: z.coerce.date().optional(),
-  tags: z.array(z.string()).optional(),
+  tags: z.array(tagSchema).max(FRONTMATTER_LIMITS.tags).optional(),
   telegramAuth: telegramAuthSchema,
-  title: z.coerce.string(),
+  title: z.coerce.string().max(FRONTMATTER_LIMITS.title),
   updatedDate: z.coerce.date().optional(),
 });
 
@@ -208,6 +225,11 @@ export interface BaseLayoutProps {
   canonical?: string;
   /** Emit `robots: noindex, nofollow` — used by Telegram-gated posts. */
   noindex?: boolean;
+  /**
+   * Extra structured-data objects appended after the page's primary JSON-LD (e.g. `Person` on the
+   * about page, `BreadcrumbList` on articles). See docs/SEO.md §6.
+   */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
   children: unknown;
 }
 

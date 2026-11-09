@@ -22,6 +22,7 @@ const {
   image,
   canonical,
   noindex = false,
+  jsonLd: extraJsonLd,
 } = Astro.props as BaseLayoutProps;
 
 const siteName = "LiHua.dev";
@@ -29,7 +30,8 @@ const fullTitle = title === siteName ? title : `${title} · ${siteName}`;
 const base = Astro.site ?? Astro.url;
 const canonicalURL = (canonical ? new URL(canonical, base) : new URL(Astro.url.pathname, base)).toString();
 const rssURL = new URL("/rss.xml", base).toString();
-const ogImage = image ? new URL(image, base).toString() : undefined;
+const ogImage = new URL(image ?? "/og-default.png", base).toString();
+const ogImageAlt = image ? fullTitle : `${siteName}：记录、文章与技术实验`;
 const themeScript = themeSystem.inlineScript();
 const isArticle = Boolean(publishDate);
 
@@ -80,7 +82,13 @@ const jsonLd = isArticle
       url: base.toString(),
       description,
     };
-const jsonLdScript = JSON.stringify(jsonLd).replaceAll("<", String.raw`\u003c`);
+const additionalJsonLd: Record<string, unknown>[] = [];
+if (extraJsonLd) {
+  additionalJsonLd.push(...(Array.isArray(extraJsonLd) ? extraJsonLd : [extraJsonLd]));
+}
+const jsonLdScripts = [jsonLd, ...additionalJsonLd].map((schema) =>
+  JSON.stringify(schema).replaceAll("<", String.raw`\u003c`),
+);
 ---
 
 <!doctype html>
@@ -102,15 +110,18 @@ const jsonLdScript = JSON.stringify(jsonLd).replaceAll("<", String.raw`\u003c`);
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:site_name" content={siteName} />
-    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:alt" content={ogImageAlt} />
     {authors?.map((author) => <meta property="article:author" content={author} />)}
     {publishDate && <meta property="article:published_time" content={new Date(publishDate).toISOString()} />}
     {updatedDate && <meta property="article:modified_time" content={new Date(updatedDate).toISOString()} />}
-    <meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
 
-    <script type="application/ld+json" set:html={jsonLdScript} />
+    {jsonLdScripts.map((schema) => <script type="application/ld+json" set:html={schema} />)}
 
     {pagefind && <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />}
     <script is:inline set:html={themeScript} />

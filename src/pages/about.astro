@@ -1,8 +1,19 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+
+const siteUrl = Astro.site ?? Astro.url;
 ---
 
-<BaseLayout title="关于" description="关于本站与作者。">
+<BaseLayout
+  title="关于"
+  description="关于本站与作者。"
+  jsonLd={{
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: "李华",
+    url: new URL("/about/", siteUrl).toString(),
+  }}
+>
   <article class="prose mx-auto max-w-2xl">
     <h1>关于</h1>
     <p>
