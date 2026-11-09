@@ -1,0 +1,56 @@
+- id: api-terminal-controller
+  name: "@deepseek-ai/dsh-api-terminal-controller"
+  config:
+    path: "/usr/bin"
+    shellCandidates: "/usr/bin/zsh"
+- id: client-product-analytics
+  name: "@deepseek-ai/dsh-client-product-analytics"
+  config:
+    enabled: false
+- id: mcp-client-astro
+  name: "@deepseek-ai/dsh-mcp-client"
+  config:
+    transport: "streamable-http"
+    serverName: "Astro docs"
+    url: "https://mcp.docs.astro.build/mcp"
+- id: mcp-client-mdn
+  name: "@deepseek-ai/dsh-mcp-client"
+  config:
+    transport: "streamable-http"
+    serverName: "MDN Web Docs"
+    url: "https://mcp.mdn.mozilla.net/"
+- id: mcp-client-shadcn
+  name: "@deepseek-ai/dsh-mcp-client"
+  config:
+    transport: "stdio"
+    serverName: "shadcn"
+    command: "pnx"
+    args:
+      - "shadcn"
+      - "mcp"
+- id: ui-settings-general
+  name: "@deepseek-ai/dsh-client-ui-settings-general"
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+- id: session-log-deepseek
+  name: "@deepseek-ai/dsh-session-log-deepseek"
+  config:
+    enabled: false
+- id: agent-preset-registry
+  name: "@deepseek-ai/dsh-agent-preset-registry"
+  config:
+    default: standard
+    selectedDefault: ptc
+- id: llm-pi-ai
+  name: "@deepseek-ai/dsh-llm-pi-ai"
+  config:
+    providers:
+      opencode:
+        apiKeyEnv: OPENCODE_API_KEY
+      github-copilot:
+        apiKeyEnv: GITHUB_COPILOT_API_KEY
+- id: plugin-market
+  name: "@deepseek-ai/dsh-plugin-market"
+  config:
+    indexes:
+      - https://cdn.jsdelivr.net/npm/dsh-plugin-catalog/index.json

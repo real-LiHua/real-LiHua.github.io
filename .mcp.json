@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "Astro docs": {
+      "type": "http",
+      "url": "https://mcp.docs.astro.build/mcp"
+    },
+    "MDN Web Docs": {
+      "type": "http",
+      "url": "https://mcp.mdn.mozilla.net/"
+    },
+    "playwright": {
+      "command": "pnx",
+      "args": ["@playwright/mcp"]
+    },
+    "shadcn": {
+      "command": "pnx",
+      "args": ["shadcn", "mcp"]
+    }
+  }
+}
