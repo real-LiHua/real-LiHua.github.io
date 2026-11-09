@@ -1,14 +1,16 @@
 ---
-import BaseLayout from "@/layouts/BaseLayout.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
+import Icon from "../components/Icon.astro";
 ---
 
-<BaseLayout title="页面未找到" description="404 — 页面未找到。">
-  <section class="grid min-h-[50vh] place-items-center text-center">
-    <div>
-      <p class="text-6xl font-bold text-primary">404</p>
-      <h1 class="mt-4 text-2xl font-semibold">页面未找到</h1>
-      <p class="mt-2 text-base-content/60">你访问的页面不存在或已被移动。</p>
-      <a class="btn btn-primary mt-6" href="/">返回首页</a>
+<SiteLayout title="页面未找到">
+  <section class="not-found" aria-labelledby="not-found-title">
+    <p class="error-code">HTTP 404</p>
+    <h1 id="not-found-title">页面未找到</h1>
+    <p>请求的页面不存在，或已移至其他位置。</p>
+    <div class="error-details">
+      <p>请检查地址是否正确，或返回首页继续浏览。</p>
+      <a href="/" title="返回首页"><Icon name="home" /><span class="sr-only">返回首页</span></a>
     </div>
   </section>
-</BaseLayout>
+</SiteLayout>

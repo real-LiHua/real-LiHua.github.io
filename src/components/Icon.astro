@@ -1,0 +1,12 @@
+---
+import { iconGlyphs, type IconName } from "../lib/icons";
+
+interface Props {
+  name: IconName;
+  class?: string;
+}
+
+const { name, class: className } = Astro.props;
+---
+
+<span class:list={["nf-icon", className]} aria-hidden="true">{iconGlyphs[name]}</span>

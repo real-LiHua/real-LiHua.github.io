@@ -1,0 +1,517 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import Icon from "../../components/Icon.astro";
+import { getCollection, render } from "astro:content";
+import { assertUniqueSeriesPositions } from "../../lib/content-validation";
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const posts = (await getCollection("posts")).sort(
+    (first, second) =>
+      second.data.publishedAt.valueOf() - first.data.publishedAt.valueOf() ||
+      first.id.localeCompare(second.id),
+  );
+  assertUniqueSeriesPositions(posts);
+  return posts.map((post, index) => {
+    const seriesPosts = post.data.series
+      ? posts
+          .filter((entry) => entry.data.series?.id === post.data.series?.id)
+          .sort((first, second) => first.data.series!.order - second.data.series!.order)
+      : [];
+    const seriesIndex = seriesPosts.findIndex((entry) => entry.id === post.id);
+
+    return {
+      params: { slug: post.id },
+      props: {
+        post,
+        previousPost: posts[index + 1],
+        nextPost: posts[index - 1],
+        previousSeriesPost: seriesPosts[seriesIndex - 1],
+        nextSeriesPost: seriesPosts[seriesIndex + 1],
+      },
+    };
+  });
+}
+
+const { post, previousPost, nextPost, previousSeriesPost, nextSeriesPost } = Astro.props;
+const { Content } = await render(post);
+---
+
+<SiteLayout title={post.data.title} description={post.data.description}>
+  <article class="article">
+    {post.data.isPreview && <p class="preview-note">预览示例 · 非正式发布文章</p>}
+    <p class="post-meta">{post.data.publishedAt.toISOString().slice(0, 10)} · {post.data.readingTime}</p>
+    <h1>{post.data.title}</h1>
+    <p class="article-lede">{post.data.description}</p>
+    {post.data.series && (
+      <p class="series-context">
+        系列：
+        <a href={`/series/${post.data.series.id}/`}>{post.data.series.title}</a>
+        · 第 {post.data.series.order} 篇
+      </p>
+    )}
+    <div class="article-content"><Content /></div>
+    {post.data.series && (
+      <nav class="series-navigation article-neighbors" aria-label="系列文章" data-series-navigation>
+        {previousSeriesPost && (
+          <a href={`/posts/${previousSeriesPost.id}/`}>
+            <span class="neighbor-direction"
+              ><Icon name="arrowLeft" /><span class="sr-only">系列上一篇</span></span
+            >
+            <span>{previousSeriesPost.data.title}</span>
+          </a>
+        )}
+        {nextSeriesPost && (
+          <a href={`/posts/${nextSeriesPost.id}/`}>
+            <span class="neighbor-direction"
+              ><Icon name="arrowRight" /><span class="sr-only">系列下一篇</span></span
+            >
+            <span>{nextSeriesPost.data.title}</span>
+          </a>
+        )}
+      </nav>
+    )}
+    <nav class="article-neighbors" aria-label="相邻文章">
+      {previousPost && (
+        <a href={`/posts/${previousPost.id}/`}>
+          <span class="neighbor-direction"
+            ><Icon name="arrowLeft" /><span class="sr-only">上一篇</span></span
+          >
+          <span>{previousPost.data.title}</span>
+        </a>
+      )}
+      {nextPost && (
+        <a href={`/posts/${nextPost.id}/`}>
+          <span class="neighbor-direction"
+            ><Icon name="arrowRight" /><span class="sr-only">下一篇</span></span
+          >
+          <span>{nextPost.data.title}</span>
+        </a>
+      )}
+    </nav>
+  </article>
+  <aside class="outline-widget" data-outline-widget>
+    <button
+      class="outline-toggle"
+      type="button"
+      data-outline-toggle
+      aria-label="打开文章目录"
+      title="打开文章目录"
+      aria-expanded="false"
+      aria-controls="article-outline"
+    >
+      <Icon name="list" />
+    </button>
+    <nav
+      class="outline-panel"
+      id="article-outline"
+      data-outline-panel
+      aria-label="文章目录"
+      hidden
+    >
+      <ul class="outline-list" data-outline-list></ul>
+    </nav>
+  </aside>
+</SiteLayout>
+
+<script>
+  import { iconGlyphs, type IconName } from "../../lib/icons";
+
+  const createIcon = (name: IconName) => {
+    const icon = document.createElement("span");
+    icon.className = "nf-icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = iconGlyphs[name];
+    return icon;
+  };
+
+  const article = document.querySelector(".article");
+  const articleContent = article?.querySelector(".article-content");
+
+  if (article && articleContent) {
+    const status = document.createElement("span");
+    status.className = "sr-only";
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
+    articleContent.append(status);
+
+    for (const link of articleContent.querySelectorAll<HTMLAnchorElement>("a[href]")) {
+      const originalUrl = new URL(link.href, window.location.href);
+      const isHttp = originalUrl.protocol === "http:" || originalUrl.protocol === "https:";
+      const isInternal = originalUrl.origin === window.location.origin;
+      const isArchiveHost =
+        originalUrl.hostname === "archive.org" ||
+        originalUrl.hostname.endsWith(".archive.org");
+      if (!isHttp || isInternal || isArchiveHost) continue;
+
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+
+      const group = document.createElement("span");
+      group.className = "external-link-group";
+      link.before(group);
+      group.append(link);
+
+      const archiveLink = document.createElement("a");
+      archiveLink.className = "archive-lookup";
+      archiveLink.href = `https://web.archive.org/web/*/${encodeURIComponent(originalUrl.href)}`;
+      archiveLink.target = "_blank";
+      archiveLink.rel = "noopener noreferrer";
+      archiveLink.setAttribute("aria-label", "查看 Internet Archive 快照");
+      archiveLink.append(createIcon("archive"));
+      group.append(archiveLink);
+    }
+
+    for (const pre of articleContent.querySelectorAll("pre")) {
+      const code = pre.querySelector("code");
+      if (!code) continue;
+
+      const block = document.createElement("div");
+      block.className = "code-block";
+      pre.before(block);
+      block.append(pre);
+
+      const controls = document.createElement("div");
+      controls.className = "code-controls";
+
+      if (pre.dataset.language) {
+        const badge = document.createElement("span");
+        badge.className = "code-language";
+        badge.textContent = pre.dataset.language;
+        controls.append(badge);
+      }
+
+      const copyButton = document.createElement("button");
+      copyButton.className = "code-copy";
+      copyButton.type = "button";
+      copyButton.setAttribute("aria-label", "复制代码");
+      copyButton.title = "复制代码";
+      copyButton.append(createIcon("copy"));
+      copyButton.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(code.textContent?.replace(/\n$/, "") ?? "");
+          status.textContent = "已复制到剪贴板";
+        } catch {
+          status.textContent = "复制失败";
+        }
+      });
+
+      controls.append(copyButton);
+      block.append(controls);
+    }
+
+    const headingIds = new Set<string>();
+    for (const [index, heading] of [...article.querySelectorAll("h1, h2, h3, h4, h5, h6")].entries()) {
+      const baseId =
+        heading.id ||
+        heading.textContent
+          ?.trim()
+          .toLowerCase()
+          .replace(/[^\p{L}\p{N}]+/gu, "-")
+          .replace(/^-|-$/gu, "") ||
+        `heading-${index + 1}`;
+      let id = baseId;
+      let suffix = 1;
+      while (headingIds.has(id)) {
+        id = `${baseId}-${suffix++}`;
+      }
+      heading.id = id;
+      headingIds.add(id);
+
+      const copyButton = document.createElement("button");
+      copyButton.className = "heading-copy";
+      copyButton.type = "button";
+      copyButton.setAttribute("aria-label", "复制标题链接");
+      copyButton.title = "复制标题链接";
+      copyButton.append(createIcon("link"));
+      copyButton.addEventListener("click", async () => {
+        try {
+          const headingUrl = new URL(window.location.href);
+          headingUrl.hash = heading.id;
+          await navigator.clipboard.writeText(headingUrl.toString());
+          status.textContent = "标题链接已复制";
+        } catch {
+          status.textContent = "复制失败";
+        }
+      });
+
+      const headingGroup = document.createElement("div");
+      headingGroup.className = "heading-group";
+      heading.before(headingGroup);
+      headingGroup.append(heading, copyButton);
+    }
+
+    for (const table of articleContent.querySelectorAll("table")) {
+      const region = document.createElement("div");
+      region.className = "table-scroll";
+      region.setAttribute("role", "region");
+      region.setAttribute("aria-label", "可横向滚动的表格");
+      region.tabIndex = 0;
+      table.before(region);
+      region.append(table);
+    }
+
+    const outlineHeadings = [...article.querySelectorAll<HTMLElement>("h1, h2, h3, h4, h5, h6")];
+    const outlineWidget = document.querySelector<HTMLElement>("[data-outline-widget]");
+    const outlineToggle = document.querySelector<HTMLButtonElement>("[data-outline-toggle]");
+    const outlinePanel = document.querySelector<HTMLElement>("[data-outline-panel]");
+    const outlineList = document.querySelector<HTMLUListElement>("[data-outline-list]");
+
+    if (outlineWidget && outlineToggle && outlinePanel && outlineList) {
+      const outlineLevels: { level: number; item: HTMLLIElement }[] = [];
+      for (const heading of outlineHeadings) {
+        const clone = heading.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll("button").forEach((button) => button.remove());
+        const text = clone.textContent?.trim() ?? "";
+        if (!text) continue;
+
+        const level = Number(heading.tagName.slice(1));
+        let parentLevel = outlineLevels.at(-1);
+        while (parentLevel && parentLevel.level >= level) {
+          outlineLevels.pop();
+          parentLevel = outlineLevels.at(-1);
+        }
+
+        const item = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = `#${heading.id}`;
+        link.dataset.outlineTarget = heading.id;
+        link.textContent = text;
+        item.append(link);
+
+        const parent = outlineLevels.at(-1)?.item;
+        if (!parent) {
+          outlineList.append(item);
+        } else {
+          let children = parent.querySelector<HTMLUListElement>(":scope > ul");
+          if (!children) {
+            children = document.createElement("ul");
+            children.className = "outline-children";
+            parent.append(children);
+          }
+          children.append(item);
+        }
+        outlineLevels.push({ level, item });
+      }
+
+      const positionOutlinePanel = () => {
+        if (outlinePanel.hidden) return;
+
+        const toggleRect = outlineToggle.getBoundingClientRect();
+        const margin = 8;
+        const gap = 8;
+        const leftSpace = Math.max(0, toggleRect.left - margin - gap);
+        const rightSpace = Math.max(0, window.innerWidth - toggleRect.right - margin - gap);
+        const side = leftSpace >= rightSpace ? "left" : "right";
+        const availableSpace = side === "left" ? leftSpace : rightSpace;
+        const width = Math.min(320, availableSpace);
+        const left =
+          side === "left" ? toggleRect.left - gap - width : toggleRect.right + gap;
+
+        outlinePanel.style.width = `${width}px`;
+        outlinePanel.style.left = `${left}px`;
+        outlinePanel.style.maxHeight = `${Math.max(
+          0,
+          Math.min(window.innerHeight * 0.65, window.innerHeight - margin * 2),
+        )}px`;
+        outlinePanel.style.top = `${Math.min(
+          Math.max(margin, toggleRect.top),
+          Math.max(margin, window.innerHeight - outlinePanel.offsetHeight - margin),
+        )}px`;
+      };
+
+      const setExpanded = (expanded: boolean) => {
+        outlineToggle.setAttribute("aria-expanded", String(expanded));
+        const label = expanded ? "关闭文章目录" : "打开文章目录";
+        outlineToggle.setAttribute("aria-label", label);
+        outlineToggle.title = label;
+
+        if (expanded) {
+          outlinePanel.hidden = false;
+          positionOutlinePanel();
+          requestAnimationFrame(() => activeLink?.scrollIntoView({ block: "nearest" }));
+          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            outlinePanel.dataset.state = "open";
+            return;
+          }
+          outlinePanel.dataset.state = "opening";
+          requestAnimationFrame(() => {
+            if (!outlinePanel.hidden) outlinePanel.dataset.state = "open";
+          });
+          return;
+        }
+
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          outlinePanel.hidden = true;
+          outlinePanel.dataset.state = "closed";
+          return;
+        }
+
+        outlinePanel.dataset.state = "closing";
+        window.setTimeout(() => {
+          if (outlinePanel.dataset.state === "closing") {
+            outlinePanel.hidden = true;
+            outlinePanel.dataset.state = "closed";
+          }
+        }, 80);
+      };
+
+      const outlineLinks = [...outlineList.querySelectorAll<HTMLAnchorElement>("a")];
+      let activeHeading: HTMLElement | undefined;
+      let activeLink: HTMLAnchorElement | undefined;
+      const updateCurrentHeading = () => {
+        const readingLine = window.innerHeight * 0.35;
+        const heading =
+          outlineHeadings.filter((item) => item.getBoundingClientRect().top <= readingLine).at(-1) ??
+          outlineHeadings[0];
+        if (!heading || heading === activeHeading) return;
+
+        activeHeading = heading;
+        activeLink = outlineLinks.find((link) => link.dataset.outlineTarget === heading.id);
+        for (const link of outlineLinks) {
+          if (link === activeLink) {
+            link.setAttribute("aria-current", "location");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        }
+
+        if (outlineToggle.getAttribute("aria-expanded") === "true") {
+          activeLink?.scrollIntoView({ block: "nearest" });
+        }
+      };
+
+      let updateFrame = 0;
+      const scheduleCurrentHeadingUpdate = () => {
+        if (updateFrame) return;
+        updateFrame = requestAnimationFrame(() => {
+          updateFrame = 0;
+          updateCurrentHeading();
+        });
+      };
+
+      if (outlineList.childElementCount === 0) {
+        outlineWidget.hidden = true;
+      } else {
+        outlineToggle.addEventListener("click", (event) => {
+          if (skipToggleClick) {
+            skipToggleClick = false;
+            event.preventDefault();
+            return;
+          }
+          setExpanded(outlineToggle.getAttribute("aria-expanded") !== "true");
+        });
+
+        let activePointer: number | null = null;
+        let startX = 0;
+        let startY = 0;
+        let offsetX = 0;
+        let offsetY = 0;
+        let isDragging = false;
+        let skipToggleClick = false;
+        const outlinePositionStorageKey = "article-outline-position";
+
+        const setOutlinePosition = (left: number, top: number) => {
+          const rect = outlineWidget.getBoundingClientRect();
+          outlineWidget.style.transform = "none";
+          outlineWidget.style.left = `${Math.min(
+            Math.max(0, left),
+            Math.max(0, window.innerWidth - rect.width),
+          )}px`;
+          outlineWidget.style.top = `${Math.min(
+            Math.max(0, top),
+            Math.max(0, window.innerHeight - rect.height),
+          )}px`;
+          outlineWidget.style.right = "auto";
+          outlineWidget.style.bottom = "auto";
+        };
+
+        const saveOutlinePosition = () => {
+          const rect = outlineWidget.getBoundingClientRect();
+          try {
+            localStorage.setItem(
+              outlinePositionStorageKey,
+              JSON.stringify({ left: rect.left, top: rect.top }),
+            );
+          } catch {
+            status.textContent = "无法保存目录按钮位置，刷新后将恢复默认位置";
+          }
+        };
+
+        try {
+          const savedPosition = localStorage.getItem(outlinePositionStorageKey);
+          if (savedPosition) {
+            const position: unknown = JSON.parse(savedPosition);
+            if (
+              typeof position === "object" &&
+              position !== null &&
+              "left" in position &&
+              "top" in position &&
+              typeof position.left === "number" &&
+              Number.isFinite(position.left) &&
+              typeof position.top === "number" &&
+              Number.isFinite(position.top)
+            ) {
+              setOutlinePosition(position.left, position.top);
+            }
+          }
+        } catch {
+          status.textContent = "无法读取已保存的目录按钮位置";
+        }
+
+        outlineToggle.addEventListener("pointerdown", (event) => {
+          if (event.button !== 0 || activePointer !== null) return;
+          activePointer = event.pointerId;
+          startX = event.clientX;
+          startY = event.clientY;
+          const rect = outlineWidget.getBoundingClientRect();
+          offsetX = event.clientX - rect.left;
+          offsetY = event.clientY - rect.top;
+        });
+
+        window.addEventListener("pointermove", (event) => {
+          if (event.pointerId !== activePointer) return;
+          const deltaX = event.clientX - startX;
+          const deltaY = event.clientY - startY;
+          if (!isDragging && Math.hypot(deltaX, deltaY) > 6) {
+            isDragging = true;
+            outlineToggle.dataset.dragging = "true";
+          }
+          if (!isDragging) return;
+
+          setOutlinePosition(event.clientX - offsetX, event.clientY - offsetY);
+          positionOutlinePanel();
+        });
+
+        const finishDrag = (event: PointerEvent) => {
+          if (event.pointerId !== activePointer) return;
+          skipToggleClick = isDragging;
+          if (isDragging) saveOutlinePosition();
+          isDragging = false;
+          activePointer = null;
+          delete outlineToggle.dataset.dragging;
+        };
+        window.addEventListener("pointerup", finishDrag);
+        window.addEventListener("pointercancel", finishDrag);
+
+        window.addEventListener("resize", () => {
+          if (outlineWidget.style.left && outlineWidget.style.top) {
+            const rect = outlineWidget.getBoundingClientRect();
+            const left = Math.min(rect.left, Math.max(0, window.innerWidth - rect.width));
+            const top = Math.min(rect.top, Math.max(0, window.innerHeight - rect.height));
+            setOutlinePosition(left, top);
+            saveOutlinePosition();
+          }
+          positionOutlinePanel();
+        });
+
+        window.addEventListener("scroll", scheduleCurrentHeadingUpdate, { passive: true });
+        window.addEventListener("resize", scheduleCurrentHeadingUpdate);
+        window.addEventListener("hashchange", scheduleCurrentHeadingUpdate);
+        scheduleCurrentHeadingUpdate();
+        setExpanded(window.matchMedia("(min-width: 64rem)").matches);
+      }
+    }
+  }
+</script>

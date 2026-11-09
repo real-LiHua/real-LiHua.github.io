@@ -1,0 +1,121 @@
+---
+import "../styles/global.css";
+import SiteSearch from "../components/SiteSearch.astro";
+import Icon from "../components/Icon.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "个人博客阅读预览。" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="alternate" type="application/rss+xml" title="文章订阅" href="/rss.xml" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <script is:inline>
+      let savedTheme = null;
+      try {
+        savedTheme = localStorage.getItem("reader-theme");
+      } catch {
+        savedTheme = null;
+      }
+
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const theme = savedTheme === "dark" || (savedTheme !== "light" && prefersDark) ? "dark" : "light";
+      document.documentElement.classList.toggle("dark", theme === "dark");
+      document.documentElement.style.colorScheme = theme;
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳转到正文</a>
+    <header class="site-header">
+      <nav aria-label="主导航">
+        <a href="/" aria-label="首页" title="首页"><Icon name="home" /></a>
+        <a href="/posts/" aria-label="文章" title="文章"><Icon name="fileText" /></a>
+        <button
+          class="search-nav-trigger"
+          type="button"
+          data-search-open
+          aria-haspopup="dialog"
+          aria-label="搜索"
+          title="搜索"
+        >
+          <Icon name="search" />
+        </button>
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="切换主题">
+          <Icon name="sun" class="theme-icon theme-icon-sun" />
+          <Icon name="moon" class="theme-icon theme-icon-moon" />
+        </button>
+        <span class="sr-only" role="status" data-theme-status></span>
+      </nav>
+    </header>
+    <dialog class="search-dialog" aria-labelledby="search-dialog-title" data-search-dialog>
+      <div class="search-dialog-header">
+        <h2 id="search-dialog-title">站内查找</h2>
+        <button class="search-dialog-close" type="button" data-search-close aria-label="关闭" title="关闭">
+          <Icon name="close" />
+        </button>
+      </div>
+      <SiteSearch idPrefix="dialog" />
+    </dialog>
+    <main id="main-content">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <p>此处展示的是预览示例内容。</p>
+    </footer>
+  </body>
+</html>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>("[data-theme-toggle]");
+  const status = document.querySelector<HTMLElement>("[data-theme-status]");
+
+  if (toggle) {
+    const applyTheme = (theme: "light" | "dark") => {
+      document.documentElement.classList.toggle("dark", theme === "dark");
+      document.documentElement.style.colorScheme = theme;
+      const label = theme === "dark" ? "切换到浅色模式" : "切换到深色模式";
+      toggle.setAttribute("aria-label", label);
+      toggle.setAttribute("title", label);
+    };
+
+    applyTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
+    toggle.addEventListener("click", () => {
+      const nextTheme = document.documentElement.classList.contains("dark") ? "light" : "dark";
+      applyTheme(nextTheme);
+
+      try {
+        localStorage.setItem("reader-theme", nextTheme);
+      } catch {
+        if (status) {
+          status.textContent = "无法保存主题偏好，刷新后将恢复系统设置";
+        }
+      }
+    });
+  }
+</script>
+
+<script>
+  const searchOpener = document.querySelector<HTMLButtonElement>("[data-search-open]");
+  const searchDialog = document.querySelector<HTMLDialogElement>("[data-search-dialog]");
+  const searchCloser = document.querySelector<HTMLButtonElement>("[data-search-close]");
+  const dialogSearchInput = searchDialog?.querySelector<HTMLInputElement>("[data-search-input]");
+
+  if (searchOpener && searchDialog) {
+    searchOpener.addEventListener("click", () => {
+      searchDialog.showModal();
+      dialogSearchInput?.focus();
+    });
+
+    searchDialog.addEventListener("close", () => searchOpener.focus());
+    searchCloser?.addEventListener("click", () => searchDialog.close());
+  }
+</script>
