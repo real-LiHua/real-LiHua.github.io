@@ -37,7 +37,7 @@ async function request(fetchImpl, url, accept) {
   const response = await fetchImpl(url, {
     headers: {
       accept,
-      "user-agent": "real-LiHua-blog-font-build",
+      "user-agent": "Mozilla/5.0",
     },
   });
   if (!response.ok) {
