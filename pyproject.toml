@@ -1,0 +1,4 @@
+[project]
+
+[dependency-groups]
+dev = ["ragas>=0.4.3"]
