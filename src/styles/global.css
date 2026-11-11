@@ -407,9 +407,20 @@ main {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  color: var(--foreground);
+  /* Code blocks stay GitHub Dark in both themes, so the controls use a fixed
+     light ink instead of the theme foreground. */
+  color: #e1e4e8;
   font-size: 0.75rem;
   line-height: 1;
+}
+
+.code-language {
+  padding: 0.15rem 0.4rem;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 0.25rem;
+  color: #e1e4e8;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
 }
 
 .code-copy {
@@ -417,7 +428,7 @@ main {
   border: 1px solid var(--border);
   border-radius: 0.2rem;
   background: var(--card);
-  color: inherit;
+  color: var(--foreground);
   font: inherit;
   cursor: pointer;
 }
