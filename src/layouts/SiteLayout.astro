@@ -9,6 +9,12 @@ interface Props {
 }
 
 const { title, description = "个人博客阅读预览。" } = Astro.props;
+const pathname = Astro.url.pathname;
+const isHome = pathname === "/";
+const isPostsSection =
+  pathname.startsWith("/posts") ||
+  pathname.startsWith("/topics") ||
+  pathname.startsWith("/series");
 ---
 
 <!doctype html>
@@ -37,8 +43,8 @@ const { title, description = "个人博客阅读预览。" } = Astro.props;
     <a class="skip-link" href="#main-content">跳转到正文</a>
     <header class="site-header">
       <nav aria-label="主导航">
-        <a href="/" aria-label="首页" title="首页"><Icon name="home" /></a>
-        <a href="/posts/" aria-label="文章" title="文章"><Icon name="fileText" /></a>
+        <a href="/" aria-label="首页" title="首页" aria-current={isHome ? "page" : undefined}><Icon name="home" /></a>
+        <a href="/posts/" aria-label="文章" title="文章" aria-current={isPostsSection ? "page" : undefined}><Icon name="fileText" /></a>
         <button
           class="search-nav-trigger"
           type="button"
