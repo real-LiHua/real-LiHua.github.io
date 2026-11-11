@@ -43,4 +43,6 @@ jobs:
         env:
           MAPLE_FONT_RELEASE_TAG: ${{ steps.maple-font.outputs.tag }}
       - run: pnpm run build
+        env:
+          MAPLE_FONT_RELEASE_TAG: ${{ steps.maple-font.outputs.tag }}
       - run: pnpm run check:font-output
