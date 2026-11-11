@@ -1,11 +1,8 @@
 cargo:
   enabled: true
-registries:
-  https://pypi.tuna.tsinghua.edu.cn/simple/:
-    ecosystem: pypi
-    packages: ["*"]
 python:
   enabled: true
+  versions: ["3.12", "3.13", "3.14.9"]
   constraints:
     # ragas 0.4.3 imports langchain_community.chat_models.vertexai, removed in langchain-community 0.4.
     # Drop this constraint once ragas publishes a release compatible with langchain-community >= 0.4.
