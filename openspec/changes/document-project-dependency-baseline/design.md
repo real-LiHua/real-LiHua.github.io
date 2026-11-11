@@ -4,19 +4,16 @@
 
 See `proposal.md` for motivation and `specs/project-baseline/spec.md` for the required documentation behavior.
 
-The current checkout has `README.md`, `package.json`, `pnpm-lock.yaml`, `Cargo.toml`, TypeScript/Astro tooling configuration, Playwright configuration, and GitHub Copilot setup files. It does not have `src/`, `tests/`, an Astro config, the Rust binary path declared in `Cargo.toml`, or any main capability specs under `openspec/specs/`. The README links to capability specs that are currently absent, and `.github/copilot-instructions.md` describes a different repository layout and missing files. Treat these as documentation drift, not evidence that the described features exist.
-
-`package.json` declares pnpm 11.3.0 and Astro 7.4.4. Its direct dependencies are grouped as follows; the categories describe manifest placement and package roles suggested by names, not verified imports:
-
-| Declared group                                     | Packages                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Astro and integrations                             | `astro`, `@astrojs/markdown-satteri`, `@astrojs/mdx`, `@astrojs/node`, `@astrojs/rss`, `@astrojs/sitemap`, `@astrojs/ts-plugin`, `expressive-code-language-badge`                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| Styling, content, and rendering                    | `@tailwindcss/typography`, `@tailwindcss/vite`, `@xingwangzhe/satteri-mermaid`, `animate.css`, `mdast-util-toc`, `mermaid`, `satteri`, `tailwindcss`, `typescript`, `vite-plugin-font`                                                                                                                                                                                                                                                                                                                                                                                            |
-| Validation, authoring, and tests (devDependencies) | `@astrojs/check`, `@fission-ai/openspec`, `@fontsource/twinkle-star`, `@mermaid-js/mermaid-cli`, `@playwright/mcp`, `@playwright/test`, `@shikijs/colorized-brackets`, `@tailwindcss/postcss`, `@tgcloud/cli`, `@types/hast`, `@types/mdast`, `astro-favicons`, `astro-minify-html-swc`, `dayjs`, `execa`, `hast-util-from-html`, `hast-util-to-html`, `hast-util-to-text`, `husky`, `jsonc-parser`, `lint-staged`, `markdownlint`, `markdownlint-cli2`, `mermaid-wasm-renderer`, `oxfmt`, `oxlint`, `pagefind`, `playwright`, `shadcn`, `skills`, `tinyglobby`, `tsx`, `vnu-jar` |
-
-`Cargo.toml` declares a Rust 2024 package named `post-edit`, with `anyhow`, `bat`, `chrono`, `clap` (derive), `gray_matter` (YAML), `itertools`, `pinyin`, `serde`, `skim`, and `slug`. Its binary path is `src/rust/main.rs`, which is absent, and there is no `Cargo.lock`.
-
-The package scripts expose Astro dev/check/build/preview commands, Pagefind post-build indexing, Playwright tests, Markdown linting, `post-edit`, watermark verification, and `tgcloud` operations. The watermark script path is absent. OpenSpec is a dev dependency, and `shadcn` is declared as development tooling for initializing and managing project-owned UI components. `vite-plugin-font` is currently declared as a direct runtime dependency but does not include font files; the UI change now plans to use it only in GitHub Actions to optimize the latest stable official Maple Mono Normal NF CN TTF/OTF release. Its implementation should move the plugin to `devDependencies`; local development uses the developer's installed system font. The build will cache and checksum-verify the release archive and emit local WOFF2 subsets with the SIL OFL 1.1 attribution. pnpm reported its lockfile up to date during dependency status checking, but installation stopped because build scripts for esbuild, puppeteer, sharp, and vnu-jar are ignored. This is not a successful build or runtime verification.
+This change was authored against a transitional checkout: the manifests
+described an Astro site and a Rust `post-edit` CLI, but `src/`, `tests/`,
+the Astro configuration, and the declared Rust binary path were absent,
+while README and Copilot guidance described files that did not exist. That
+inventory snapshot is historical — the repository now contains the reader
+implementation under `src/` with tests — and is deliberately not duplicated
+here. Per the decisions below, `package.json`, `pnpm-lock.yaml`,
+`Cargo.toml`, and the current file tree are the evidence sources for
+dependency roles and implementation status; the font-acquisition plan
+mentioned in that snapshot belongs to the `design-blog-reader-ui` change.
 
 ## Goals / Non-Goals
 
@@ -37,7 +34,7 @@ The package scripts expose Astro dev/check/build/preview commands, Pagefind post
 
 ### Use repository manifests as dependency sources of truth
 
-Document direct dependencies from `package.json` and `Cargo.toml`; use lockfiles only to report resolved state. Link to manifests instead of copying every version range into multiple documents. Group dependencies using their declared manifest section and explain inferred purposes as such, because the absent source tree prevents verifying actual usage. Do not expand a direct-dependency baseline into a transitive package inventory.
+Document direct dependencies from `package.json` and `Cargo.toml`; use lockfiles only to report resolved state. Link to manifests instead of copying every version range into multiple documents. Group dependencies using their declared manifest section and explain inferred purposes as such, without claiming a package is exercised while its usage is unverified. Do not expand a direct-dependency baseline into a transitive package inventory.
 
 **Alternative considered:** Maintain a manually duplicated package/version table in README. Rejected because it will drift independently from the manifests.
 
