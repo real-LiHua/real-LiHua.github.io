@@ -572,7 +572,6 @@ main {
 .outline-list a[aria-current="location"] {
   background: var(--muted);
   color: var(--primary);
-  font-weight: 600;
 }
 
 .article-lede {
@@ -728,9 +727,7 @@ main {
 
 .error-code {
   color: var(--primary);
-  font-family: ui-monospace, monospace;
   font-size: 1.25rem;
-  font-weight: 700;
 }
 
 .error-details {
