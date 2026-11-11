@@ -1,0 +1,235 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-11T06:28:23Z",
+  "title": "Design System: real-LiHua blog reader",
+  "extensions": {
+    "colorMeta": {
+      "background": {
+        "role": "neutral",
+        "displayName": "Warm Paper",
+        "canonical": "oklch(0.975 0.008 100)",
+        "dark": "oklch(0.19 0.012 140)",
+        "tonalRamp": ["oklch(0.15 0.002 100)", "oklch(0.26 0.005 100)", "oklch(0.37 0.007 100)", "oklch(0.48 0.008 100)", "oklch(0.60 0.008 100)", "oklch(0.72 0.008 100)", "oklch(0.84 0.007 100)", "oklch(0.95 0.005 100)"]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(0.24 0.018 140)",
+        "dark": "oklch(0.91 0.012 100)",
+        "tonalRamp": ["oklch(0.15 0.006 140)", "oklch(0.24 0.014 140)", "oklch(0.35 0.018 140)", "oklch(0.46 0.018 140)", "oklch(0.58 0.018 140)", "oklch(0.70 0.017 140)", "oklch(0.82 0.013 140)", "oklch(0.93 0.008 140)"]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Raised Card",
+        "canonical": "oklch(0.99 0.004 100)",
+        "dark": "oklch(0.23 0.014 140)",
+        "tonalRamp": ["oklch(0.15 0.001 100)", "oklch(0.26 0.003 100)", "oklch(0.37 0.004 100)", "oklch(0.48 0.004 100)", "oklch(0.60 0.004 100)", "oklch(0.72 0.004 100)", "oklch(0.85 0.003 100)", "oklch(0.95 0.002 100)"]
+      },
+      "card-foreground": {
+        "role": "neutral",
+        "displayName": "Card Ink",
+        "canonical": "oklch(0.24 0.018 140)",
+        "dark": "oklch(0.91 0.012 100)",
+        "tonalRamp": ["oklch(0.15 0.006 140)", "oklch(0.24 0.014 140)", "oklch(0.35 0.018 140)", "oklch(0.46 0.018 140)", "oklch(0.58 0.018 140)", "oklch(0.70 0.017 140)", "oklch(0.82 0.013 140)", "oklch(0.93 0.008 140)"]
+      },
+      "primary": {
+        "role": "primary",
+        "displayName": "Moss Green",
+        "canonical": "oklch(0.46 0.065 143)",
+        "dark": "oklch(0.72 0.08 145)",
+        "tonalRamp": ["oklch(0.15 0.026 143)", "oklch(0.26 0.042 143)", "oklch(0.37 0.055 143)", "oklch(0.46 0.065 143)", "oklch(0.58 0.068 143)", "oklch(0.70 0.066 143)", "oklch(0.82 0.055 143)", "oklch(0.93 0.036 143)"]
+      },
+      "primary-foreground": {
+        "role": "primary",
+        "displayName": "Paper on Moss",
+        "canonical": "oklch(0.985 0.005 100)",
+        "dark": "oklch(0.2 0.02 140)",
+        "tonalRamp": ["oklch(0.15 0.001 100)", "oklch(0.26 0.002 100)", "oklch(0.37 0.003 100)", "oklch(0.48 0.004 100)", "oklch(0.60 0.005 100)", "oklch(0.72 0.005 100)", "oklch(0.85 0.004 100)", "oklch(0.95 0.003 100)"]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Mist",
+        "canonical": "oklch(0.945 0.01 100)",
+        "dark": "oklch(0.29 0.016 140)",
+        "tonalRamp": ["oklch(0.15 0.003 100)", "oklch(0.26 0.006 100)", "oklch(0.37 0.008 100)", "oklch(0.48 0.01 100)", "oklch(0.60 0.01 100)", "oklch(0.72 0.009 100)", "oklch(0.84 0.007 100)", "oklch(0.95 0.005 100)"]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Fog Text",
+        "canonical": "oklch(0.46 0.018 140)",
+        "dark": "oklch(0.72 0.015 110)",
+        "tonalRamp": ["oklch(0.15 0.006 140)", "oklch(0.24 0.014 140)", "oklch(0.35 0.018 140)", "oklch(0.46 0.018 140)", "oklch(0.58 0.018 140)", "oklch(0.70 0.017 140)", "oklch(0.82 0.013 140)", "oklch(0.93 0.008 140)"]
+      },
+      "accent": {
+        "role": "neutral",
+        "displayName": "Moss Wash",
+        "canonical": "oklch(0.93 0.018 140)",
+        "dark": "oklch(0.31 0.025 145)",
+        "tonalRamp": ["oklch(0.15 0.006 140)", "oklch(0.26 0.012 140)", "oklch(0.37 0.016 140)", "oklch(0.48 0.018 140)", "oklch(0.60 0.018 140)", "oklch(0.72 0.017 140)", "oklch(0.84 0.014 140)", "oklch(0.95 0.01 140)"]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(0.87 0.012 105)",
+        "dark": "oklch(1 0 0 / 10%)",
+        "tonalRamp": ["oklch(0.15 0.004 105)", "oklch(0.26 0.008 105)", "oklch(0.37 0.01 105)", "oklch(0.48 0.012 105)", "oklch(0.60 0.012 105)", "oklch(0.72 0.011 105)", "oklch(0.84 0.009 105)", "oklch(0.95 0.006 105)"]
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Input Edge",
+        "canonical": "oklch(0.84 0.014 105)",
+        "dark": "oklch(1 0 0 / 15%)",
+        "tonalRamp": ["oklch(0.15 0.004 105)", "oklch(0.26 0.009 105)", "oklch(0.37 0.012 105)", "oklch(0.48 0.014 105)", "oklch(0.60 0.014 105)", "oklch(0.72 0.013 105)", "oklch(0.84 0.011 105)", "oklch(0.95 0.007 105)"]
+      },
+      "ring": {
+        "role": "primary",
+        "displayName": "Focus Ring",
+        "canonical": "oklch(0.52 0.07 143)",
+        "dark": "oklch(0.556 0 0)",
+        "tonalRamp": ["oklch(0.15 0.028 143)", "oklch(0.26 0.045 143)", "oklch(0.37 0.059 143)", "oklch(0.48 0.07 143)", "oklch(0.58 0.073 143)", "oklch(0.70 0.071 143)", "oklch(0.82 0.059 143)", "oklch(0.93 0.039 143)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Page Title", "purpose": "The one large voice: page and article titles." },
+      "headline": { "displayName": "Headline", "purpose": "Post titles in lists and article section headings." },
+      "title": { "displayName": "Section Title", "purpose": "Archive and dialog headings at weight 500." },
+      "body": { "displayName": "Article Body", "purpose": "Article prose on the 42rem measure." },
+      "body-ui": { "displayName": "UI Text", "purpose": "Base interface text outside articles." },
+      "label": { "displayName": "Label", "purpose": "Metadata, eyebrows, and notes in Fog Text." },
+      "code": { "displayName": "Code", "purpose": "Article code blocks; same family at 0.9rem." }
+    },
+    "shadows": [
+      { "name": "outline-toggle", "value": "0 2px 12px rgb(0 0 0 / 12%)", "purpose": "Soft resting shadow under the floating outline toggle." },
+      { "name": "outline-panel", "value": "0 4px 20px rgb(0 0 0 / 14%)", "purpose": "Lift under the floating outline panel." },
+      { "name": "dialog-scrim", "value": "rgb(0 0 0 / 45%)", "purpose": "Native search dialog backdrop scrim, not a box-shadow." }
+    ],
+    "motion": [
+      { "name": "state-fade", "value": "background-color 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out", "purpose": "Control state changes throughout the interface." },
+      { "name": "panel-open", "value": "opacity 180ms ease-out, transform 180ms ease-out (translateY 0.25rem rise)", "purpose": "Outline panel opening." },
+      { "name": "panel-close", "value": "opacity 80ms ease-in, transform 80ms ease-in (translateY 0.05rem settle)", "purpose": "Panel dismissal; always quicker and quieter than opening." },
+      { "name": "reduced-motion", "value": "transition-duration 0s, animation-duration 0s, scroll-behavior auto", "purpose": "Nonessential transitions removed under prefers-reduced-motion; state stays perceivable." }
+    ],
+    "breakpoints": [
+      { "name": "narrow", "value": "32rem" },
+      { "name": "wide", "value": "64rem" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Quiet Nav Controls",
+      "kind": "nav",
+      "refersTo": "button-quiet",
+      "description": "Icon-only header controls that stay transparent until hovered.",
+      "html": "<nav class=\"ds-quiet-nav\"><button class=\"ds-quiet-nav-button\" type=\"button\" aria-label=\"搜索\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><circle cx=\"7\" cy=\"7\" r=\"4.2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><path d=\"m10.4 10.4 3 3\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linecap=\"round\"/></svg></button><button class=\"ds-quiet-nav-button\" type=\"button\" aria-label=\"切换主题\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M13 9.5A5.5 5.5 0 0 1 6.5 3 5.5 5.5 0 1 0 13 9.5Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linejoin=\"round\"/></svg></button></nav>",
+      "css": ".ds-quiet-nav { display: flex; align-items: center; gap: 1.5rem; }\n.ds-quiet-nav-button { display: inline-flex; align-items: center; justify-content: center; padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; background: transparent; color: var(--foreground, #111); font: inherit; cursor: pointer; transition: background-color 180ms ease-out; }\n.ds-quiet-nav-button:hover { background: var(--accent, #e8e8e8); }\n.ds-quiet-nav-button:focus-visible { outline: 2px solid var(--ring, #4c7c54); outline-offset: 3px; }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one filled button in the system, used only for the search submit action.",
+      "html": "<button class=\"ds-primary-button\" type=\"submit\">搜索</button>",
+      "css": ".ds-primary-button { display: inline-flex; align-items: center; justify-content: center; padding: 0.65rem 1rem; border: 1px solid var(--primary, #4c7c54); border-radius: 0.25rem; background: var(--primary, #4c7c54); color: var(--primary-foreground, #fff); font: inherit; cursor: pointer; }\n.ds-primary-button:focus-visible { outline: 2px solid var(--ring, #4c7c54); outline-offset: 3px; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Site search query field inside the native dialog.",
+      "html": "<input class=\"ds-search-input\" type=\"search\" placeholder=\"输入关键词…\" aria-label=\"站内查找\" />",
+      "css": ".ds-search-input { min-width: 0; padding: 0.7rem; border: 1px solid var(--input, #ccc); border-radius: 0.25rem; background: var(--card, #fff); color: var(--foreground, #111); font: inherit; }\n.ds-search-input:focus-visible { outline: 2px solid var(--ring, #4c7c54); outline-offset: 3px; }"
+    },
+    {
+      "name": "Preview Note Chip",
+      "kind": "chip",
+      "refersTo": "chip-preview",
+      "description": "Honest label marking preview content wherever it appears.",
+      "html": "<span class=\"ds-preview-chip\">预览示例 · 非正式发布文章</span>",
+      "css": ".ds-preview-chip { display: inline-block; padding: 0.25rem 0.5rem; border: 1px solid var(--border, #ccc); border-radius: 0.25rem; background: var(--card, #fff); color: var(--muted-foreground, #666); font-size: 0.9rem; }"
+    },
+    {
+      "name": "Post Row",
+      "kind": "card",
+      "refersTo": "button-quiet-hover",
+      "description": "Hairline-separated list row: metadata above the title, description below.",
+      "html": "<article class=\"ds-post-row\"><p class=\"ds-post-meta\">2026-10-28 · 4 分钟</p><h2 class=\"ds-post-title\"><a href=\"#\">关于慢慢整理的笔记</a></h2><p class=\"ds-post-desc\">用于展示文章索引与首页摘要的一条示例内容。</p></article>",
+      "css": ".ds-post-row { padding-bottom: 1.5rem; border-bottom: 1px solid var(--border, #ccc); }\n.ds-post-meta { margin: 0 0 0.25rem; color: var(--muted-foreground, #666); font-size: 0.9rem; }\n.ds-post-title { margin: 0.25rem 0; font-size: 1.35rem; font-weight: 400; line-height: 1.35; }\n.ds-post-title a { color: inherit; text-decoration-color: var(--border, #ccc); text-underline-offset: 0.2em; }\n.ds-post-title a:hover { color: var(--primary, #4c7c54); text-decoration-color: currentColor; }\n.ds-post-desc { margin: 0.5rem 0 0; color: var(--muted-foreground, #666); }"
+    },
+    {
+      "name": "Code Block",
+      "kind": "custom",
+      "refersTo": "chip-preview",
+      "description": "Language badge plus ghost copy control over the highlighter's fixed dark ink surface.",
+      "html": "<div class=\"ds-code-block\"><div class=\"ds-code-controls\"><span class=\"ds-code-language\">ts</span><button class=\"ds-code-copy\" type=\"button\" aria-label=\"复制代码\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><rect x=\"5.5\" y=\"5.5\" width=\"8\" height=\"8\" rx=\"1.2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><path d=\"M10.5 3.5h-7a1 1 0 0 0-1 1v7\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/></svg></button></div><pre class=\"ds-code-pre\"><code>const outline = headings.map(nestUnderParent);</code></pre></div>",
+      "css": ".ds-code-block { position: relative; min-width: 0; margin-block: 1.5rem; }\n.ds-code-pre { max-width: 100%; margin: 0; padding: 2.75rem 1rem 1rem; overflow-x: auto; border-radius: 0.35rem; background: #24292e; color: #e1e4e8; font-size: 0.9rem; line-height: 1.6; }\n.ds-code-controls { position: absolute; top: 0.45rem; right: 0.65rem; display: flex; align-items: center; gap: 0.65rem; color: #e1e4e8; font-size: 0.75rem; line-height: 1; }\n.ds-code-copy { display: inline-flex; align-items: center; justify-content: center; padding: 0.25rem 0.4rem; border: 1px solid rgb(255 255 255 / 25%); border-radius: 0.2rem; background: transparent; color: inherit; font: inherit; cursor: pointer; }\n.ds-code-copy:hover { background: rgb(255 255 255 / 10%); }\n.ds-code-copy:focus-visible { outline: 2px solid var(--ring, #4c7c54); outline-offset: 2px; }"
+    },
+    {
+      "name": "Heading with Copy",
+      "kind": "custom",
+      "refersTo": "button-outline-quiet",
+      "description": "Article heading with an adjacent ghost control copying its direct anchor URL.",
+      "html": "<div class=\"ds-heading-group\"><h2 class=\"ds-heading\">整理节奏</h2><button class=\"ds-heading-copy\" type=\"button\" aria-label=\"复制标题链接\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M6 10l4-4M4.5 11.5l1-1a2.6 2.6 0 0 1 0-3.7M11.5 4.5l-1 1a2.6 2.6 0 0 1 0 3.7\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linecap=\"round\"/></svg></button></div>",
+      "css": ".ds-heading-group { display: flex; align-items: baseline; gap: 0.5rem; }\n.ds-heading { flex: 1; min-width: 0; margin: 2rem 0 0.75rem; font-size: 1.35rem; font-weight: 400; line-height: 1.35; }\n.ds-heading-copy { flex: none; display: inline-flex; align-items: center; justify-content: center; padding: 0.1rem 0.35rem; border: 1px solid transparent; border-radius: 0.2rem; background: transparent; color: var(--muted-foreground, #666); font: inherit; font-size: 0.72em; cursor: pointer; }\n.ds-heading-copy:hover, .ds-heading-copy:focus-visible { border-color: var(--border, #ccc); background: var(--card, #fff); color: var(--foreground, #111); }"
+    },
+    {
+      "name": "Outline Toggle",
+      "kind": "custom",
+      "refersTo": "outline-toggle-button",
+      "description": "The movable bookmark: a circular floating control that opens the article outline.",
+      "html": "<button class=\"ds-outline-toggle\" type=\"button\" aria-label=\"打开文章目录\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M2.5 4h11M2.5 8h11M2.5 12h7\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linecap=\"round\"/></svg></button>",
+      "css": ".ds-outline-toggle { display: inline-flex; align-items: center; justify-content: center; width: 3.5rem; min-height: 3.5rem; padding: 0.5rem; border: 1px solid var(--border, #ccc); border-radius: 50%; background: var(--card, #fff); color: var(--foreground, #111); font: inherit; font-size: 0.85rem; box-shadow: 0 2px 12px rgb(0 0 0 / 12%); cursor: grab; }\n.ds-outline-toggle:hover { background: var(--muted, #eee); }\n.ds-outline-toggle:focus-visible { outline: 2px solid var(--ring, #4c7c54); outline-offset: 3px; }"
+    },
+    {
+      "name": "Outline Panel Entry",
+      "kind": "custom",
+      "refersTo": "button-quiet-hover",
+      "description": "Nested heading link inside the floating outline; current location is highlighted.",
+      "html": "<ul class=\"ds-outline-list\"><li><a class=\"ds-outline-link\" href=\"#\">整理节奏</a><ul class=\"ds-outline-children\"><li><a class=\"ds-outline-link ds-outline-current\" href=\"#\" aria-current=\"location\">小而明确的结构</a></li></ul></li></ul>",
+      "css": ".ds-outline-list { display: grid; gap: 0.15rem; margin: 0; padding: 0.5rem; list-style: none; }\n.ds-outline-children { display: grid; gap: 0.15rem; margin: 0.15rem 0 0.25rem 0.6rem; padding: 0 0 0 0.5rem; border-left: 1px solid var(--border, #ccc); list-style: none; }\n.ds-outline-link { display: block; padding: 0.4rem 0.5rem; border-radius: 0.2rem; color: inherit; text-decoration: none; }\n.ds-outline-link:hover, .ds-outline-link:focus-visible { background: var(--muted, #eee); }\n.ds-outline-current { background: var(--muted, #eee); color: var(--primary, #4c7c54); font-weight: 600; }"
+    },
+    {
+      "name": "Not-found Panel",
+      "kind": "card",
+      "refersTo": "chip-preview",
+      "description": "The IIS-inspired truthful 404: bordered panel with the status code in moss.",
+      "html": "<section class=\"ds-notfound\"><p class=\"ds-error-code\">HTTP 404</p><h1 class=\"ds-notfound-title\">页面未找到</h1><p>请求的页面不存在，或已移至其他位置。</p></section>",
+      "css": ".ds-notfound { max-width: 38rem; margin: 3rem auto; padding: clamp(1.25rem, 5vw, 2.5rem); border: 1px solid var(--border, #ccc); background: var(--card, #fff); }\n.ds-error-code { margin: 0; color: var(--primary, #4c7c54); font-size: 1.25rem; font-weight: 700; }\n.ds-notfound-title { margin: 0.25rem 0 0.75rem; font-size: clamp(2rem, 6vw, 3rem); line-height: 1.2; font-weight: 400; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "墨页 The Inked Page",
+    "overview": "A printed page with ink, generous margins, and soft reading light. The interface is bookish, measured, and quietly precise: warm paper surfaces in light mode, ink-backed muted surfaces in dark mode, hairline rules instead of boxes, and exactly one restrained moss-green accent. Emphasis is carried by article typography and well-framed code examples, never by decoration. Gradients, glows, decorative blobs, emoji labels, and dashboard-style card grids are rejected by the openspec design decision.\n\nThe system is monospace-first: a single font family, Maple Mono Normal NF CN (with a Noto Sans CJK SC fallback), carries UI text, article prose, code, and even icons — icons are Nerd Font glyphs bundled inside that same font. font-synthesis is disabled, so size, color, and spacing do the emphasizing that fake bold would otherwise do. Latin and CJK glyphs share one rhythm, which gives the page its measured, typeset character.\n\nThe signature element is the movable article outline control: a small circular floating toggle that reads as a bookmark at the page edge — flat-page default position on the left at vertical center on wide viewports, lower-right on narrow ones, draggable and persisted per visitor.",
+    "keyCharacteristics": [
+      "Monospace-first editorial system; one family carries text, code, and icons",
+      "Warm paper light mode; ink-backed, muted-contrast dark mode",
+      "One restrained moss-green accent reserved for interaction and current location",
+      "Flat surfaces separated by hairline rules; shadows only on floating controls",
+      "Generous margins: 48rem shell, 42rem reading measure",
+      "Motion is brief, quiet, and asymmetric: open 180ms ease-out, close 80ms ease-in"
+    ],
+    "rules": [
+      { "name": "The One Ink Rule", "body": "Moss green appears only on interactive emphasis and the current reading location — at most a tenth of any view. Its rarity is the point; it never fills large surfaces or decorates.", "section": "colors" },
+      { "name": "The Ink Swap Rule", "body": "Dark mode swaps paper for ink-backed surfaces at muted chroma (background oklch(0.19 0.012 140), text oklch(0.91 0.012 100)). Never pure black, never pure white; contrast stays legible but low-glare.", "section": "colors" },
+      { "name": "The Single Voice Rule", "body": "One family carries UI, prose, code, and icons (Nerd Font glyphs from Maple Mono NF). Never introduce a second decorative face; never fake bold with synthesis — emphasize with size, color, and space.", "section": "typography" },
+      { "name": "The Floating Ink Rule", "body": "Shadows belong only to elements that float above the page — the outline toggle, its panel, and the search dialog scrim. A surface that is part of the page never gets a shadow.", "section": "elevation" },
+      { "name": "The Quick Close Rule", "body": "Panels open in 180ms ease-out (a 0.25rem rise and fade) and close in 80ms ease-in (a 0.05rem settle) — dismissal is always quicker and quieter than opening. With reduced motion, nonessential transitions are removed entirely while state changes, focus, and controls stay perceivable.", "section": "components" }
+    ],
+    "dos": [
+      "Do keep exactly one accent, and spend it on interaction and current location only (The One Ink Rule).",
+      "Do let the single Maple Mono voice carry everything — text, code, labels, and Nerd Font icons (The Single Voice Rule).",
+      "Do use hairline rules and tonal steps for structure; shadow only what floats (The Floating Ink Rule).",
+      "Do keep the open/close asymmetry: 180ms ease-out in, 80ms ease-in out, removed under reduced motion.",
+      "Do keep the 42rem article measure and 48rem shell; generous margins are the design.",
+      "Do contain wide code and tables in their own labeled, keyboard-accessible scroll regions.",
+      "Do label preview content clearly wherever it appears."
+    ],
+    "donts": [
+      "Don't add gradients, glows, decorative blobs, emoji labels, or dashboard-style card grids.",
+      "Don't add a logo or site-name wordmark to the shared interface.",
+      "Don't use looping, bouncing, large-distance, or layout-shifting animation.",
+      "Don't introduce a second font family or synthetic bold for emphasis.",
+      "Don't create page-level horizontal overflow at any viewport down to 20rem.",
+      "Don't present preview articles as published content."
+    ]
+  }
+}

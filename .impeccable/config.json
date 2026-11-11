@@ -1,0 +1,12 @@
+{
+  "buildPath": "comp",
+  "detector": {
+    "extensions": [
+      {
+        "ext": ".astro",
+        "engine": "html"
+      }
+    ]
+  },
+  "telemetry": false
+}

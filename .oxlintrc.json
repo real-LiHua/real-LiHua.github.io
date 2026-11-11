@@ -6,6 +6,7 @@
   },
   "ignorePatterns": [
     ".agents/",
+    ".*/skills/",
     "skills-lock.json",
     "tgcloud/",
     "src/scripts/*.mjs",
