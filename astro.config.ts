@@ -4,6 +4,7 @@ import node from "@astrojs/node";
 import { markdownProcessor } from "./src/lib/markdown";
 import { defineConfig } from "astro/config";
 import astroWebMCP from "astro-webmcp";
+import Font from "vite-plugin-font";
 import { readdirSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
@@ -62,7 +63,6 @@ const mapleFontIntegration: AstroIntegration = {
     "astro:config:setup": async ({ injectScript, updateConfig }) => {
       if (isFontBuild) {
         injectScript("page", `import "${mapleFontModuleId}";`);
-        const Font = (await import("vite-plugin-font")).default;
         updateConfig({
           vite: {
             plugins: [
