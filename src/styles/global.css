@@ -762,6 +762,12 @@ main {
     animation-duration: 0s !important;
     transition-duration: 0s !important;
   }
+
+  /* Keep the theme cross-fade perceptible under reduced motion. */
+  body,
+  .theme-toggle {
+    transition-duration: 180ms !important;
+  }
 }
 
 @theme inline {
