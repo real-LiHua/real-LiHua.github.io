@@ -16,7 +16,7 @@ test("Satteri is the configured renderer without direct remark or rehype depende
 
   assert.deepEqual(forbiddenDirectDependencies, []);
   assert.match(astroConfig, /processor:\s*markdownProcessor/u);
-  assert.match(markdownModule, /satteri\(\)/u);
+  assert.match(markdownModule, /satteri\(/u);
   assert.doesNotMatch(astroConfig, /\b(?:unified|remark|rehype)\b/u);
 
   const dependencyTree = execFileSync("pnpm", ["why", "unified", "remark", "rehype"], {
