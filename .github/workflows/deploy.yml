@@ -1,0 +1,87 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      # Root-level dotfiles and dot directories (agent/tool configs) are not
+      # part of the deployed site. Verified against minimatch: matches
+      # .gitignore, .claude/**, .github/workflows/site-build.yml, etc. without
+      # touching nested dotfiles like public/.nojekyll.
+      - ".*"
+      - ".*/**"
+      - "openspec/**"
+      - "*.md"
+      - "LICENSE.txt"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "src/rust/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  pages: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  github:
+    name: github
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.16.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Resolve latest stable Maple Font release
+        id: maple-font
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: release } = await github.rest.repos.getLatestRelease({
+              owner: "subframe7536",
+              repo: "maple-font",
+            });
+            core.setOutput("tag", release.tag_name);
+            core.info(`Using Maple Font release ${release.tag_name}`);
+
+      - name: Cache Maple Font archive by release tag
+        uses: actions/cache@v4
+        with:
+          path: .cache/maple-font
+          key: ${{ runner.os }}-maple-font-${{ steps.maple-font.outputs.tag }}
+
+      - name: Download and verify Maple Font
+        run: pnpm run prepare:font
+        env:
+          MAPLE_FONT_RELEASE_TAG: ${{ steps.maple-font.outputs.tag }}
+
+      - run: pnpm run build
+        env:
+          MAPLE_FONT_RELEASE_TAG: ${{ steps.maple-font.outputs.tag }}
+
+      - run: pnpm run check:font-output
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist/client
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
