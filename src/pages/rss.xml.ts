@@ -4,6 +4,8 @@ import type { APIRoute } from "astro";
 import { assertUniqueSeriesPositions } from "../lib/content-validation";
 import { createRssItems } from "../lib/rss-items";
 
+export const prerender = true;
+
 export const GET: APIRoute = async (context) => {
   if (!context.site) {
     throw new Error("The Astro site URL must be configured to generate RSS.");
