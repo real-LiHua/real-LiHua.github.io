@@ -360,11 +360,22 @@ const { Content } = await render(post);
       const outlineLinks = [...outlineList.querySelectorAll<HTMLAnchorElement>("a")];
       let activeHeading: HTMLElement | undefined;
       let activeLink: HTMLAnchorElement | undefined;
+      // Incremental tracking: only headings near the current position are read,
+      // instead of measuring every heading on every animation frame.
+      let activeIndex = 0;
       const updateCurrentHeading = () => {
         const readingLine = window.innerHeight * 0.35;
-        const heading =
-          outlineHeadings.filter((item) => item.getBoundingClientRect().top <= readingLine).at(-1) ??
-          outlineHeadings[0];
+        while (activeIndex + 1 < outlineHeadings.length) {
+          const next = outlineHeadings[activeIndex + 1];
+          if (!next || next.getBoundingClientRect().top > readingLine) break;
+          activeIndex += 1;
+        }
+        while (activeIndex > 0) {
+          const current = outlineHeadings[activeIndex];
+          if (!current || current.getBoundingClientRect().top <= readingLine) break;
+          activeIndex -= 1;
+        }
+        const heading = outlineHeadings[activeIndex] ?? outlineHeadings[0];
         if (!heading || heading === activeHeading) return;
 
         activeHeading = heading;
