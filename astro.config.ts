@@ -147,7 +147,9 @@ if (webmcpBuildDone) {
 export default defineConfig({
   adapter: node({ mode: "standalone" }),
   output: "server",
-  site: "https://real-lihua.github.io",
+  // Overridable so the Codeberg Pages mirror can emit its own canonical URL;
+  // defaults to the GitHub Pages site.
+  site: process.env.SITE_URL ?? "https://real-lihua.github.io",
   integrations: [mapleFontIntegration, webmcpIntegration],
   markdown: {
     processor: markdownProcessor,
