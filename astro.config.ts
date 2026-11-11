@@ -4,7 +4,7 @@ import node from "@astrojs/node";
 import { markdownProcessor } from "./src/lib/markdown";
 import { defineConfig } from "astro/config";
 import astroWebMCP from "astro-webmcp";
-import Font from "vite-plugin-font";
+import { createRequire } from "node:module";
 import { readdirSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
@@ -19,11 +19,30 @@ const isFontBuild =
   process.env.GITHUB_ACTIONS === "true" &&
   Boolean(process.env.MAPLE_FONT_RELEASE_TAG) &&
   process.env.NODE_ENV !== "development";
+// Loaded via createRequire (CJS entry) instead of an ESM import: the Vite config
+// runner is closed before dynamic imports resolve, and loading the package unconditionally
+// breaks local builds where cn-font-split's native binding cannot be downloaded.
+const Font = isFontBuild
+  ? (createRequire(import.meta.url)(
+      "vite-plugin-font",
+    ) as typeof import("vite-plugin-font").default)
+  : undefined;
 const mapleFontModuleId = "virtual:blog-maple-font";
 const resolvedMapleFontModuleId = `\0${mapleFontModuleId}`;
-const mapleFontPath = fileURLToPath(
-  new URL(".cache/maple-font/input/MapleMonoNormal-NF-CN.ttf", import.meta.url),
-);
+const mapleFontInputDirectory = fileURLToPath(new URL(".cache/maple-font/input/", import.meta.url));
+const defaultMapleFontPath = join(mapleFontInputDirectory, "MapleMonoNormal-NF-CN.ttf");
+const mapleFontPath = ((): string => {
+  // The extracted archive ships weight-suffixed files (e.g. MapleMonoNormal-NF-CN-Regular.ttf),
+  // so resolve the real file name instead of assuming it.
+  try {
+    const match = readdirSync(mapleFontInputDirectory).find((name) =>
+      /^MapleMonoNormal-NF-CN[^/]*\.(?:ttf|otf)$/iu.test(name),
+    );
+    return match ? join(mapleFontInputDirectory, match) : defaultMapleFontPath;
+  } catch {
+    return defaultMapleFontPath;
+  }
+})();
 const postsDirectory = fileURLToPath(new URL("src/content/posts/", import.meta.url));
 
 const listPostRoutes = (directory: string): string[] =>
@@ -61,7 +80,7 @@ const mapleFontIntegration: AstroIntegration = {
   name: "blog-maple-font",
   hooks: {
     "astro:config:setup": async ({ injectScript, updateConfig }) => {
-      if (isFontBuild) {
+      if (isFontBuild && Font) {
         injectScript("page", `import "${mapleFontModuleId}";`);
         updateConfig({
           vite: {

@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { prepareMapleFont } from "./prepare-maple-font.mjs";
+import { prepareMapleFont, selectFontEntry } from "./prepare-maple-font.mjs";
 
 const archive = Buffer.from("verified font archive");
 const checksum = "MapleMonoNormal-NF-CN.zip";
@@ -96,4 +96,22 @@ test("a verified archive is reused for repeated builds of the same release tag",
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test("extraction prefers the Regular weight of the font family", () => {
+  const files = [
+    "MapleMonoNormal-NF-CN-Bold.ttf",
+    "MapleMonoNormal-NF-CN-Italic.ttf",
+    "MapleMonoNormal-NF-CN-Regular.ttf",
+  ];
+  assert.equal(selectFontEntry(files), "MapleMonoNormal-NF-CN-Regular.ttf");
+});
+
+test("extraction falls back to the first matching font entry", () => {
+  const files = ["docs/readme.txt", "MapleMonoNormal-NF-CN-Medium.otf"];
+  assert.equal(selectFontEntry(files), "MapleMonoNormal-NF-CN-Medium.otf");
+});
+
+test("extraction returns undefined when the archive has no usable font", () => {
+  assert.equal(selectFontEntry(["readme.md"]), undefined);
 });

@@ -46,12 +46,21 @@ async function request(fetchImpl, url, accept) {
   return response;
 }
 
+export function selectFontEntry(files) {
+  const matches = files.filter((path) =>
+    /(?:^|\/)MapleMonoNormal-NF-CN[^/]*\.(?:ttf|otf)$/iu.test(path),
+  );
+  return (
+    matches.find((path) => /-Regular\.ttf$/iu.test(path)) ??
+    matches.find((path) => /-Regular\.otf$/iu.test(path)) ??
+    matches[0]
+  );
+}
+
 async function extractMapleFont(archivePath, outputDir) {
   const { stdout } = await execFile("unzip", ["-Z1", archivePath]);
   const files = stdout.split(/\r?\n/u).filter(Boolean);
-  const fontPath = files.find((path) =>
-    /(?:^|\/)MapleMonoNormal-NF-CN[^/]*\.(?:ttf|otf)$/iu.test(path),
-  );
+  const fontPath = selectFontEntry(files);
   if (!fontPath) {
     throw new Error("The verified font archive contains no MapleMonoNormal-NF-CN TTF or OTF");
   }
