@@ -13,12 +13,21 @@ const { idPrefix, initialSearch = false } = Astro.props;
   class="search-form"
   action="/search/"
   method="get"
+  toolname="search_articles"
+  tooldescription="搜索本站文章，按关键词匹配标题、描述、正文与主题，返回匹配的文章列表。"
+  toolautosubmit
   data-site-search
   data-initial-search={initialSearch ? "true" : undefined}
 >
   <label for={`${idPrefix}-search-query`}>搜索文章</label>
   <div class="search-row">
-    <input id={`${idPrefix}-search-query`} name="q" type="search" data-search-input />
+    <input
+      id={`${idPrefix}-search-query`}
+      name="q"
+      type="search"
+      toolparamdescription="搜索关键词"
+      data-search-input
+    />
     <button type="submit" aria-label="搜索" title="搜索"><Icon name="search" /></button>
   </div>
 </form>
@@ -65,13 +74,14 @@ const { idPrefix, initialSearch = false } = Astro.props;
     searchTerm: string,
     searchStatus: HTMLElement,
     searchResults: HTMLUListElement,
-  ) {
+  ): Promise<string> {
     const query = searchTerm.trim();
     searchResults.replaceChildren();
 
     if (!query) {
-      searchStatus.textContent = "请输入搜索关键词。";
-      return;
+      const message = "请输入搜索关键词。";
+      searchStatus.textContent = message;
+      return message;
     }
 
     try {
@@ -84,16 +94,21 @@ const { idPrefix, initialSearch = false } = Astro.props;
       });
 
       if (result.count === 0) {
-        searchStatus.textContent = "没有找到匹配文章。";
-        return;
+        const message = "没有找到匹配文章。";
+        searchStatus.textContent = message;
+        return message;
       }
+
+      const matches: { title: string; url: string }[] = [];
 
       for (const hit of result.hits) {
         const data = hit.document as SearchDocument;
+        const title = data.title || data.url;
+        matches.push({ title, url: data.url });
         const item = document.createElement("li");
         const link = document.createElement("a");
         link.href = data.url;
-        link.textContent = data.title || data.url;
+        link.textContent = title;
         item.append(link);
 
         if (data.isPreview) {
@@ -113,9 +128,12 @@ const { idPrefix, initialSearch = false } = Astro.props;
       }
 
       searchStatus.textContent = `找到 ${result.count} 篇文章。`;
+      return JSON.stringify({ query, count: result.count, results: matches });
     } catch {
+      const message = "搜索暂时不可用，请稍后重试。";
       searchResults.replaceChildren();
-      searchStatus.textContent = "搜索暂时不可用，请稍后重试。";
+      searchStatus.textContent = message;
+      return message;
     }
   }
 
@@ -136,7 +154,18 @@ const { idPrefix, initialSearch = false } = Astro.props;
 
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      void searchSite(input.value, searchStatus, searchResults);
+      const submitEvent = event as SubmitEvent & {
+        agentInvoked?: boolean;
+        respondWith?: (result: Promise<string>) => void;
+      };
+      const outcome = searchSite(input.value, searchStatus, searchResults);
+
+      if (submitEvent.agentInvoked && typeof submitEvent.respondWith === "function") {
+        submitEvent.respondWith(outcome);
+        return;
+      }
+
+      void outcome;
     });
 
     if (form.dataset.initialSearch !== undefined) {
