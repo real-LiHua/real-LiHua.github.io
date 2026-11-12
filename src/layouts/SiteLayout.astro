@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import "virtual:blog-maple-font";
 import SiteSearch from "../components/SiteSearch.astro";
 import Icon from "../components/Icon.astro";
 
@@ -9,7 +10,7 @@ interface Props {
 }
 
 const { title, description = "个人博客阅读预览。" } = Astro.props;
-const pathname = Astro.url.pathname;
+const {pathname} = Astro.url;
 const isHome = pathname === "/";
 const isPostsSection =
   pathname.startsWith("/posts") ||
@@ -26,7 +27,7 @@ const isPostsSection =
     <meta name="description" content={description} />
     <title>{title}</title>
     <script is:inline>
-      let savedTheme = null;
+      let savedTheme;
       try {
         savedTheme = localStorage.getItem("reader-theme");
       } catch {

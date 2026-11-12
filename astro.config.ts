@@ -5,10 +5,11 @@ import { markdownProcessor } from "./src/lib/markdown";
 import { defineConfig } from "astro/config";
 import astroWebMCP from "astro-webmcp";
 import { createRequire } from "node:module";
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import type { fontPlugin } from "vite-plugin-font";
 
 const oramaClientEntry = fileURLToPath(new URL("src/lib/orama-webmcp-client.ts", import.meta.url));
 const oramaPackageEntry = fileURLToPath(
@@ -23,12 +24,24 @@ const isFontBuild =
 // runner is closed before dynamic imports resolve, and loading the package unconditionally
 // breaks local builds where cn-font-split's native binding cannot be downloaded.
 const Font = isFontBuild
-  ? (createRequire(import.meta.url)(
-      "vite-plugin-font",
-    ) as typeof import("vite-plugin-font").default)
+  ? (createRequire(import.meta.url)("vite-plugin-font") as typeof fontPlugin)
   : undefined;
 const mapleFontModuleId = "virtual:blog-maple-font";
 const resolvedMapleFontModuleId = `\0${mapleFontModuleId}`;
+// Nerd Font glyphs are emitted at runtime via String.fromCodePoint in
+// src/lib/icons.ts, so the scanners never see the raw Private Use Area
+// characters. Whitelist them explicitly or the subsets drop the icons.
+const iconGlyphCodePoints = ((): string[] => {
+  try {
+    const source = readFileSync(new URL("src/lib/icons.ts", import.meta.url), "utf8");
+    const codePoints = [...source.matchAll(/glyph\(\s*0x(?<hex>[0-9a-f]+)\s*\)/giu)].map((match) =>
+      Number.parseInt(match.groups!.hex, 16),
+    );
+    return [...new Set(codePoints)].map((codePoint) => String.fromCodePoint(codePoint));
+  } catch {
+    return [];
+  }
+})();
 const mapleFontInputDirectory = fileURLToPath(new URL(".cache/maple-font/input/", import.meta.url));
 const defaultMapleFontPath = join(mapleFontInputDirectory, "MapleMonoNormal-NF-CN.ttf");
 const mapleFontPath = ((): string => {
@@ -72,24 +85,36 @@ const mapleFontEntryPlugin = {
     if (id !== resolvedMapleFontModuleId) {
       return undefined;
     }
-    return `import { css } from ${JSON.stringify(`${mapleFontPath}?subsets`)};\nexport const family = css.family;`;
+    if (!isFontBuild) {
+      return "export {};\n";
+    }
+    // Import the subset module for its side effect: it pulls in the generated
+    // metrics/result CSS, which Astro bundles into the layout stylesheet so the
+    // @font-face rules are actually loaded by the page.
+    return `import "${mapleFontPath}?subsets";\n`;
   },
 };
 
 const mapleFontIntegration: AstroIntegration = {
   name: "blog-maple-font",
   hooks: {
-    "astro:config:setup": async ({ injectScript, updateConfig }) => {
+    "astro:config:setup": ({ updateConfig }) => {
       if (isFontBuild && Font) {
-        injectScript("page", `import "${mapleFontModuleId}";`);
         updateConfig({
           vite: {
             plugins: [
               Font.vite({
                 scanFiles: ["src/**/*.{astro,md,mdx,ts,tsx,js,jsx,css}"],
+                whiteList: iconGlyphCodePoints,
               }),
               mapleFontEntryPlugin,
             ],
+          },
+        });
+      } else {
+        updateConfig({
+          vite: {
+            plugins: [mapleFontEntryPlugin],
           },
         });
       }
