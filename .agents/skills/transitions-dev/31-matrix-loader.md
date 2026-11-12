@@ -14,8 +14,8 @@ Use where a spinner would be too loud: alongside a status line, inside a compact
 
 JS builds sixteen <i> dots per loader and hands each a --d
 delay (ms) into the shared colour-pulse cycle — the variant is
-just a delay table. scan: col _ cycle/10. twinkle: the order
-[7,2,11,5,14,9,0,12,3,15,6,10,13,1,8,4] _ cycle/16. orbit: the
+just a delay table. scan: col * cycle/10. twinkle: the order
+[7,2,11,5,14,9,0,12,3,15,6,10,13,1,8,4] * cycle/16. orbit: the
 ring [1,2,7,11,14,13,8,4] * cycle/8, centre holds steady.
 pulse: inner [5,6,9,10] first, the rest cycle*0.16 behind.
 Rounded variants mark the corners [0,3,12,15] .is-gap so they
@@ -23,12 +23,12 @@ render nothing.
 
 ## Tunable variables
 
-| Variable          | Default       | Notes                       |
-| ----------------- | ------------- | --------------------------- |
-| `--matrix-cycle`  | `1200ms`      | sourced from `--p33-cycle`  |
-| `--matrix-base`   | `#d9d9d9`     | sourced from `--p33-base`   |
-| `--matrix-active` | `#85858f`     | sourced from `--p33-active` |
-| `--matrix-ease`   | `ease-in-out` | sourced from `--p33-ease`   |
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `--matrix-cycle` | `1200ms` | sourced from `--p33-cycle` |
+| `--matrix-base` | `#d9d9d9` | sourced from `--p33-base` |
+| `--matrix-active` | `#85858f` | sourced from `--p33-active` |
+| `--matrix-ease` | `ease-in-out` | sourced from `--p33-ease` |
 
 The `:root` defaults below match the live tuning on [transitions.dev](https://transitions.dev). Drop them into your global stylesheet once — every transition in this skill reads from semantic names like these, so multiple transitions can share a single `:root` block.
 
@@ -57,25 +57,14 @@ The `:root` defaults below match the live tuning on [transitions.dev](https://tr
   animation-delay: calc(var(--d, 0) * 1ms);
 }
 /* Hole positions (rounded variants) render nothing. */
-.t-matrix i.is-gap {
-  visibility: hidden;
-  animation: none;
-}
+.t-matrix i.is-gap { visibility: hidden; animation: none; }
 @keyframes t-matrix-pulse {
-  0%,
-  45%,
-  100% {
-    background-color: var(--matrix-base);
-  }
-  15% {
-    background-color: var(--matrix-active);
-  }
+  0%, 45%, 100% { background-color: var(--matrix-base); }
+  15%           { background-color: var(--matrix-active); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-matrix i {
-    animation: none !important;
-  }
+  .t-matrix i { animation: none !important; }
 }
 ```
 
@@ -92,8 +81,9 @@ const RING = [1, 2, 7, 11, 14, 13, 8, 4];
 const INNER = [5, 6, 9, 10];
 const TWINKLE = [7, 2, 11, 5, 14, 9, 0, 12, 3, 15, 6, 10, 13, 1, 8, 4];
 
-const cycle =
-  parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--matrix-cycle")) || 1200;
+const cycle = parseFloat(
+  getComputedStyle(document.documentElement).getPropertyValue("--matrix-cycle")
+) || 1200;
 
 document.querySelectorAll(".t-matrix").forEach((loader) => {
   const variant = loader.getAttribute("data-variant");
@@ -122,3 +112,4 @@ document.querySelectorAll(".t-matrix").forEach((loader) => {
   }
 });
 ```
+

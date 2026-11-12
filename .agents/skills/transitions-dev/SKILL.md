@@ -1,52 +1,53 @@
 ---
 name: transitions-dev
 license: Free for personal and commercial use; see LICENSE.txt (no redistribution of the library itself)
-description: Production-ready CSS transitions for web apps. Use when implementing notification badges, dropdowns, modals, panel reveals, page transitions, card resizes, number pop-ins, text swaps, icon swaps, success checks, avatar group hovers, error state shakes, search/input clear, skeleton loaders, shimmer text, sliding tabs, tooltips, staggered text reveals, card hover tilt, plus-to-menu morph, accordions, toasts, like buttons, learn-more hovers, checkbox checks, spinning counters, toggles, AI thinking states, reasoning streams, streaming text, matrix dot loaders, or banner stacking. Triggers on "add a transition", "animate the dropdown", "make the modal open smoothly", "swap icon", "page slide", "stagger animation", "open / close transition", "make it animate", "fade between", "success animation", "form error", "shake on invalid", "hover lift", "avatar stack hover", "clear the search", "skeleton loader", "loading shimmer", "shimmer text", "sliding tabs", "segmented control", "tooltip", "reveal text", "tilt card", "3D hover tilt", "cursor glare", "plus to menu", "FAB morph", "accordion", "collapsible", "expand / collapse", "disclosure", "toast", "snackbar", "like button", "heart animation", "learn more arrow", "checkbox", "check animation", "spinning counter", "odometer", "slot machine digits", "toggle", "switch", "thinking states", "AI status line", "agent reasoning", "reasoning stream", "streaming text", "stream words in", "matrix loader", "dot loader", "banner stack", "stacked toasts". Also "motion tokens", "scan for ad-hoc transitions", "replace hardcoded durations with motion tokens", "tokenize my animations", and the commands transitions reveal, transitions review, transitions apply, transitions refine.
+description: Production-ready CSS transitions for web apps. Use when implementing notification badges, dropdowns, modals, panel reveals, page transitions, card resizes, number pop-ins, subtle number changes, text swaps, icon swaps, success checks, avatar group hovers, error state shakes, search/input clear, skeleton loaders, shimmer text, sliding tabs, tooltips, staggered text reveals, card hover tilt, plus-to-menu morph, accordions, toasts, like buttons, learn-more hovers, checkbox checks, spinning counters, toggles, AI thinking states, reasoning streams, streaming text, matrix dot loaders, or banner stacking. Triggers on "add a transition", "animate the dropdown", "make the modal open smoothly", "swap icon", "page slide", "stagger animation", "open / close transition", "make it animate", "fade between", "success animation", "form error", "shake on invalid", "hover lift", "avatar stack hover", "clear the search", "skeleton loader", "loading shimmer", "shimmer text", "sliding tabs", "segmented control", "tooltip", "reveal text", "tilt card", "3D hover tilt", "cursor glare", "plus to menu", "FAB morph", "accordion", "collapsible", "expand / collapse", "disclosure", "toast", "snackbar", "like button", "heart animation", "learn more arrow", "checkbox", "check animation", "spinning counter", "subtle number change", "live stat update", "odometer", "slot machine digits", "toggle", "switch", "thinking states", "AI status line", "agent reasoning", "reasoning stream", "streaming text", "stream words in", "matrix loader", "dot loader", "banner stack", "stacked toasts". Also "motion tokens", "scan for ad-hoc transitions", "replace hardcoded durations with motion tokens", "tokenize my animations", and the commands transitions reveal, transitions review, transitions apply, transitions refine.
 ---
 
 # Transitions.dev
 
-Thirty-two portable CSS transitions, each namespaced under `t-*` selectors with semantic CSS custom properties. Drop-in: paste the snippet, wire the documented HTML hooks, done. No framework dependencies, no demo-specific markup, and every snippet ships a `prefers-reduced-motion` guard.
+Thirty-six portable CSS transitions, each namespaced under `t-*` selectors with semantic CSS custom properties. Drop-in: paste the snippet, wire the documented HTML hooks, done. No framework dependencies, no demo-specific markup, and every snippet ships a `prefers-reduced-motion` guard.
 
 ## Quick reference
 
-| Transition                     | When to use                                                                                    | Reference                                                  |
-| ------------------------------ | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| **Card resize**                | Tween a container's width or height when its layout state changes.                             | [01-card-resize.md](./01-card-resize.md)                   |
-| **Number pop-in**              | Re-enter each digit with a blurred slide when a number updates.                                | [02-number-pop-in.md](./02-number-pop-in.md)               |
-| **Notification badge**         | Slide a small badge onto a trigger and pop the dot.                                            | [03-notification-badge.md](./03-notification-badge.md)     |
-| **Text states swap**           | Swap text in place with a blurred up-and-down transition.                                      | [04-text-states-swap.md](./04-text-states-swap.md)         |
-| **Menu dropdown**              | Open an origin-aware dropdown that grows from its trigger.                                     | [05-menu-dropdown.md](./05-menu-dropdown.md)               |
-| **Modal open / close**         | Scale-up modal dialog with a softer scale-down on close.                                       | [06-modal.md](./06-modal.md)                               |
-| **Panel reveal**               | Slide a panel into a region with a cross-blur.                                                 | [07-panel-reveal.md](./07-panel-reveal.md)                 |
-| **Page side-by-side**          | Slide between two side-by-side pages (list ↔ detail, step 1 ↔ step 2).                         | [08-page-side-by-side.md](./08-page-side-by-side.md)       |
-| **Icon swap**                  | Cross-fade two icons in the same slot with blur and scale.                                     | [09-icon-swap.md](./09-icon-swap.md)                       |
-| **Success check**              | Compose fade + rotate + Y-bob + path stroke-draw to celebrate a completed action.              | [10-success-check.md](./10-success-check.md)               |
-| **Avatar group hover**         | Distance-falloff lift on a row of items with a bouncy spring on return.                        | [11-avatar-group-hover.md](./11-avatar-group-hover.md)     |
-| **Error state shake**          | Per-segment cubic-bezier shake with auto-reverting border + message.                           | [12-error-state-shake.md](./12-error-state-shake.md)       |
-| **Input clear with dissolve**  | Fly-out + per-word streak when a text field is cleared.                                        | [13-input-clear-dissolve.md](./13-input-clear-dissolve.md) |
-| **Skeleton loader and reveal** | Pulse a placeholder, then cross-fade + cross-blur to the loaded content.                       | [14-skeleton-reveal.md](./14-skeleton-reveal.md)           |
-| **Shimmer text**               | Sweep a highlight band across muted text on a loop (pure CSS).                                 | [15-shimmer-text.md](./15-shimmer-text.md)                 |
-| **Tabs sliding**               | Slide the active pill between tabs in a segmented control.                                     | [16-tabs-sliding.md](./16-tabs-sliding.md)                 |
-| **Tooltip open/close**         | Delayed fade+scale in, instant out, travels between triggers.                                  | [17-tooltip.md](./17-tooltip.md)                           |
-| **Texts reveal**               | Staggered blurred rise for stacked text lines, quiet fade out.                                 | [18-texts-reveal.md](./18-texts-reveal.md)                 |
-| **Card hover tilt**            | Tilt a card in 3D toward the pointer with a cursor-tracked glare.                              | [19-card-tilt.md](./19-card-tilt.md)                       |
-| **Plus to menu morph**         | Morph a circular trigger into the menu / panel it opens.                                       | [20-plus-menu-morph.md](./20-plus-menu-morph.md)           |
-| **Accordion expand**           | Grow / shrink a panel via grid-rows with a chevron flip.                                       | [21-accordion.md](./21-accordion.md)                       |
-| **Toast open / close**         | Rise a toast from below with fade + cross-blur, slower in than out.                            | [22-toast.md](./22-toast.md)                               |
-| **Like button**                | Fill a heart with a pop + particle burst on like.                                              | [23-like-button.md](./23-like-button.md)                   |
-| **Learn more hover**           | Slide the chevron and spread its arms into an arrow on hover.                                  | [24-learn-more-hover.md](./24-learn-more-hover.md)         |
-| **Checkbox check**             | Fill the box, then stroke-draw the checkmark.                                                  | [25-checkbox-check.md](./25-checkbox-check.md)             |
-| **Spinning counter**           | Spin slot-machine digit reels with vertical motion blur.                                       | [26-spinning-counter.md](./26-spinning-counter.md)         |
-| **Toggle**                     | Travel the switch thumb with a double-bounce overshoot.                                        | [27-toggle.md](./27-toggle.md)                             |
-| **Thinking states**            | Shimmer a status line while it holds, then swap it to the next state.                          | [28-thinking-states.md](./28-thinking-states.md)           |
-| **Reasoning stream**           | Step an agent-reasoning transcript up two lines at a time on a loop.                           | [29-reasoning-stream.md](./29-reasoning-stream.md)         |
-| **Streaming text**             | Resolve streamed words one by one through a soft cross-blur.                                   | [30-streaming-text.md](./30-streaming-text.md)             |
-| **Matrix dot loader**          | Pulse a 4×4 dot matrix in scan / twinkle / orbit / pulse patterns.                             | [31-matrix-loader.md](./31-matrix-loader.md)               |
-| **Banner stacking**            | Stack banners like toasts — new ones rise in, older ones push back.                            | [32-banner-stacking.md](./32-banner-stacking.md)           |
-| **Text morph**                 | Keep the letters two labels share and cross-blur only the part that changes, easing its width. | [33-text-morph.md](./33-text-morph.md)                     |
-| **Text swap soft**             | Cross-blur a value into the new one in place, both at once, with no movement.                  | [34-text-swap-soft.md](./34-text-swap-soft.md)             |
-| **Donut chart**                | Ring segments with even gaps and rounded corners that morph to new values.                     | [35-donut-chart.md](./35-donut-chart.md)                   |
+| Transition | When to use | Reference |
+| --- | --- | --- |
+| **Card resize** | Tween a container's width or height when its layout state changes. | [01-card-resize.md](./01-card-resize.md) |
+| **Number pop-in** | Swap changed digits on a 3D drum with a bounce when a number updates. | [02-number-pop-in.md](./02-number-pop-in.md) |
+| **Notification badge** | Slide a small badge onto a trigger and pop the dot. | [03-notification-badge.md](./03-notification-badge.md) |
+| **Text states swap** | Swap text in place with a blurred up-and-down transition. | [04-text-states-swap.md](./04-text-states-swap.md) |
+| **Menu dropdown** | Open an origin-aware dropdown that grows from its trigger. | [05-menu-dropdown.md](./05-menu-dropdown.md) |
+| **Modal open / close** | Scale-up modal dialog with a softer scale-down on close. | [06-modal.md](./06-modal.md) |
+| **Panel reveal** | Slide a panel into a region with a cross-blur. | [07-panel-reveal.md](./07-panel-reveal.md) |
+| **Page side-by-side** | Slide between two side-by-side pages (list ↔ detail, step 1 ↔ step 2). | [08-page-side-by-side.md](./08-page-side-by-side.md) |
+| **Icon swap** | Cross-fade two icons in the same slot with blur and scale. | [09-icon-swap.md](./09-icon-swap.md) |
+| **Success check** | Compose fade + rotate + Y-bob + path stroke-draw to celebrate a completed action. | [10-success-check.md](./10-success-check.md) |
+| **Avatar group hover** | Distance-falloff lift on a row of items with a bouncy spring on return. | [11-avatar-group-hover.md](./11-avatar-group-hover.md) |
+| **Error state shake** | Per-segment cubic-bezier shake with auto-reverting border + message. | [12-error-state-shake.md](./12-error-state-shake.md) |
+| **Input clear with dissolve** | Fly-out + per-word streak when a text field is cleared. | [13-input-clear-dissolve.md](./13-input-clear-dissolve.md) |
+| **Skeleton loader and reveal** | Pulse a placeholder, then cross-fade + cross-blur to the loaded content. | [14-skeleton-reveal.md](./14-skeleton-reveal.md) |
+| **Shimmer text** | Sweep a highlight band across muted text on a loop (pure CSS). | [15-shimmer-text.md](./15-shimmer-text.md) |
+| **Tabs sliding** | Slide the active pill between tabs in a segmented control. | [16-tabs-sliding.md](./16-tabs-sliding.md) |
+| **Tooltip open/close** | Delayed fade+scale in, instant out, travels between triggers. | [17-tooltip.md](./17-tooltip.md) |
+| **Texts reveal** | Staggered blurred rise for stacked text lines, quiet fade out. | [18-texts-reveal.md](./18-texts-reveal.md) |
+| **Card hover tilt** | Tilt a card in 3D toward the pointer with a cursor-tracked glare. | [19-card-tilt.md](./19-card-tilt.md) |
+| **Plus to menu morph** | Morph a circular trigger into the menu / panel it opens. | [20-plus-menu-morph.md](./20-plus-menu-morph.md) |
+| **Accordion expand** | Grow / shrink a panel via grid-rows with a chevron flip. | [21-accordion.md](./21-accordion.md) |
+| **Toast open / close** | Rise a toast from below with fade + cross-blur, slower in than out. | [22-toast.md](./22-toast.md) |
+| **Like button** | Fill a heart with a pop + particle burst on like. | [23-like-button.md](./23-like-button.md) |
+| **Learn more hover** | Slide the chevron and spread its arms into an arrow on hover. | [24-learn-more-hover.md](./24-learn-more-hover.md) |
+| **Checkbox check** | Fill the box, then stroke-draw the checkmark. | [25-checkbox-check.md](./25-checkbox-check.md) |
+| **Spinning counter** | Roll digits through the numbers on a 3D drum, landing with a bounce. | [26-spinning-counter.md](./26-spinning-counter.md) |
+| **Toggle** | Travel the switch thumb with a double-bounce overshoot. | [27-toggle.md](./27-toggle.md) |
+| **Thinking states** | Shimmer a status line while it holds, then swap it to the next state. | [28-thinking-states.md](./28-thinking-states.md) |
+| **Reasoning stream** | Step an agent-reasoning transcript up two lines at a time on a loop. | [29-reasoning-stream.md](./29-reasoning-stream.md) |
+| **Streaming text** | Resolve streamed words one by one through a soft cross-blur. | [30-streaming-text.md](./30-streaming-text.md) |
+| **Matrix dot loader** | Pulse a 4×4 dot matrix in scan / twinkle / orbit / pulse patterns. | [31-matrix-loader.md](./31-matrix-loader.md) |
+| **Banner stacking** | Stack banners like toasts — new ones rise in, older ones push back. | [32-banner-stacking.md](./32-banner-stacking.md) |
+| **Text morph** | Keep the letters two labels share and cross-blur only the part that changes, easing its width. | [33-text-morph.md](./33-text-morph.md) |
+| **Text swap soft** | Cross-blur a value into the new one in place, both at once, with no movement. | [34-text-swap-soft.md](./34-text-swap-soft.md) |
+| **Donut chart** | Ring segments with even gaps and rounded corners that morph to new values. | [35-donut-chart.md](./35-donut-chart.md) |
+| **Number subtle change** | Cross-fade changed digits in place, rising or falling with the value. | [36-number-subtle-change.md](./36-number-subtle-change.md) |
 
 ## Decision rules
 
@@ -62,7 +63,9 @@ When the user asks for a transition, match against the visible UI element first,
 - **Values update in place because the data behind a view changed** (a chart's period, a currency, a unit) → text swap soft for every value that changed.
 - **A donut or ring chart** → donut chart (even gaps, the smallest corner radius, morphs when its data changes).
 - **Two icons in the same slot** → icon swap.
-- **A number updates** → number pop-in.
+- **A number updates and the change should be noticed** → number pop-in.
+- **A number updates often and should stay quiet** (live stats, dashboards, tickers) → number subtle change.
+- **A number change is an event** (points, rewards, milestones) → spinning counter.
 - **Confirmation / success / "done" moment** (checkmark, payment processed, file uploaded) → success check.
 - **Hovering an item in a horizontal stack** (avatars, chips, segmented buttons, tag pills) → avatar group hover.
 - **Form validation error / "this is wrong" feedback** (invalid field, wrong PIN, duplicate name) → error state shake.
@@ -73,7 +76,7 @@ When the user asks for a transition, match against the visible UI element first,
 - **Hover/focus hint that appears over a trigger** (icon tooltip, info bubble) → tooltip open / close.
 - **Stacked headline + supporting line entering with rhythm** (hero copy, empty state, onboarding step) → texts reveal.
 - **Card / tile that should react in 3D to the pointer on hover** (product card, cover art, membership card, with or without a light glare) → card hover tilt.
-- **Circular trigger that becomes the surface it opens** (+ FAB grows into a menu / panel, compose button expands) → plus → menu morph. If the surface is a _separate_ popover that merely grows from the trigger, use menu dropdown instead.
+- **Circular trigger that becomes the surface it opens** (+ FAB grows into a menu / panel, compose button expands) → plus → menu morph. If the surface is a *separate* popover that merely grows from the trigger, use menu dropdown instead.
 - **Header with a collapsible body that grows / shrinks in height** (settings group, FAQ, filter section, "show more", disclosure) → accordion expand.
 - **No clear match** → fall back to `transitions reveal` and let the user pick. Don't guess.
 
@@ -87,7 +90,7 @@ The skill exposes four namespaced verbs the agent should recognise in addition t
 
 **Trigger phrases:** `transitions reveal`, "reveal the transitions", "list all transitions", "what transitions are in this skill", "show the transitions catalog".
 
-**Behaviour:** print the thirty-two transitions as a numbered plain-text list — name, one-line summary, and the matching reference filename. Reuse the rows in `## Quick reference` above; do not invent new copy. No project access.
+**Behaviour:** print the thirty-six transitions as a numbered plain-text list — name, one-line summary, and the matching reference filename. Reuse the rows in `## Quick reference` above; do not invent new copy. No project access.
 
 ### transitions review — audit the project for fit
 
@@ -128,63 +131,63 @@ The skill exposes four namespaced verbs the agent should recognise in addition t
 
 ## Motion tokens
 
-The shared motion scale behind the thirty-two transitions — the same tokens the [transitions.dev](https://transitions.dev) Motion tokens tab exposes. They ship at the top of [`_root.css`](./_root.css), so once it's imported you can reference any of them as `var(--…)` (e.g. `transition: transform var(--duration-fast) var(--ease-smooth-out)`).
+The shared motion scale behind the thirty-six transitions — the same tokens the [transitions.dev](https://transitions.dev) Motion tokens tab exposes. They ship at the top of [`_root.css`](./_root.css), so once it's imported you can reference any of them as `var(--…)` (e.g. `transition: transform var(--duration-fast) var(--ease-smooth-out)`).
 
 `transitions refine` maps each existing value to a usage below, then suggests the token to reference. Match on **usage**, not on the raw number — a 300ms modal close still maps to `--duration-quick` (150ms).
 
 **Durations**
 
-| Token                  | Value   | Usage                                                      |
-| ---------------------- | ------- | ---------------------------------------------------------- |
-| `--duration-stagger`   | `40ms`  | per-item stagger offset                                    |
-| `--duration-micro`     | `80ms`  | tooltip/path delay, shake segment, large stagger           |
-| `--duration-quick`     | `150ms` | modal/dropdown close, text swap, tooltip appear            |
-| `--duration-fast`      | `250ms` | icon swap, dropdown/modal open, tabs sliding, page slide   |
-| `--duration-medium`    | `350ms` | panel close, toast close                                   |
-| `--duration-slow`      | `400ms` | panel open, skeleton content reveal, input clear           |
+| Token | Value | Usage |
+| --- | --- | --- |
+| `--duration-stagger` | `40ms` | per-item stagger offset |
+| `--duration-micro` | `80ms` | tooltip/path delay, shake segment, large stagger |
+| `--duration-quick` | `150ms` | modal/dropdown close, text swap, tooltip appear |
+| `--duration-fast` | `250ms` | icon swap, dropdown/modal open, tabs sliding, page slide |
+| `--duration-medium` | `350ms` | panel close, toast close |
+| `--duration-slow` | `400ms` | panel open, skeleton content reveal, input clear |
 | `--duration-very-slow` | `500ms` | emphasis moments, badge appear, text reveal, success check |
 
 **Easings**
 
-| Token                  | Value                               | Usage                                                                  |
-| ---------------------- | ----------------------------------- | ---------------------------------------------------------------------- |
-| `--ease-smooth-out`    | `cubic-bezier(0.22, 1, 0.36, 1)`    | modal/dropdown/panel open + close, page slide, resize, position change |
-| `--ease-in-out`        | `ease-in-out`                       | icon swap, text swap, text reveal, skeleton reveal                     |
-| `--ease-out`           | `ease-out`                          | tooltip open / close                                                   |
-| `--ease-linear`        | `linear`                            | shimmer, skeleton pulse, spinner                                       |
-| `--ease-bounce`        | `cubic-bezier(0.34, 1.36, 0.64, 1)` | badge pop open                                                         |
-| `--ease-bounce-strong` | `cubic-bezier(0.34, 3.85, 0.64, 1)` | bouncy hover-out (avatar return)                                       |
+| Token | Value | Usage |
+| --- | --- | --- |
+| `--ease-smooth-out` | `cubic-bezier(0.22, 1, 0.36, 1)` | modal/dropdown/panel open + close, page slide, resize, position change |
+| `--ease-in-out` | `ease-in-out` | icon swap, text swap, text reveal, skeleton reveal |
+| `--ease-out` | `ease-out` | tooltip open / close |
+| `--ease-linear` | `linear` | shimmer, skeleton pulse, spinner |
+| `--ease-bounce` | `cubic-bezier(0.34, 1.36, 0.64, 1)` | badge pop open |
+| `--ease-bounce-strong` | `cubic-bezier(0.34, 3.85, 0.64, 1)` | bouncy hover-out (avatar return) |
 
 **Distances**
 
-| Token               | Value  | Usage                                                          |
-| ------------------- | ------ | -------------------------------------------------------------- |
-| `--distance-micro`  | `4px`  | text swap                                                      |
-| `--distance-small`  | `6px`  | error shake (small segment)                                    |
-| `--distance-base`   | `8px`  | badge diagonal reveal, page slide, error shake (large segment) |
-| `--distance-medium` | `12px` | text reveal                                                    |
-| `--distance-large`  | `30px` | check badge appear                                             |
+| Token | Value | Usage |
+| --- | --- | --- |
+| `--distance-micro` | `4px` | text swap |
+| `--distance-small` | `6px` | error shake (small segment) |
+| `--distance-base` | `8px` | badge diagonal reveal, page slide, error shake (large segment) |
+| `--distance-medium` | `12px` | text reveal |
+| `--distance-large` | `30px` | check badge appear |
 
 **Scales**
 
-| Token            | Value  | Usage              |
-| ---------------- | ------ | ------------------ |
-| `--scale-large`  | `0.96` | modal open / close |
-| `--scale-medium` | `0.97` | dropdown open      |
-| `--scale-small`  | `0.98` | tooltip open       |
-| `--scale-tiny`   | `0.99` | dropdown close     |
+| Token | Value | Usage |
+| --- | --- | --- |
+| `--scale-large` | `0.96` | modal open / close |
+| `--scale-medium` | `0.97` | dropdown open |
+| `--scale-small` | `0.98` | tooltip open |
+| `--scale-tiny` | `0.99` | dropdown close |
 
 **Blur**
 
-| Token           | Value | Usage                                                              |
-| --------------- | ----- | ------------------------------------------------------------------ |
-| `--blur-small`  | `2px` | panel reveal, icon swap, text swap, skeleton reveal, number pop-in |
-| `--blur-medium` | `3px` | page slide, text reveal                                            |
-| `--blur-large`  | `8px` | success check open                                                 |
+| Token | Value | Usage |
+| --- | --- | --- |
+| `--blur-small` | `2px` | panel reveal, icon swap, text swap, skeleton reveal, number pop-in |
+| `--blur-medium` | `3px` | page slide, text reveal |
+| `--blur-large` | `8px` | success check open |
 
 ## Universal install
 
-Copy [`_root.css`](./_root.css) into your project **once** and import it (or paste its `:root` block into your global stylesheet). It leads with the shared **motion-token scale** (`--duration-*`, `--ease-*`, `--distance-*`, `--scale-*`, `--blur-*` — see `## Motion tokens`), followed by the semantic tunable variables for **all thirty-two** transitions. Every snippet reads from these names — `--resize-*`, `--badge-*`, `--dropdown-*`, `--clear-*`, `--shimmer-*`, `--tabs-*`, `--tt-*`, `--stagger-*`, `--tilt-*`, `--morph-*`, `--acc-*`, and the rest.
+Copy [`_root.css`](./_root.css) into your project **once** and import it (or paste its `:root` block into your global stylesheet). It leads with the shared **motion-token scale** (`--duration-*`, `--ease-*`, `--distance-*`, `--scale-*`, `--blur-*` — see `## Motion tokens`), followed by the semantic tunable variables for **all thirty-six** transitions. Every snippet reads from these names — `--resize-*`, `--badge-*`, `--dropdown-*`, `--clear-*`, `--shimmer-*`, `--tabs-*`, `--tt-*`, `--stagger-*`, `--tilt-*`, `--morph-*`, `--acc-*`, and the rest.
 
 Each reference file also restates just the variables that snippet needs, so you can install a single transition without pulling the whole block. Don't duplicate the block — if `_root.css` is already imported, skip re-pasting any per-snippet `:root`.
 
@@ -198,7 +201,7 @@ When inserting a transition into the user's project:
 2. **Paste the chosen transition's CSS verbatim** from the relevant reference file. Do not rewrite selectors, do not collapse the transition into shorthand, do not strip `will-change`. The snippets are tuned and tested.
 3. **Wire the documented HTML hooks** — class names (`.t-dropdown`, `.t-modal`, `.t-success-check`, `.t-avatar`, `.t-clear`, `.t-skel`, `.t-shimmer`, `.t-tabs`, `.t-tt`, `.t-stagger`, `.t-tilt`, `.t-morph`, `.t-acc`, …) and state attributes (`data-open`, `data-state`, `data-page`, `data-origin`, `aria-selected`, `aria-expanded`, `.is-open`, `.is-closing`, `.is-error`, `.is-shaking`, `.has-value`, `.is-clearing`, `.is-pulsing`, `.is-revealed`, `.is-shown`, `.is-hiding`, `.is-hover`, `.is-tilting`).
 4. **Preserve the `@media (prefers-reduced-motion: reduce)` block.** Every snippet ships one. Removing it makes the component fail accessibility audits.
-5. **For transitions that need JS** (dropdown, modal, text swap, number pop-in, page slide, success check, avatar group hover, error state shake, input clear, skeleton reveal, tabs sliding, tooltip, texts reveal, card hover tilt, plus → menu morph, accordion expand), copy the small orchestration snippet from the reference file and adapt the selectors to the user's DOM. Keep the timing reads (`getComputedStyle(...)getPropertyValue("--…")`) so durations stay in sync with the `:root` values. Shimmer text is **pure CSS** — no JS needed.
+5. **For transitions that need JS** (dropdown, modal, text swap, number pop-in, number subtle change, spinning counter, page slide, success check, avatar group hover, error state shake, input clear, skeleton reveal, tabs sliding, tooltip, texts reveal, card hover tilt, plus → menu morph, accordion expand), copy the small orchestration snippet from the reference file and adapt the selectors to the user's DOM. Keep the timing reads (`getComputedStyle(...)getPropertyValue("--…")`) so durations stay in sync with the `:root` values. Shimmer text is **pure CSS** — no JS needed.
 
 Keep the diff small: only edit the files needed to introduce the transition. Don't rename the user's existing variables, don't reformat unrelated CSS, don't pull in a motion library.
 
@@ -208,8 +211,8 @@ Keep the diff small: only edit the files needed to introduce the transition. Don
 - **Forgetting the reflow** in the text swap, number pop-in, success check replay, and error state shake — `void el.offsetWidth` (or `offsetHeight`) between class/attribute removal and re-addition is what guarantees the animation replays.
 - **Animating a single container** instead of the inner pieces — for the badge, animate the dot, not the trigger; for page slide, animate the page sections, not the container.
 - **Replacing `transition: …` with `transition: all`** — every snippet enumerates exact properties on purpose so unrelated style changes don't ride in for free.
-- **Hardcoding the success check's `stroke-dasharray`** — the snippet ships `20` as a placeholder. Replace it with `path.getTotalLength()` rounded up by 1 for _your_ path, otherwise the stroke pre-reveals or over-draws.
-- **Setting `transition-timing-function` in CSS** for the avatar group hover — it has to be set inline in JS _before_ the `--shift` / `--scale-active` writes so the bouncy ease-out only applies on `mouseleave`.
+- **Hardcoding the success check's `stroke-dasharray`** — the snippet ships `20` as a placeholder. Replace it with `path.getTotalLength()` rounded up by 1 for *your* path, otherwise the stroke pre-reveals or over-draws.
+- **Setting `transition-timing-function` in CSS** for the avatar group hover — it has to be set inline in JS *before* the `--shift` / `--scale-active` writes so the bouncy ease-out only applies on `mouseleave`.
 - **Mixing `.is-error` and `.is-shaking` into one class** for the error state shake — keeping them orthogonal is what allows the shake to replay (remove → reflow → re-add) without flickering the whole error treatment.
 - **Leaving the input clear glow on `mix-blend-mode: multiply` in dark mode** — flip to `screen`, bump `--glow-opacity` to ~0.85, and paint white gradients in JS.
 - **Forgetting to write the tabs pill's first position without a transition** — on first paint and resize, set `transform` + `width` with `transition: none` (then reflow + restore) or the pill animates in from `translateX(0)` / `width: 0`.
@@ -254,4 +257,5 @@ Keep the diff small: only edit the files needed to introduce the transition. Don
 - [33-text-morph.md](./33-text-morph.md): Text morph
 - [34-text-swap-soft.md](./34-text-swap-soft.md): Text swap soft
 - [35-donut-chart.md](./35-donut-chart.md): Donut chart
-- [\_root.css](./_root.css) — the universal install block on its own, ready to import directly.
+- [36-number-subtle-change.md](./36-number-subtle-change.md): Number subtle change
+- [_root.css](./_root.css) — the universal install block on its own, ready to import directly.

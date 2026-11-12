@@ -32,17 +32,17 @@ whatever state is showing, and set text-align: left on
 
 ## Tunable variables
 
-| Variable            | Default       | Notes                              |
-| ------------------- | ------------- | ---------------------------------- |
-| `--think-hold`      | `2000ms`      | sourced from `--p28-hold`          |
-| `--think-swap`      | `150ms`       | sourced from `--p28-swap-dur`      |
-| `--think-gap`       | `50ms`        | sourced from `--p28-swap-gap`      |
-| `--think-distance`  | `8px`         | sourced from `--p28-swap-distance` |
-| `--think-blur`      | `2px`         | sourced from `--p28-swap-blur`     |
-| `--think-shimmer`   | `2000ms`      | sourced from `--p28-shimmer-dur`   |
-| `--think-base`      | `#7c7c7c`     | sourced from `--p28-base`          |
-| `--think-highlight` | `#0d0d0d`     | sourced from `--p28-highlight`     |
-| `--think-ease`      | `ease-in-out` | sourced from `--p28-ease`          |
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `--think-hold` | `2000ms` | sourced from `--p28-hold` |
+| `--think-swap` | `150ms` | sourced from `--p28-swap-dur` |
+| `--think-gap` | `50ms` | sourced from `--p28-swap-gap` |
+| `--think-distance` | `8px` | sourced from `--p28-swap-distance` |
+| `--think-blur` | `2px` | sourced from `--p28-swap-blur` |
+| `--think-shimmer` | `2000ms` | sourced from `--p28-shimmer-dur` |
+| `--think-base` | `#7c7c7c` | sourced from `--p28-base` |
+| `--think-highlight` | `#0d0d0d` | sourced from `--p28-highlight` |
+| `--think-ease` | `ease-in-out` | sourced from `--p28-ease` |
 
 The `:root` defaults below match the live tuning on [transitions.dev](https://transitions.dev). Drop them into your global stylesheet once — every transition in this skill reads from semantic names like these, so multiple transitions can share a single `:root` block.
 
@@ -65,16 +65,8 @@ The `:root` defaults below match the live tuning on [transitions.dev](https://tr
 ```css
 /* Set your type on .t-think: the sizer only reports the right
    width if it is set in the same font as the line. */
-.t-think {
-  position: relative;
-  display: inline-block;
-  text-align: center;
-}
-.t-think-sizer {
-  display: block;
-  visibility: hidden;
-  white-space: nowrap;
-}
+.t-think { position: relative; display: inline-block; text-align: center; }
+.t-think-sizer { display: block; visibility: hidden; white-space: nowrap; }
 .t-think-text {
   position: absolute;
   top: 0;
@@ -98,14 +90,10 @@ The `:root` defaults below match the live tuning on [transitions.dev](https://tr
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    transparent 40%,
+  background-image: linear-gradient(90deg,
+    transparent 0%, transparent 40%,
     var(--think-highlight) 50%,
-    transparent 60%,
-    transparent 100%
-  );
+    transparent 60%, transparent 100%);
   background-size: 400% 100%;
   background-repeat: no-repeat;
   -webkit-background-clip: text;
@@ -115,12 +103,8 @@ The `:root` defaults below match the live tuning on [transitions.dev](https://tr
   animation: t-think-shimmer var(--think-shimmer) linear infinite;
 }
 @keyframes t-think-shimmer {
-  0% {
-    background-position: 100% 0;
-  }
-  100% {
-    background-position: 0% 0;
-  }
+  0%   { background-position: 100% 0; }
+  100% { background-position: 0% 0; }
 }
 /* The outgoing line floats over the box so both halves animate. */
 .t-think-text.is-exit {
@@ -136,14 +120,8 @@ The `:root` defaults below match the live tuning on [transitions.dev](https://tr
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-think-text {
-    transition: none !important;
-    transform: none !important;
-    filter: none !important;
-  }
-  .t-think-text::before {
-    display: none !important;
-  }
+  .t-think-text { transition: none !important; transform: none !important; filter: none !important; }
+  .t-think-text::before { display: none !important; }
 }
 ```
 
@@ -163,40 +141,40 @@ const STATES = ["Setting up a workplace", "Running a command", "Browsing files"]
 let i = 0;
 
 const ms = (name, fb) => {
-  const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+  const v = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue(name)
+  );
   return Number.isFinite(v) ? v : fb;
 };
 
 (function cycle() {
-  setTimeout(
-    () => {
-      const swap = ms("--think-swap", 150);
-      const gap = ms("--think-gap", 50);
-      const leaving = live;
-      i = (i + 1) % STATES.length;
+  setTimeout(() => {
+    const swap = ms("--think-swap", 150);
+    const gap = ms("--think-gap", 50);
+    const leaving = live;
+    i = (i + 1) % STATES.length;
 
-      leaving.classList.add("is-exit");
+    leaving.classList.add("is-exit");
 
-      const next = document.createElement("span");
-      next.className = "t-think-text is-enter-start";
-      next.textContent = STATES[i];
-      next.setAttribute("data-text", STATES[i]);
-      box.appendChild(next);
-      live = next;
+    const next = document.createElement("span");
+    next.className = "t-think-text is-enter-start";
+    next.textContent = STATES[i];
+    next.setAttribute("data-text", STATES[i]);
+    box.appendChild(next);
+    live = next;
 
-      const release = () => {
-        void next.offsetWidth; // flush the enter-start rest state
-        next.classList.remove("is-enter-start");
-      };
-      if (gap > 0) setTimeout(release, gap);
-      else release();
+    const release = () => {
+      void next.offsetWidth; // flush the enter-start rest state
+      next.classList.remove("is-enter-start");
+    };
+    if (gap > 0) setTimeout(release, gap);
+    else release();
 
-      setTimeout(() => {
-        leaving.remove();
-        cycle();
-      }, swap + gap);
-    },
-    ms("--think-hold", 2000),
-  );
+    setTimeout(() => {
+      leaving.remove();
+      cycle();
+    }, swap + gap);
+  }, ms("--think-hold", 2000));
 })();
 ```
+

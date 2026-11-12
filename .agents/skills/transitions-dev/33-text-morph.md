@@ -11,24 +11,23 @@ Changing a short label in place when the old and new text share letters at the s
 ```
 
 Driven by JS (`morphText(el, next)`):
-
-1. Find the letters both texts share at the start and at the end.
-2. Rebuild the label as: shared start, a `.t-morph-swap` holding the
-   old middle (`.t-morph-old`) and the new middle (`.t-morph-new`)
-   in one grid cell, shared end.
-3. Pin the swap to the old middle's width, force a reflow, then add
-   `.is-morphing` and set the new middle's width: the old part
-   blurs out, the new part blurs in, the width eases.
-4. When it settles, put the plain text back.
+  1. Find the letters both texts share at the start and at the end.
+  2. Rebuild the label as: shared start, a `.t-morph-swap` holding the
+     old middle (`.t-morph-old`) and the new middle (`.t-morph-new`)
+     in one grid cell, shared end.
+  3. Pin the swap to the old middle's width, force a reflow, then add
+     `.is-morphing` and set the new middle's width: the old part
+     blurs out, the new part blurs in, the width eases.
+  4. When it settles, put the plain text back.
 
 ## Tunable variables
 
-| Variable                  | Default                          | Notes                                     |
-| ------------------------- | -------------------------------- | ----------------------------------------- |
-| `--text-morph-dur`        | `180ms`                          | cross-blur of the changing letters        |
-| `--text-morph-resize-dur` | `240ms`                          | width of the changing part                |
-| `--text-morph-blur`       | `2px`                            | blur of the outgoing and incoming letters |
-| `--text-morph-ease`       | `cubic-bezier(0.22, 1, 0.36, 1)` |                                           |
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `--text-morph-dur` | `180ms` | cross-blur of the changing letters |
+| `--text-morph-resize-dur` | `240ms` | width of the changing part |
+| `--text-morph-blur` | `2px` | blur of the outgoing and incoming letters |
+| `--text-morph-ease` | `cubic-bezier(0.22, 1, 0.36, 1)` | |
 
 The `:root` defaults below match the copy tooltip on [transitions.dev](https://transitions.dev). Drop them into your global stylesheet once; every transition in this skill reads from semantic names like these, so multiple transitions can share a single `:root` block.
 
@@ -60,7 +59,7 @@ The `:root` defaults below match the copy tooltip on [transitions.dev](https://t
   white-space: pre;
   transition:
     opacity var(--text-morph-dur) var(--text-morph-ease),
-    filter var(--text-morph-dur) var(--text-morph-ease);
+    filter  var(--text-morph-dur) var(--text-morph-ease);
 }
 .t-morph-new {
   opacity: 0;
@@ -77,9 +76,7 @@ The `:root` defaults below match the copy tooltip on [transitions.dev](https://t
 
 @media (prefers-reduced-motion: reduce) {
   .t-morph-swap,
-  .t-morph-swap > span {
-    transition: none !important;
-  }
+  .t-morph-swap > span { transition: none !important; }
 }
 ```
 
@@ -103,12 +100,8 @@ function morphText(el, next) {
   let a = 0;
   while (a < prev.length && a < next.length && prev[a] === next[a]) a++;
   let b = 0;
-  while (
-    b < prev.length - a &&
-    b < next.length - a &&
-    prev[prev.length - 1 - b] === next[next.length - 1 - b]
-  )
-    b++;
+  while (b < prev.length - a && b < next.length - a &&
+         prev[prev.length - 1 - b] === next[next.length - 1 - b]) b++;
 
   const swap = document.createElement("span");
   swap.className = "t-morph-swap";
@@ -129,12 +122,9 @@ function morphText(el, next) {
   swap.classList.add("is-morphing");
   swap.style.width = inn.getBoundingClientRect().width + "px";
 
-  el._morphTimer = setTimeout(
-    () => {
-      el.textContent = next;
-    },
-    Math.max(ms("--text-morph-dur"), ms("--text-morph-resize-dur")) + 40,
-  );
+  el._morphTimer = setTimeout(() => {
+    el.textContent = next;
+  }, Math.max(ms("--text-morph-dur"), ms("--text-morph-resize-dur")) + 40);
 }
 ```
 

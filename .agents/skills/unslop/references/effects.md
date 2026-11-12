@@ -17,11 +17,7 @@ Keep the cell between 6 and 10px, use the mono from the type choice, and color t
 ### Implementation
 
 ```js
-function glyphs(
-  canvas,
-  image,
-  { cell = 8, chars = ". :1740$%", font = "Geist Mono", fps = 8 } = {},
-) {
+function glyphs(canvas, image, { cell = 8, chars = ". :1740$%", font = "Geist Mono", fps = 8 } = {}) {
   const ctx = canvas.getContext("2d");
   const columns = Math.floor(canvas.width / cell);
   const rows = Math.floor(canvas.height / cell);
@@ -48,13 +44,7 @@ function glyphs(
     for (let x = 0; x < columns; x++) {
       const i = (y * columns + x) * 4;
       const light = (0.2126 * pixels[i] + 0.7152 * pixels[i + 1] + 0.0722 * pixels[i + 2]) / 255;
-      cells.push({
-        x,
-        y,
-        light,
-        color: `rgb(${pixels[i]},${pixels[i + 1]},${pixels[i + 2]})`,
-        seed: Math.random(),
-      });
+      cells.push({ x, y, light, color: `rgb(${pixels[i]},${pixels[i + 1]},${pixels[i + 2]})`, seed: Math.random() });
     }
   }
 

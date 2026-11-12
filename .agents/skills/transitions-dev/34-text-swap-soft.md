@@ -11,15 +11,14 @@ Updating a value or label in place without any movement: the amounts, totals and
 ```
 
 Driven by JS (`softSwap(el, next)`):
-
-1. Put the old text and the new text in the element as two spans
-   sharing one grid cell (`.t-text-soft-old`, `.t-text-soft-new`).
-2. Pin the element to the old text's width, force a reflow, then
-   add `.is-swapping` and set the new text's width: the old text
-   blurs out while the new text blurs in, together, and the width
-   eases so the elements beside it move smoothly.
-3. When both settle, put the plain new text back and release the
-   width.
+  1. Put the old text and the new text in the element as two spans
+     sharing one grid cell (`.t-text-soft-old`, `.t-text-soft-new`).
+  2. Pin the element to the old text's width, force a reflow, then
+     add `.is-swapping` and set the new text's width: the old text
+     blurs out while the new text blurs in, together, and the width
+     eases so the elements beside it move smoothly.
+  3. When both settle, put the plain new text back and release the
+     width.
 
 For values aligned to the right (amounts in a list), set
 `--text-soft-align: end` on the element so both texts share the
@@ -27,13 +26,13 @@ right edge.
 
 ## Tunable variables
 
-| Variable                  | Default                          | Notes                                            |
-| ------------------------- | -------------------------------- | ------------------------------------------------ |
-| `--text-soft-dur`         | `200ms`                          | the whole cross-blur, out and in together        |
-| `--text-soft-blur`        | `2px`                            |                                                  |
-| `--text-soft-ease`        | `ease-in-out`                    |                                                  |
-| `--text-soft-resize-dur`  | `240ms`                          | the width, so neighbors glide to their new place |
-| `--text-soft-resize-ease` | `cubic-bezier(0.22, 1, 0.36, 1)` |                                                  |
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `--text-soft-dur` | `200ms` | the whole cross-blur, out and in together |
+| `--text-soft-blur` | `2px` | |
+| `--text-soft-ease` | `ease-in-out` | |
+| `--text-soft-resize-dur` | `240ms` | the width, so neighbors glide to their new place |
+| `--text-soft-resize-ease` | `cubic-bezier(0.22, 1, 0.36, 1)` | |
 
 Drop the `:root` defaults into your global stylesheet once; every transition in this skill reads from semantic names like these, so multiple transitions can share a single `:root` block.
 
@@ -61,7 +60,7 @@ Drop the `:root` defaults into your global stylesheet once; every transition in 
   grid-area: 1 / 1;
   white-space: pre;
   transition:
-    filter var(--text-soft-dur) var(--text-soft-ease),
+    filter  var(--text-soft-dur) var(--text-soft-ease),
     opacity var(--text-soft-dur) var(--text-soft-ease);
 }
 .t-text-soft-new {
@@ -79,9 +78,7 @@ Drop the `:root` defaults into your global stylesheet once; every transition in 
 
 @media (prefers-reduced-motion: reduce) {
   .t-text-soft,
-  .t-text-soft > span {
-    transition: none !important;
-  }
+  .t-text-soft > span { transition: none !important; }
 }
 ```
 
@@ -119,14 +116,11 @@ function softSwap(el, next) {
   el.classList.add("is-swapping");
   el.style.width = w1 + "px";
 
-  el._softTimer = setTimeout(
-    () => {
-      el.classList.remove("is-swapping");
-      el.style.removeProperty("width");
-      el.textContent = next;
-    },
-    Math.max(ms("--text-soft-dur"), ms("--text-soft-resize-dur")) + 40,
-  );
+  el._softTimer = setTimeout(() => {
+    el.classList.remove("is-swapping");
+    el.style.removeProperty("width");
+    el.textContent = next;
+  }, Math.max(ms("--text-soft-dur"), ms("--text-soft-resize-dur")) + 40);
 }
 ```
 

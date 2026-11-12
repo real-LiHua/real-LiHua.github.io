@@ -19,12 +19,12 @@ and scale.
 
 ## Tunable variables
 
-| Variable                  | Default       | Notes                           |
-| ------------------------- | ------------- | ------------------------------- |
-| `--icon-swap-dur`         | `250ms`       | sourced from `--p5-dur`         |
-| `--icon-swap-blur`        | `2px`         | sourced from `--p5-blur`        |
-| `--icon-swap-start-scale` | `0.25`        | sourced from `--p5-start-scale` |
-| `--icon-swap-ease`        | `ease-in-out` | sourced from `--p5-ease`        |
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `--icon-swap-dur` | `250ms` | sourced from `--p5-dur` |
+| `--icon-swap-blur` | `2px` | sourced from `--p5-blur` |
+| `--icon-swap-start-scale` | `0.25` | sourced from `--p5-start-scale` |
+| `--icon-swap-ease` | `ease-in-out` | sourced from `--p5-ease` |
 
 The `:root` defaults below match the live tuning on [transitions.dev](https://transitions.dev). Drop them into your global stylesheet once — every transition in this skill reads from semantic names like these, so multiple transitions can share a single `:root` block.
 
@@ -47,8 +47,8 @@ The `:root` defaults below match the live tuning on [transitions.dev](https://tr
 .t-icon-swap .t-icon {
   grid-area: 1 / 1;
   transition:
-    opacity var(--icon-swap-dur) var(--icon-swap-ease),
-    filter var(--icon-swap-dur) var(--icon-swap-ease),
+    opacity   var(--icon-swap-dur) var(--icon-swap-ease),
+    filter    var(--icon-swap-dur) var(--icon-swap-ease),
     transform var(--icon-swap-dur) var(--icon-swap-ease);
   /* No will-change: it would freeze each icon's raster at its 0.25 start
      scale, so a large icon scales up blurry and pixelated. */
@@ -67,9 +67,7 @@ The `:root` defaults below match the live tuning on [transitions.dev](https://tr
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-icon-swap .t-icon {
-    transition: none !important;
-  }
+  .t-icon-swap .t-icon { transition: none !important; }
 }
 ```
 
@@ -78,3 +76,4 @@ The `@media (prefers-reduced-motion: reduce)` guard at the bottom of the snippet
 ## JavaScript orchestration
 
 None — pure CSS. Toggle the documented HTML attributes or class names from whatever already drives state in your app.
+

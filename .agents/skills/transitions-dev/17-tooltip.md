@@ -26,18 +26,18 @@ yours; only the tooltip and its motion live here.
 
 ## Tunable variables
 
-| Variable         | Default                          | Notes                           |
-| ---------------- | -------------------------------- | ------------------------------- |
-| `--tt-in-dur`    | `150ms`                          | sourced from `--p17-in-dur`     |
-| `--tt-out-dur`   | `50ms`                           | sourced from `--p17-out-dur`    |
-| `--tt-scale`     | `0.98`                           | sourced from `--p17-scale-from` |
-| `--tt-delay`     | `80ms`                           | sourced from `--p17-delay`      |
-| `--tt-in-ease`   | `ease-out`                       | sourced from `--p17-in-ease`    |
-| `--tt-out-ease`  | `ease-out`                       | sourced from `--p17-out-ease`   |
-| `--tt-move-dur`  | `160ms`                          | sourced from `--p17-move-dur`   |
-| `--tt-move-ease` | `cubic-bezier(0.22, 1, 0.36, 1)` | sourced from `--p17-move-ease`  |
-| `--tt-bg`        | `#ffffff`                        | sourced from `--p17-bg`         |
-| `--tt-fg`        | `#2f2f2f`                        | sourced from `--p17-fg`         |
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `--tt-in-dur` | `150ms` | sourced from `--p17-in-dur` |
+| `--tt-out-dur` | `50ms` | sourced from `--p17-out-dur` |
+| `--tt-scale` | `0.98` | sourced from `--p17-scale-from` |
+| `--tt-delay` | `80ms` | sourced from `--p17-delay` |
+| `--tt-in-ease` | `ease-out` | sourced from `--p17-in-ease` |
+| `--tt-out-ease` | `ease-out` | sourced from `--p17-out-ease` |
+| `--tt-move-dur` | `160ms` | sourced from `--p17-move-dur` |
+| `--tt-move-ease` | `cubic-bezier(0.22, 1, 0.36, 1)` | sourced from `--p17-move-ease` |
+| `--tt-bg` | `#ffffff` | sourced from `--p17-bg` |
+| `--tt-fg` | `#2f2f2f` | sourced from `--p17-fg` |
 
 The `:root` defaults below match the live tuning on [transitions.dev](https://transitions.dev). Drop them into your global stylesheet once — every transition in this skill reads from semantic names like these, so multiple transitions can share a single `:root` block.
 
@@ -71,7 +71,7 @@ The `:root` defaults below match the live tuning on [transitions.dev](https://tr
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 0; /* the JS writes the measured width */
+  width: 0;                 /* the JS writes the measured width */
   overflow: hidden;
   /* Individual transform properties: the travel (translate) and the
      appear (scale) run on their own clocks. */
@@ -92,10 +92,10 @@ The `:root` defaults below match the live tuning on [transitions.dev](https://tr
   /* Default rule controls the LEAVE state: no delay, so hiding plays
      immediately. The move lanes are always live. */
   transition:
-    opacity var(--tt-out-dur) var(--tt-out-ease),
-    scale var(--tt-out-dur) var(--tt-out-ease),
+    opacity   var(--tt-out-dur) var(--tt-out-ease),
+    scale     var(--tt-out-dur) var(--tt-out-ease),
     translate var(--tt-move-dur) var(--tt-move-ease),
-    width var(--tt-move-dur) var(--tt-move-ease);
+    width     var(--tt-move-dur) var(--tt-move-ease);
 }
 /* The appear delay belongs ONLY to the show rule, so hiding snaps it
    back to 0. A retarget while showing carries no delay at all. */
@@ -103,19 +103,15 @@ The `:root` defaults below match the live tuning on [transitions.dev](https://tr
   opacity: 1;
   scale: 1;
   transition:
-    opacity var(--tt-in-dur) var(--tt-in-ease) var(--tt-delay),
-    scale var(--tt-in-dur) var(--tt-in-ease) var(--tt-delay),
+    opacity   var(--tt-in-dur) var(--tt-in-ease) var(--tt-delay),
+    scale     var(--tt-in-dur) var(--tt-in-ease) var(--tt-delay),
     translate var(--tt-move-dur) var(--tt-move-ease),
-    width var(--tt-move-dur) var(--tt-move-ease);
+    width     var(--tt-move-dur) var(--tt-move-ease);
 }
-.t-tt-text {
-  white-space: nowrap;
-}
+.t-tt-text { white-space: nowrap; }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-tt {
-    transition: none !important;
-  }
+  .t-tt { transition: none !important; }
 }
 ```
 
@@ -143,7 +139,7 @@ function place(trigger) {
   text.textContent = trigger.getAttribute("data-tooltip") || "";
   const cs = getComputedStyle(tip);
   const width = Math.ceil(
-    text.scrollWidth + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight),
+    text.scrollWidth + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight)
   );
   const g = group.getBoundingClientRect();
   const r = trigger.getBoundingClientRect();
@@ -170,3 +166,4 @@ triggers.forEach((t) => {
 });
 group.addEventListener("pointerleave", hide);
 ```
+
