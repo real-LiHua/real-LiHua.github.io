@@ -55,8 +55,10 @@ test("reduced motion suppresses theme and outline transitions without impairing 
   await page.keyboard.press("Enter");
   await expect(panel).toBeHidden();
   await expect(toggle).toBeFocused();
+  // The theme cross-fade is retained under reduced motion (DESIGN.md: an
+  // essential state change), so the toggle keeps its 180ms transition.
   await expect(page.getByRole("button", { name: "切换到深色模式" })).toHaveCSS(
     "transition-duration",
-    "0s",
+    "0.18s",
   );
 });
