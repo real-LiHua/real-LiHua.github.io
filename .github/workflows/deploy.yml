@@ -35,13 +35,13 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           version: 12.16.1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: pnpm
@@ -50,7 +50,7 @@ jobs:
 
       - name: Resolve latest stable Maple Font release
         id: maple-font
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const { data: release } = await github.rest.repos.getLatestRelease({
@@ -61,7 +61,7 @@ jobs:
             core.info(`Using Maple Font release ${release.tag_name}`);
 
       - name: Cache Maple Font archive by release tag
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .cache/maple-font
           key: ${{ runner.os }}-maple-font-${{ steps.maple-font.outputs.tag }}
@@ -90,13 +90,13 @@ jobs:
     name: codeberg
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           version: 12.16.1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: pnpm
@@ -105,7 +105,7 @@ jobs:
 
       - name: Resolve latest stable Maple Font release
         id: maple-font
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const { data: release } = await github.rest.repos.getLatestRelease({
@@ -116,7 +116,7 @@ jobs:
             core.info(`Using Maple Font release ${release.tag_name}`);
 
       - name: Cache Maple Font archive by release tag
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .cache/maple-font
           key: ${{ runner.os }}-maple-font-${{ steps.maple-font.outputs.tag }}
