@@ -1,6 +1,7 @@
 import type { AstroIntegration } from "astro";
 import tailwindcss from "@tailwindcss/vite";
 import node from "@astrojs/node";
+import sitemap from "@astrojs/sitemap";
 import { markdownProcessor } from "./src/lib/markdown";
 import { defineConfig } from "astro/config";
 import astroWebMCP from "astro-webmcp";
@@ -192,7 +193,7 @@ export default defineConfig({
   // Overridable so the Codeberg Pages mirror can emit its own canonical URL;
   // defaults to the GitHub Pages site.
   site: process.env.SITE_URL ?? "https://real-lihua.github.io",
-  integrations: [mapleFontIntegration, webmcpIntegration],
+  integrations: [mapleFontIntegration, webmcpIntegration, sitemap()],
   markdown: {
     processor: markdownProcessor,
     shikiConfig: {
