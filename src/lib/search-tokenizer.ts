@@ -9,8 +9,10 @@ export function createSearchTokenizer() {
   return {
     ...tokenizer,
     stopWords: mandarinStopwords,
-    tokenize(raw: string, language?: string, prop?: string, withCache?: boolean): string[] {
-      const tokens = tokenizer.tokenize(raw, language, prop, withCache);
+    // Orama calls this with (raw, language, prop, withCache); the extra
+    // argument is intentionally not declared here.
+    tokenize(raw: string, language?: string, prop?: string): string[] {
+      const tokens = tokenizer.tokenize(raw, language, prop);
 
       // Keep particles in the index so a query made only of stop words can
       // still match. Only strip them from queries that contain stronger terms.

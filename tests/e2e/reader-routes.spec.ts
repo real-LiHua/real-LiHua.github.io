@@ -20,7 +20,7 @@ test("missing pages show a helpful page with a truthful 404 response", async ({ 
   const response = await page.goto("/this-page-does-not-exist/");
 
   expect(response?.status()).toBe(404);
-  expect(response?.headers().server ?? "").not.toMatch(/iis/i);
+  expect(response?.headers().server ?? "").not.toMatch(/iis/iu);
   await expect(page.getByRole("heading", { name: "页面未找到" })).toBeVisible();
   await expect(page.getByRole("link", { name: "返回首页" })).toHaveAttribute("href", "/");
 });

@@ -1,8 +1,7 @@
 import { createHash } from "node:crypto";
-import { createWriteStream } from "node:fs";
+import { createReadStream, createWriteStream } from "node:fs";
 import { mkdir, rename, rm, stat } from "node:fs/promises";
 import { execFile as execFileCallback } from "node:child_process";
-import { createReadStream } from "node:fs";
 import { pipeline } from "node:stream/promises";
 import { promisify } from "node:util";
 import { basename, join } from "node:path";
@@ -23,14 +22,15 @@ async function hashFile(path) {
 
 function parseChecksum(text) {
   const line = text.trim().split(/\r?\n/u).find(Boolean);
-  const match = line?.match(/^([a-f\d]{64})(?:\s+\*?(.+))?$/iu);
+  const match = line?.match(/^(?<hash>[a-f\d]{64})(?:\s+\*?(?<name>.+))?$/iu);
   if (!match) {
     throw new Error(`Invalid SHA-256 checksum file for ${archiveName}`);
   }
-  if (match[2] && basename(match[2].trim()) !== archiveName) {
+  const groups = match.groups ?? {};
+  if (groups.name && basename(groups.name.trim()) !== archiveName) {
     throw new Error(`Checksum file does not name ${archiveName}`);
   }
-  return match[1].toLowerCase();
+  return (groups.hash ?? "").toLowerCase();
 }
 
 async function request(fetchImpl, url, accept) {
@@ -157,9 +157,11 @@ export async function prepareMapleFont({
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const result = await prepareMapleFont();
-  console.log(
-    result.status === "skipped"
-      ? "Maple font download skipped outside GitHub Actions."
-      : `Prepared verified Maple Font ${result.tag}.`,
+  process.stdout.write(
+    `${
+      result.status === "skipped"
+        ? "Maple font download skipped outside GitHub Actions."
+        : `Prepared verified Maple Font ${result.tag}.`
+    }\n`,
   );
 }

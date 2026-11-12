@@ -8,7 +8,5 @@ export const GET: APIRoute = async () => {
   const posts = await getCollection("posts");
   const index = buildSearchIndex(posts);
 
-  return new Response(JSON.stringify(index), {
-    headers: { "Content-Type": "application/json; charset=utf-8" },
-  });
+  return Response.json(index);
 };

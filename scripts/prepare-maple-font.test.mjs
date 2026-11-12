@@ -23,7 +23,7 @@ const release = {
 
 function createFetch({ checksumValue = "valid", onArchive } = {}) {
   const hash = checksumValue === "valid" ? archiveHash : checksumValue;
-  return async (url) => {
+  return (url) => {
     if (url.endsWith("/releases/latest")) {
       return Response.json(release);
     }
@@ -42,7 +42,7 @@ test("local builds do not resolve or download the font release", async () => {
   let requests = 0;
   const result = await prepareMapleFont({
     isGitHubActions: false,
-    fetchImpl: async () => {
+    fetchImpl: () => {
       requests += 1;
       throw new Error("local font setup must not make network requests");
     },
@@ -54,6 +54,7 @@ test("local builds do not resolve or download the font release", async () => {
 
 test("a font archive with a mismatched release checksum is rejected", async () => {
   const directory = await mkdtemp(join(tmpdir(), "maple-font-test-"));
+  const mismatchedHash = "0".repeat(64);
   let extracted = false;
   try {
     await assert.rejects(
@@ -61,8 +62,8 @@ test("a font archive with a mismatched release checksum is rejected", async () =
         isGitHubActions: true,
         cacheDir: join(directory, "cache"),
         outputDir: join(directory, "fonts"),
-        fetchImpl: createFetch({ checksumValue: "0".repeat(64) }),
-        extractArchive: async () => {
+        fetchImpl: createFetch({ checksumValue: mismatchedHash }),
+        extractArchive: () => {
           extracted = true;
         },
       }),
@@ -83,7 +84,7 @@ test("a verified archive is reused for repeated builds of the same release tag",
     cacheDir: join(directory, "cache"),
     outputDir: join(directory, "fonts"),
     fetchImpl: createFetch({ onArchive: () => (archiveDownloads += 1) }),
-    extractArchive: async () => {
+    extractArchive: () => {
       extractions += 1;
     },
   };

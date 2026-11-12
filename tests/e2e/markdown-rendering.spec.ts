@@ -7,7 +7,7 @@ test("preview articles render Markdown as semantic HTML", async ({ page }) => {
   await expect(article.getByRole("heading", { level: 2, name: "阅读界面" }).first()).toBeVisible();
   await expect(article.getByText("舒适的行宽", { exact: true })).toHaveCSS(
     "font-weight",
-    /[6-9]00/,
+    /[6-9]00/u,
   );
   await expect(article.getByRole("listitem").first()).toHaveText("让读者专注于正文");
 });

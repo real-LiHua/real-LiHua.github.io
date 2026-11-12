@@ -31,18 +31,18 @@ export function createSearchDatabase() {
 
 export function stripMarkdownForSearch(markdown: string): string {
   return markdown
-    .replace(/<!--[\s\S]*?-->/gu, " ")
-    .replace(/^```[^\n]*$/gmu, " ")
-    .replace(/!\[([^\]]*)\]\([^)]*\)/gu, "$1")
-    .replace(/\[([^\]]+)\]\([^)]*\)/gu, "$1")
-    .replace(/\[([^\]]+)\]\[[^\]]*\]/gu, "$1")
-    .replace(/^#{1,6}\s+/gmu, "")
-    .replace(/^\s*>\s?/gmu, "")
-    .replace(/^\s*[-+*]\s+/gmu, "")
-    .replace(/^\s*\|?[\s:|-]+\|[\s:|-]*$/gmu, " ")
-    .replace(/[`*_~]/gu, "")
-    .replace(/<[^>]+>/gu, " ")
-    .replace(/\s+/gu, " ")
+    .replaceAll(/<!--[\s\S]*?-->/gu, " ")
+    .replaceAll(/^```[^\n]*$/gmu, " ")
+    .replaceAll(/!\[(?<alt>[^\]]*)\]\([^)]*\)/gu, "$<alt>")
+    .replaceAll(/\[(?<text>[^\]]+)\]\([^)]*\)/gu, "$<text>")
+    .replaceAll(/\[(?<refText>[^\]]+)\]\[[^\]]*\]/gu, "$<refText>")
+    .replaceAll(/^#{1,6}\s+/gmu, "")
+    .replaceAll(/^\s*>\s?/gmu, "")
+    .replaceAll(/^\s*[-+*]\s+/gmu, "")
+    .replaceAll(/^\s*\|?[\s:|-]+\|[\s:|-]*$/gmu, " ")
+    .replaceAll(/[`*_~]/gu, "")
+    .replaceAll(/<[^>]+>/gu, " ")
+    .replaceAll(/\s+/gu, " ")
     .trim();
 }
 

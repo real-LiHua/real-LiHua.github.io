@@ -18,7 +18,7 @@ function getPreviewTitles(): Set<string> {
       continue;
     }
 
-    const title = source.match(/^title:\s*(.+)$/mu)?.[1]?.trim();
+    const title = source.match(/^title:\s*(?<title>.+)$/mu)?.groups?.title?.trim();
     if (title) {
       titles.add(title);
     }
@@ -38,7 +38,7 @@ test("home and archive list several preview articles from the content collection
     await expect(page.getByText("预览示例 · 以下内容仅用于界面预览")).toBeVisible();
 
     for (const article of await articles.all()) {
-      await expect(article.getByRole("link")).toHaveAttribute("href", /^\/posts\/[^/]+\/$/);
+      await expect(article.getByRole("link")).toHaveAttribute("href", /^\/posts\/[^/]+\/$/u);
     }
   }
 });

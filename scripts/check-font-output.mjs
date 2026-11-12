@@ -4,16 +4,15 @@ import { pathToFileURL } from "node:url";
 
 async function findCssFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
-  const nested = await Promise.all(
-    entries.map(async (entry) => {
-      const path = join(directory, entry.name);
-      if (entry.isDirectory()) {
-        return findCssFiles(path);
-      }
-      return entry.isFile() && entry.name.endsWith(".css") ? [path] : [];
-    }),
-  );
-  return nested.flat();
+  const nested = entries.map((entry) => {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      return findCssFiles(path);
+    }
+    return entry.isFile() && entry.name.endsWith(".css") ? [path] : [];
+  });
+  const resolved = await Promise.all(nested);
+  return resolved.flat();
 }
 
 export async function checkFontOutput(outputDir) {
@@ -26,8 +25,11 @@ export async function checkFontOutput(outputDir) {
     const fontFaces = css.match(/@font-face\s*\{[^}]*\}/giu) ?? [];
     for (const fontFace of fontFaces) {
       hasFontFace = true;
-      const urls = [...fontFace.matchAll(/url\(\s*(['"]?)([^'")]+)\1\s*\)/giu)];
-      for (const [, , source] of urls) {
+      const urls = [
+        ...fontFace.matchAll(/url\(\s*(?<quote>['"]?)(?<source>[^'")]+)\k<quote>\s*\)/giu),
+      ];
+      for (const { groups } of urls) {
+        const source = groups?.source ?? "";
         if (/^(?:https?:)?\/\//iu.test(source) || /^data:/iu.test(source)) {
           throw new Error(`Generated font CSS contains an external font URL: ${source}`);
         }
@@ -59,10 +61,10 @@ export async function checkFontOutput(outputDir) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   if (process.env.GITHUB_ACTIONS !== "true") {
-    console.log("Font output verification skipped outside GitHub Actions.");
+    process.stdout.write("Font output verification skipped outside GitHub Actions.\n");
   } else {
     const outputDir = process.argv[2] ?? "dist/client";
     const result = await checkFontOutput(outputDir);
-    console.log(`Verified ${result.fontFiles.length} local WOFF2 font asset(s).`);
+    process.stdout.write(`Verified ${result.fontFiles.length} local WOFF2 font asset(s).\n`);
   }
 }

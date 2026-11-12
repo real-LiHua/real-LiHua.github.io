@@ -126,6 +126,15 @@ const { Content } = await render(post);
     return icon;
   };
 
+  const parseSavedOutlinePosition = (value: unknown): { left: number; top: number } | null => {
+    if (typeof value !== "object" || value === null) {return null;}
+    if (!("left" in value) || !("top" in value)) {return null;}
+    const { left, top } = value;
+    if (typeof left !== "number" || !Number.isFinite(left)) {return null;}
+    if (typeof top !== "number" || !Number.isFinite(top)) {return null;}
+    return { left, top };
+  };
+
   const article = document.querySelector(".article");
   const articleContent = article?.querySelector(".article-content");
 
@@ -143,7 +152,7 @@ const { Content } = await render(post);
       const isArchiveHost =
         originalUrl.hostname === "archive.org" ||
         originalUrl.hostname.endsWith(".archive.org");
-      if (!isHttp || isInternal || isArchiveHost) continue;
+      if (!isHttp || isInternal || isArchiveHost) {continue;}
 
       link.target = "_blank";
       link.rel = "noopener noreferrer";
@@ -165,7 +174,7 @@ const { Content } = await render(post);
 
     for (const pre of articleContent.querySelectorAll("pre")) {
       const code = pre.querySelector("code");
-      if (!code) continue;
+      if (!code) {continue;}
 
       const block = document.createElement("div");
       block.className = "code-block";
@@ -190,7 +199,7 @@ const { Content } = await render(post);
       copyButton.append(createIcon("copy"));
       copyButton.addEventListener("click", async () => {
         try {
-          await navigator.clipboard.writeText(code.textContent?.replace(/\n$/, "") ?? "");
+          await navigator.clipboard.writeText(code.textContent?.replace(/\n$/u, "") ?? "");
           status.textContent = "已复制到剪贴板";
         } catch {
           status.textContent = "复制失败";
@@ -208,8 +217,8 @@ const { Content } = await render(post);
         heading.textContent
           ?.trim()
           .toLowerCase()
-          .replace(/[^\p{L}\p{N}]+/gu, "-")
-          .replace(/^-|-$/gu, "") ||
+          .replaceAll(/[^\p{L}\p{N}]+/gu, "-")
+          .replaceAll(/^-|-$/gu, "") ||
         `heading-${index + 1}`;
       let id = baseId;
       let suffix = 1;
@@ -260,11 +269,24 @@ const { Content } = await render(post);
 
     if (outlineWidget && outlineToggle && outlinePanel && outlineList) {
       const outlineLevels: { level: number; item: HTMLLIElement }[] = [];
+      const appendOutlineItem = (parent: HTMLLIElement | undefined, item: HTMLLIElement) => {
+        if (!parent) {
+          outlineList.append(item);
+          return;
+        }
+        let children = parent.querySelector<HTMLUListElement>(":scope > ul");
+        if (!children) {
+          children = document.createElement("ul");
+          children.className = "outline-children";
+          parent.append(children);
+        }
+        children.append(item);
+      };
       for (const heading of outlineHeadings) {
         const clone = heading.cloneNode(true) as HTMLElement;
         clone.querySelectorAll("button").forEach((button) => button.remove());
         const text = clone.textContent?.trim() ?? "";
-        if (!text) continue;
+        if (!text) {continue;}
 
         const level = Number(heading.tagName.slice(1));
         let parentLevel = outlineLevels.at(-1);
@@ -280,23 +302,12 @@ const { Content } = await render(post);
         link.textContent = text;
         item.append(link);
 
-        const parent = outlineLevels.at(-1)?.item;
-        if (!parent) {
-          outlineList.append(item);
-        } else {
-          let children = parent.querySelector<HTMLUListElement>(":scope > ul");
-          if (!children) {
-            children = document.createElement("ul");
-            children.className = "outline-children";
-            parent.append(children);
-          }
-          children.append(item);
-        }
+        appendOutlineItem(outlineLevels.at(-1)?.item, item);
         outlineLevels.push({ level, item });
       }
 
       const positionOutlinePanel = () => {
-        if (outlinePanel.hidden) return;
+        if (outlinePanel.hidden) {return;}
 
         const toggleRect = outlineToggle.getBoundingClientRect();
         const margin = 8;
@@ -337,7 +348,7 @@ const { Content } = await render(post);
           }
           outlinePanel.dataset.state = "opening";
           requestAnimationFrame(() => {
-            if (!outlinePanel.hidden) outlinePanel.dataset.state = "open";
+            if (!outlinePanel.hidden) {outlinePanel.dataset.state = "open";}
           });
           return;
         }
@@ -367,16 +378,16 @@ const { Content } = await render(post);
         const readingLine = window.innerHeight * 0.35;
         while (activeIndex + 1 < outlineHeadings.length) {
           const next = outlineHeadings[activeIndex + 1];
-          if (!next || next.getBoundingClientRect().top > readingLine) break;
+          if (!next || next.getBoundingClientRect().top > readingLine) {break;}
           activeIndex += 1;
         }
         while (activeIndex > 0) {
           const current = outlineHeadings[activeIndex];
-          if (!current || current.getBoundingClientRect().top <= readingLine) break;
+          if (!current || current.getBoundingClientRect().top <= readingLine) {break;}
           activeIndex -= 1;
         }
         const heading = outlineHeadings[activeIndex] ?? outlineHeadings[0];
-        if (!heading || heading === activeHeading) return;
+        if (!heading || heading === activeHeading) {return;}
 
         activeHeading = heading;
         activeLink = outlineLinks.find((link) => link.dataset.outlineTarget === heading.id);
@@ -395,7 +406,7 @@ const { Content } = await render(post);
 
       let updateFrame = 0;
       const scheduleCurrentHeadingUpdate = () => {
-        if (updateFrame) return;
+        if (updateFrame) {return;}
         updateFrame = requestAnimationFrame(() => {
           updateFrame = 0;
           updateCurrentHeading();
@@ -450,29 +461,23 @@ const { Content } = await render(post);
           }
         };
 
-        try {
-          const savedPosition = localStorage.getItem(outlinePositionStorageKey);
-          if (savedPosition) {
-            const position: unknown = JSON.parse(savedPosition);
-            if (
-              typeof position === "object" &&
-              position !== null &&
-              "left" in position &&
-              "top" in position &&
-              typeof position.left === "number" &&
-              Number.isFinite(position.left) &&
-              typeof position.top === "number" &&
-              Number.isFinite(position.top)
-            ) {
+        const restoreOutlinePosition = () => {
+          try {
+            const savedPosition = localStorage.getItem(outlinePositionStorageKey);
+            const position = savedPosition
+              ? parseSavedOutlinePosition(JSON.parse(savedPosition))
+              : null;
+            if (position) {
               setOutlinePosition(position.left, position.top);
             }
+          } catch {
+            status.textContent = "无法读取已保存的目录按钮位置";
           }
-        } catch {
-          status.textContent = "无法读取已保存的目录按钮位置";
-        }
+        };
+        restoreOutlinePosition();
 
         outlineToggle.addEventListener("pointerdown", (event) => {
-          if (event.button !== 0 || activePointer !== null) return;
+          if (event.button !== 0 || activePointer !== null) {return;}
           activePointer = event.pointerId;
           startX = event.clientX;
           startY = event.clientY;
@@ -482,23 +487,23 @@ const { Content } = await render(post);
         });
 
         window.addEventListener("pointermove", (event) => {
-          if (event.pointerId !== activePointer) return;
+          if (event.pointerId !== activePointer) {return;}
           const deltaX = event.clientX - startX;
           const deltaY = event.clientY - startY;
           if (!isDragging && Math.hypot(deltaX, deltaY) > 6) {
             isDragging = true;
             outlineToggle.dataset.dragging = "true";
           }
-          if (!isDragging) return;
+          if (!isDragging) {return;}
 
           setOutlinePosition(event.clientX - offsetX, event.clientY - offsetY);
           positionOutlinePanel();
         });
 
         const finishDrag = (event: PointerEvent) => {
-          if (event.pointerId !== activePointer) return;
+          if (event.pointerId !== activePointer) {return;}
           skipToggleClick = isDragging;
-          if (isDragging) saveOutlinePosition();
+          if (isDragging) {saveOutlinePosition();}
           isDragging = false;
           activePointer = null;
           delete outlineToggle.dataset.dragging;
