@@ -26,6 +26,7 @@ build-time WOFF2 optimization.
 | `pnpm exec astro check`     | Check Astro and TypeScript files                       |
 | `pnpm run build`            | Build the site and generate the Orama search index     |
 | `pnpm test`                 | Run Playwright browser tests                           |
+| `pnpm run lighthouse`       | Audit built pages with Lighthouse                      |
 | `pnpm run test:font`        | Test local font-download, checksum, and cache behavior |
 | `pnpm run test:font-output` | Test generated font-output validation                  |
 | `pnpm run lint:md`          | Lint Markdown                                          |
