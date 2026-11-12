@@ -57,9 +57,27 @@ body {
     color 180ms ease-out;
 }
 
-a {
+a[href] {
   color: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: var(--border);
   text-underline-offset: 0.2em;
+}
+
+a[href]:hover,
+a[href]:focus-visible {
+  color: var(--primary);
+  text-decoration-color: currentColor;
+}
+
+/* Icon-only links carry no underline; the glyph and hover state signal the
+   affordance. Text links keep the dim hairline underline above. */
+.site-header nav > a,
+.archive-utilities a,
+.archive-lookup,
+.eyebrow a,
+.skip-link {
+  text-decoration: none;
 }
 
 a:focus-visible,
