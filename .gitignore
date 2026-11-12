@@ -57,6 +57,10 @@ src/posts/drafts/
 .agents/reports/
 !.agents/scripts/
 
+# Vendored ai-catalog-cli skill: only SKILL.md is kept
+.agents/skills/ai-catalog-cli/*
+!.agents/skills/ai-catalog-cli/SKILL.md
+
 # Misc
 *.tgz
 .cache/

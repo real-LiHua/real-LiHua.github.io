@@ -1,6 +1,12 @@
 {
   "version": 2,
   "skills": {
+    "ai-catalog-cli": {
+      "source": "Agent-Card/ai-catalog-cli",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "74c3d41be14f0d75622d93020dbd006b69366ebdb22f5fb964d8f6087d2640c9"
+    },
     "ask-matt": {
       "source": "mattpocock/skills",
       "sourceType": "github",
