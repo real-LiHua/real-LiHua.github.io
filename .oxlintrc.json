@@ -62,6 +62,7 @@
     "no-await-in-loop": "off",
     "no-rest-spread-properties": "off",
     "no-map-spread": "off",
+    "number-literal-case": "off",
     "explicit-function-return-type": "off",
     "max-statements": "off",
     "max-lines-per-function": "off",
