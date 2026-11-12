@@ -81,6 +81,10 @@ jobs:
         uses: actions/upload-pages-artifact@v5
         with:
           path: dist/client
+          # The ARD manifest lives at .well-known/ard.json. The action defaults
+          # to excluding dot-paths (tar --exclude='.[^/]*'), which would ship
+          # every page but silently drop the manifest from the Pages artifact.
+          include-hidden-files: true
 
       - name: Deploy to GitHub Pages
         id: deployment
