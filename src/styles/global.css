@@ -327,6 +327,10 @@ main {
 .archive-lookup {
   color: var(--primary);
   font-size: 0.8em;
+  /* Keep the icon-only archive link a 24px hit target (WCAG 2.5.8). */
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  padding: 0.25rem;
 }
 
 .table-scroll {

@@ -10,6 +10,23 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { fontPlugin } from "vite-plugin-font";
+import githubDark from "@shikijs/themes/github-dark";
+
+// GitHub Dark keeps code surfaces matching the design system, but its comment
+// color (#6a737d, 3.05:1 on #24292e) fails WCAG AA. Swap comments to GitHub's
+// current github-dark comment color (#8b949e, 4.77:1).
+const githubDarkAA = {
+  ...githubDark,
+  name: "github-dark-aa",
+  tokenColors: (githubDark.tokenColors ?? []).map((rule) => {
+    const rawScopes = rule.scope === undefined ? [] : [rule.scope].flat();
+    const scopes = rawScopes.filter((scope): scope is string => typeof scope === "string");
+    const isCommentRule = scopes.some((scope) => scope.includes("comment"));
+    return isCommentRule && rule.settings?.foreground === "#6a737d"
+      ? { ...rule, settings: { ...rule.settings, foreground: "#8b949e" } }
+      : rule;
+  }),
+};
 
 const oramaClientEntry = fileURLToPath(new URL("src/lib/orama-webmcp-client.ts", import.meta.url));
 const oramaPackageEntry = fileURLToPath(
@@ -178,6 +195,9 @@ export default defineConfig({
   integrations: [mapleFontIntegration, webmcpIntegration],
   markdown: {
     processor: markdownProcessor,
+    shikiConfig: {
+      theme: githubDarkAA,
+    },
   },
   vite: {
     plugins: [tailwindcss()],

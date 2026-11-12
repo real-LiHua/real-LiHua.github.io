@@ -30,7 +30,7 @@ const answer = 42; // This line stays inside its code block on narrow screens.
 
 重复标题用于检查片段标识是否唯一。
 
-![预览插图](/preview-image.svg)
+<img src="/preview-image.svg" alt="预览插图" width="1200" height="600" />
 
 | 项目 | 内容                                                                                                     |
 | ---- | -------------------------------------------------------------------------------------------------------- |

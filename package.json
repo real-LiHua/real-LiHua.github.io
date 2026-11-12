@@ -62,6 +62,7 @@
     "@playwright/test": "^1.65.0",
     "@shadcn/lint": "^0.2.5",
     "@shikijs/colorized-brackets": "^4.6.0",
+    "@shikijs/themes": "^4.6.0",
     "@tailwindcss/postcss": "^4.3.5",
     "@tgcloud/cli": "^0.1.2",
     "@types/hast": "^3.0.5",
