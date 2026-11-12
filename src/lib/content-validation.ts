@@ -15,8 +15,10 @@ export function assertUniqueSeriesPositions(entries: SeriesEntry[]): void {
   const positions = new Map<string, string>();
 
   for (const entry of entries) {
-    const series = entry.data.series;
-    if (!series) continue;
+    const { series } = entry.data;
+    if (!series) {
+      continue;
+    }
 
     const key = `${series.id}:${series.order}`;
     const previousId = positions.get(key);

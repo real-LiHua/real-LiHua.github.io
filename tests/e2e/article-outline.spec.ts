@@ -210,7 +210,9 @@ test("outline touch dragging is supported and the panel fits on narrow screens",
   await page.evaluate(
     ({ x, y }) => {
       const button = document.querySelector("[data-outline-toggle]");
-      if (!button) throw new Error("Outline toggle was not rendered");
+      if (!button) {
+        throw new Error("Outline toggle was not rendered");
+      }
 
       button.dispatchEvent(
         new PointerEvent("pointerdown", {

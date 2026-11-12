@@ -18,7 +18,7 @@ export async function getStaticPaths() {
 const slug = Astro.params.slug ?? "";
 const allPosts = await getCollection("posts");
 const topic = allPosts.flatMap((post) => post.data.topics).find((item) => item.slug === slug);
-if (!topic) throw new Error(`Missing topic "${slug}"`);
+if (!topic) {throw new Error(`Missing topic "${slug}"`);}
 
 const posts = allPosts
   .filter((post) => post.data.topics.some((item) => item.slug === slug))
