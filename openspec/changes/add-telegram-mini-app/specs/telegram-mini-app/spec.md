@@ -10,7 +10,7 @@ and opened in a regular browser it behaves exactly as before.
 
 ### Requirement: Shared pages bootstrap inside Telegram
 
-The shared layout SHALL detect a Telegram launch from the URL fragment (`tgWebAppPlatform` or `tgWebAppData`) in an inline head script, apply the client palette before first paint, and mark `<html>` with a `telegram` class. The SDK SHALL load asynchronously after `window.load`, only for Telegram launches.
+The shared layout SHALL detect a Telegram launch from the URL fragment (`tgWebAppPlatform` or `tgWebAppData`) in an inline head script, apply the client palette before first paint, and mark `<html>` with a `telegram` class. In-app navigations (full page loads without the fragment) SHALL restore Telegram mode from a per-tab `sessionStorage` launch record written at launch and synced on `themeChanged`. The SDK SHALL load asynchronously after `window.load`, only for Telegram launches.
 
 #### Scenario: Palette is applied before first paint
 
@@ -21,6 +21,16 @@ The shared layout SHALL detect a Telegram launch from the URL fragment (`tgWebAp
 
 - **WHEN** a visitor opens the site from a Telegram menu button or link inside the Telegram client
 - **THEN** `<html>` carries the `telegram` class before first paint, and `ready()` and `expand()` are called once the SDK loads
+
+#### Scenario: Navigating inside the Mini App
+
+- **WHEN** a visitor follows an in-app link (a full page load that drops the URL fragment)
+- **THEN** the page restores Telegram mode from the per-tab launch record: `<html>` carries the `telegram` class and `--tg-theme-*` variables before the first paint, matching the client's latest palette; `reader-theme` and the system preference remain ignored
+
+#### Scenario: Client theme changes, then the visitor navigates
+
+- **WHEN** a `themeChanged` event re-applies the client palette and the visitor later follows an in-app link
+- **THEN** the next page renders with the client's latest scheme and palette, not the launch-time palette
 
 #### Scenario: Opened in a regular browser
 

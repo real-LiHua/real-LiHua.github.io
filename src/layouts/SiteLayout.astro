@@ -33,10 +33,45 @@ const isPostsSection =
     <script is:inline>
       // Telegram Mini App bootstrap. Runs before first paint and never waits
       // on the network: the launch parameters travel in the URL fragment, so
-      // the forced client palette can be applied synchronously. The SDK
+      // the forced client palette can be applied synchronously. In-app
+      // navigations are full page loads that drop the fragment, so the
+      // launch parameters are persisted to sessionStorage (per tab) and a
+      // later page in the same session restores them from there. The SDK
       // (injected after window.load) only adds ready()/expand()/chrome sync.
-      const tgParams = new URLSearchParams(window.location.hash.replace(/^#/u, ""));
-      const inTelegram = tgParams.has("tgWebAppPlatform") || tgParams.has("tgWebAppData");
+      const TGLAUNCH_KEY = "tg-launch";
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/u, ""));
+      let tgParams = hashParams;
+      let inTelegram = tgParams.has("tgWebAppPlatform") || tgParams.has("tgWebAppData");
+
+      if (inTelegram) {
+        // First paint of a launch: remember the fragment for in-app navigations.
+        try {
+          const subset = new URLSearchParams();
+          for (const [key, value] of hashParams) {
+            if (key.startsWith("tgWebApp")) {
+              subset.set(key, value);
+            }
+          }
+          sessionStorage.setItem(TGLAUNCH_KEY, subset.toString());
+        } catch {
+          // Storage unavailable (e.g. private mode) — this page still works;
+          // later navigations degrade to the regular browser palette.
+        }
+      } else {
+        // Navigated within the Mini App: restore the persisted launch fragment.
+        try {
+          const stored = sessionStorage.getItem(TGLAUNCH_KEY);
+          if (stored) {
+            const storedParams = new URLSearchParams(stored);
+            if (storedParams.has("tgWebAppPlatform") || storedParams.has("tgWebAppData")) {
+              tgParams = storedParams;
+              inTelegram = true;
+            }
+          }
+        } catch {
+          // Storage unavailable — regular browser path.
+        }
+      }
       const colorSchemeMetaEarly = document.querySelector('meta[name="color-scheme"]');
 
       if (inTelegram) {
@@ -129,11 +164,26 @@ const isPostsSection =
 <script>
   import { initTelegram } from "../lib/telegram";
 
-  // Only Telegram launches need the SDK; inject it after window.load so the
+  // Telegram launches need the SDK; inject it after window.load so the
   // external request never delays the load event or the initial paint. The
-  // inline head bootstrap already applied the client palette by then.
-  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/u, ""));
-  const isTelegramLaunch = hashParams.has("tgWebAppPlatform") || hashParams.has("tgWebAppData");
+  // head bootstrap already applied the client palette by then. In-app
+  // navigations drop the fragment, so Telegram mode is also inferred from
+  // the sessionStorage launch record written by the head bootstrap.
+  const hasLaunchKeys = (search: URLSearchParams) =>
+    search.has("tgWebAppPlatform") || search.has("tgWebAppData");
+
+  const isTelegramLaunch = (() => {
+    const params = new URLSearchParams(window.location.hash.replace(/^#/u, ""));
+    if (hasLaunchKeys(params)) {
+      return true;
+    }
+    try {
+      const stored = sessionStorage.getItem("tg-launch");
+      return stored !== null && hasLaunchKeys(new URLSearchParams(stored));
+    } catch {
+      return false;
+    }
+  })();
 
   if (isTelegramLaunch) {
     window.addEventListener("load", () => {

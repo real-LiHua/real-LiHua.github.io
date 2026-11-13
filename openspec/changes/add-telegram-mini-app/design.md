@@ -64,7 +64,20 @@ The site does not use Astro `<ClientRouter />`. `themeChanged` is bound inside
 invocation by the immediate call, the SDK `onload`, and the late-load retry),
 so nothing leaks across navigations.
 
-### D7. No server component, no identity handling
+### D7. Launch parameters persist per tab via sessionStorage
+
+In-app navigations are full page loads that drop the URL fragment, so every
+navigation would otherwise fall out of Telegram mode. The head bootstrap
+writes a small `tg-launch` record (`tgWebApp*` keys only) to `sessionStorage`
+on a fragment launch; later pages in the same tab restore Telegram mode from
+it before first paint. `initTelegram` and the `themeChanged` handler
+re-write the record with the client's latest `colorScheme` and `themeParams`,
+so navigating after a client theme change restores the new palette rather
+than the launch-time one. `sessionStorage` (not `localStorage`) keeps the
+record per tab and out of regular browser windows; storage failures degrade
+to fragment-only behavior.
+
+### D8. No server component, no identity handling
 
 The Mini App is read-only presentation on the existing GitHub Pages URL.
 `initData` is not consumed anywhere, so there is nothing to validate and no

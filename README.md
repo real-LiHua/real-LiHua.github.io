@@ -55,6 +55,9 @@ Behavior inside Telegram (detected from the `tgWebApp*` launch fragment):
 - The pinned SDK (`telegram-web-app.js?65`) is injected after `window.load`,
   so it never blocks rendering; regular browsers make no request to
   telegram.org. If the SDK cannot load, the client palette still applies.
+- In-app navigations (full page loads) keep the forced palette: the launch
+  fragment is persisted per tab (`sessionStorage`) at launch and synced on
+  `themeChanged`, and restored by the head bootstrap on the next page.
 
 Opened in a regular browser, everything behaves exactly as before.
 

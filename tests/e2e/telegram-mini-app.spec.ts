@@ -61,14 +61,32 @@ const mockTelegram = async (page: Page, options: TelegramMockOptions) => {
   await page.route("https://telegram.org/js/telegram-web-app.js*", (route) => route.abort());
   if (installMock) {
     await page.addInitScript(
-      ({ colorScheme, platform, version, initData }) => {
+      ({ colorScheme, platform, version, initData, themeParams }) => {
+        // A real client re-reports the *current* theme on every page load,
+        // even when the launch fragment itself is dropped (in-app navigation).
+        // Mirror that: boot from the persisted launch record when present.
+        const storedRaw = sessionStorage.getItem("tg-launch");
+        const stored = storedRaw ? new URLSearchParams(storedRaw) : null;
+        const storedScheme = stored?.get("tgWebAppColorScheme");
+        const bootedScheme =
+          storedScheme === "light" || storedScheme === "dark" ? storedScheme : colorScheme;
+        let bootedParams = themeParams;
+        try {
+          const storedParams = stored?.get("tgWebAppThemeParams");
+          if (storedParams) {
+            bootedParams = JSON.parse(storedParams);
+          }
+        } catch {
+          // Fall back to the launch params.
+        }
         const calls: string[] = [];
         const handlers: Record<string, () => void> = {};
         const webApp = {
           platform,
           version,
           initData,
-          colorScheme,
+          colorScheme: bootedScheme,
+          themeParams: { ...bootedParams },
           isExpanded: false,
           ready: () => calls.push("ready"),
           expand: () => {
@@ -88,13 +106,14 @@ const mockTelegram = async (page: Page, options: TelegramMockOptions) => {
         Object.defineProperty(window, "Telegram", { value: { WebApp: webApp } });
         Object.defineProperty(window, "__tgCalls", { value: calls });
         Object.defineProperty(window, "__tgSetScheme", {
-          value: (next: "light" | "dark") => {
+          value: (next: "light" | "dark", nextParams: Record<string, string> = themeParams) => {
             webApp.colorScheme = next;
+            webApp.themeParams = { ...nextParams };
             handlers["themeChanged"]?.();
           },
         });
       },
-      { colorScheme, platform, version, initData },
+      { colorScheme, platform, version, initData, themeParams },
     );
   }
 
@@ -179,6 +198,43 @@ test("themeChanged re-applies the client scheme without a reload", async ({ page
 
   await expect(page.locator("html")).not.toHaveClass(/dark/u);
   await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute("content", "light");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(255, 255, 255)");
+});
+
+test("client palette follows the client across in-app page navigations", async ({ page }) => {
+  await mockTelegram(page, { colorScheme: "dark" });
+
+  await expect(page.locator("html")).toHaveClass(/telegram/u);
+  await page.getByRole("link", { name: "文章" }).click();
+  await page.waitForURL("**/posts/**");
+
+  // The fragment is gone after navigation; the client mode must survive it.
+  await expect(page.locator("html")).toHaveClass(/telegram/u);
+  await expect(page.locator("html")).toHaveClass(/dark/u);
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(23, 33, 43)");
+  await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute("content", "dark");
+  await expect(page.locator("[data-theme-toggle]")).toBeHidden();
+  const calls = await page.evaluate(() => (window as never as { __tgCalls: string[] }).__tgCalls);
+  expect(calls).toContain("ready");
+  expect(calls).toContain("expand");
+});
+
+test("a theme change persists across in-app page navigations", async ({ page }) => {
+  await mockTelegram(page, { colorScheme: "dark" });
+  await page.evaluate(
+    (params) =>
+      (
+        window as never as {
+          __tgSetScheme: (s: "light" | "dark", p: Record<string, string>) => void;
+        }
+      ).__tgSetScheme("light", params),
+    lightThemeParams,
+  );
+
+  await page.getByRole("link", { name: "文章" }).click();
+  await page.waitForURL("**/posts/**");
+
+  await expect(page.locator("html")).not.toHaveClass(/dark/u);
   await expect(page.locator("body")).toHaveCSS("background-color", "rgb(255, 255, 255)");
 });
 

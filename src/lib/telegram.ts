@@ -8,6 +8,7 @@ export interface TelegramWebApp {
   version: string;
   initData: string;
   colorScheme: "light" | "dark";
+  themeParams?: Record<string, string>;
   isExpanded: boolean;
   ready: () => void;
   expand: () => void;
@@ -52,6 +53,33 @@ const applyScheme = (tg: TelegramWebApp) => {
 
 let initialized = false;
 
+const TGLAUNCH_KEY = "tg-launch";
+
+// Keep the sessionStorage launch record in sync with the client's latest
+// color scheme and theme parameters. In-app navigations are full page loads
+// that drop the URL fragment; the head bootstrap restores Telegram mode from
+// this record, so it must reflect themeChanged updates.
+const persistLaunch = (tg: TelegramWebApp) => {
+  try {
+    const stored = new URLSearchParams(sessionStorage.getItem(TGLAUNCH_KEY) ?? "");
+    stored.set("tgWebAppColorScheme", tg.colorScheme);
+    if (tg.platform && tg.platform !== "unknown") {
+      stored.set("tgWebAppPlatform", tg.platform);
+    }
+    if (tg.initData) {
+      stored.set("tgWebAppData", tg.initData);
+    }
+    if (tg.themeParams && typeof tg.themeParams === "object") {
+      stored.set("tgWebAppThemeParams", JSON.stringify(tg.themeParams));
+    }
+    if (stored.has("tgWebAppPlatform") || stored.has("tgWebAppData")) {
+      sessionStorage.setItem(TGLAUNCH_KEY, stored.toString());
+    }
+  } catch {
+    // Storage unavailable (private mode, quota) — page works with in-memory state only.
+  }
+};
+
 export const initTelegram = (): TelegramWebApp | null => {
   if (initialized) {
     return getTelegram();
@@ -93,12 +121,15 @@ export const initTelegram = (): TelegramWebApp | null => {
 
   applyScheme(tg);
   syncChrome();
+  persistLaunch(tg);
 
   tg.onEvent("themeChanged", () => {
     // The client re-injects --tg-theme-* before this fires; re-mirror the
-    // scheme and chrome onto our meta/class/chrome state.
+    // scheme and chrome onto our meta/class/chrome state, and persist them
+    // so the next in-app navigation restores the client's latest palette.
     applyScheme(tg);
     syncChrome();
+    persistLaunch(tg);
   });
 
   return tg;
