@@ -16,6 +16,11 @@ export const SKILL_QUERIES: Record<string, readonly string[]> = {
   ],
   "ask-matt": ["Which skill fits my situation?", "Help me pick a workflow from this repo"],
   "canvas-design": ["Create a poster design", "Generate a piece of visual art as PNG"],
+  "chrome-extensions": [
+    "Build a Chrome extension with Manifest V3",
+    "Debug my browser extension's content script",
+    "Publish an extension to the Chrome Web Store",
+  ],
   "claude-handoff": [
     "Hand this conversation off to a background agent",
     "Start a fresh agent to continue this work",
@@ -76,6 +81,11 @@ export const SKILL_QUERIES: Record<string, readonly string[]> = {
   "migrate-to-shoehorn": [
     "Replace as assertions in tests with shoehorn",
     "Migrate my tests to @total-typescript/shoehorn",
+  ],
+  "modern-web-guidance": [
+    "Find modern web best practices for this UI pattern",
+    "Modernize this component with current platform features",
+    "Audit my site for legacy web patterns",
   ],
   prd: ["Write a PRD for this feature", "Generate product requirements for an AI feature"],
   prototype: [

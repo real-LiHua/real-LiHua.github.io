@@ -19,6 +19,12 @@
       "skillPath": "skills/canvas-design/SKILL.md",
       "computedHash": "1866477474e694f562261008bb6a817e53f027b6347b062fbd1e2ee2eb83f20d"
     },
+    "chrome-extensions": {
+      "source": "GoogleChrome/modern-web-guidance",
+      "sourceType": "github",
+      "skillPath": "skills/chrome-extensions/SKILL.md",
+      "computedHash": "802ef1e0135ebd69e0eec533914754ba8ed0f080af86e55400de6e7fb22e6bae"
+    },
     "claude-handoff": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -156,6 +162,12 @@
       "sourceType": "github",
       "skillPath": "skills/misc/migrate-to-shoehorn/SKILL.md",
       "computedHash": "a63549df6d5b5c6595029f8c504ccf31a12f01312f03db70da4b45cb10ba5ca8"
+    },
+    "modern-web-guidance": {
+      "source": "GoogleChrome/modern-web-guidance",
+      "sourceType": "github",
+      "skillPath": "skills/modern-web-guidance/SKILL.md",
+      "computedHash": "9e69ce00dc314b64f6664031b70295ea46c7de93ac682c624808df6e48e08b66"
     },
     "prd": {
       "source": "github/awesome-copilot",
