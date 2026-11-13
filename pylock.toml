@@ -3,7 +3,9 @@ created-by = "pnpm"
 environments = [
     "implementation_name == 'cpython' and platform_machine == 'x86_64' and platform_python_implementation == 'CPython' and platform_system == 'Linux' and python_version == '3.12' and sys_platform == 'linux'",
     "implementation_name == 'cpython' and platform_machine == 'x86_64' and platform_python_implementation == 'CPython' and platform_system == 'Linux' and python_version == '3.13' and sys_platform == 'linux'",
+    "implementation_name == 'cpython' and platform_machine == 'x86_64' and platform_python_implementation == 'CPython' and platform_system == 'Linux' and python_full_version == '3.14.4' and python_version == '3.14' and sys_platform == 'linux'",
     "implementation_name == 'cpython' and platform_machine == 'x86_64' and platform_python_implementation == 'CPython' and platform_system == 'Linux' and python_full_version == '3.14.9' and python_version == '3.14' and sys_platform == 'linux'",
+    "implementation_name == 'cpython' and platform_machine == 'x86_64' and platform_python_implementation == 'CPython' and platform_system == 'Linux' and python_full_version == '3.14.10' and python_version == '3.14' and sys_platform == 'linux'",
 ]
 
 [[packages]]
@@ -1395,7 +1397,9 @@ requirements = ["ragas>=0.4.3"]
 python-versions = [
     "3.12",
     "3.13",
+    "3.14.4",
     "3.14.9",
+    "3.14.10",
 ]
 index = "https://pypi.org/simple/"
 constraints = ["langchain-community<0.4"]

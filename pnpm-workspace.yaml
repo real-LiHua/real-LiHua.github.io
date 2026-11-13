@@ -2,7 +2,11 @@ cargo:
   enabled: true
 python:
   enabled: true
-  versions: ["3.12", "3.13", "3.14.9"]
+  # A minor entry (e.g. "3.14") cannot be locked: a transitive dependency's
+  # marker splits at 3.14.1, so 3.14 must be named in full. 3.14.4 is the
+  # Python shipped by ubuntu-latest (ubuntu-26.04) in CI; 3.14.9/3.14.10 are
+  # developer interpreters. Bump these when the runner image rolls again.
+  versions: ["3.12", "3.13", "3.14.4", "3.14.9", "3.14.10"]
   constraints:
     # ragas 0.4.3 imports langchain_community.chat_models.vertexai, removed in langchain-community 0.4.
     # Drop this constraint once ragas publishes a release compatible with langchain-community >= 0.4.
