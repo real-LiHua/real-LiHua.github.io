@@ -35,6 +35,29 @@ build-time WOFF2 optimization.
 The repository also contains tooling for the Rust `post-edit` CLI and tgcloud.
 Its source and deployment workflows are outside the current reader preview.
 
+## Telegram Mini App
+
+The site doubles as a read-only Telegram Mini App; no bot backend or
+authentication is involved. To enable it, create a bot in
+[@BotFather](https://t.me/BotFather) and set the Mini App URL to
+`https://real-lihua.github.io` (`/newapp`, or the menu button via
+`/setmenubutton`).
+
+Behavior inside Telegram (detected from the `tgWebApp*` launch fragment):
+
+- The client palette wins: shared design tokens resolve to the `--tg-theme-*`
+  variables injected by the client, the light/dark class follows the client's
+  `colorScheme`, and this is applied before first paint.
+- `themeChanged` events re-apply the scheme live; the in-page theme toggle is
+  hidden and `reader-theme` is left untouched.
+- `ready()`/`expand()` run once the WebApp SDK loads, and header, background,
+  and (Bot API ≥ 7.10) bottom bar chrome follow the client's `bg_color`.
+- The pinned SDK (`telegram-web-app.js?65`) is injected after `window.load`,
+  so it never blocks rendering; regular browsers make no request to
+  telegram.org. If the SDK cannot load, the client palette still applies.
+
+Opened in a regular browser, everything behaves exactly as before.
+
 OpenSpec uses the `spec-driven` workflow. The active
 [`design-blog-reader-ui`](openspec/changes/design-blog-reader-ui/) change tracks
 the reader experience and its remaining implementation work.

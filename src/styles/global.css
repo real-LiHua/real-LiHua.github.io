@@ -882,6 +882,47 @@ main {
   --sidebar-ring: oklch(0.72 0.08 145);
 }
 
+/* Telegram Mini App: inside Telegram (<html class="telegram">, set before
+   first paint) every shared token resolves to the client's theme. Falls back
+   to the site's light values when the client omits a field. Specificity
+   (0,2,0) outranks .dark (0,1,0), so the client palette wins regardless of
+   the system dark class. */
+:root.telegram {
+  --background: var(--tg-theme-bg-color, oklch(0.975 0.008 100));
+  --foreground: var(--tg-theme-text-color, oklch(0.24 0.018 140));
+  --card: var(
+    --tg-theme-secondary-bg-color,
+    var(--tg-theme-section-bg-color, oklch(0.99 0.004 100))
+  );
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: var(--tg-theme-accent-text-color, var(--tg-theme-link-color, oklch(0.46 0.065 143)));
+  --primary-foreground: var(--tg-theme-button-text-color, oklch(0.985 0.005 100));
+  --secondary: var(--tg-theme-secondary-bg-color, oklch(0.93 0.012 105));
+  --secondary-foreground: var(--foreground);
+  --muted: var(--tg-theme-secondary-bg-color, oklch(0.945 0.01 100));
+  --muted-foreground: var(--tg-theme-hint-color, oklch(0.46 0.018 140));
+  --accent: var(--tg-theme-secondary-bg-color, oklch(0.93 0.018 140));
+  --accent-foreground: var(--foreground);
+  --destructive: var(--tg-theme-destructive-text-color, oklch(0.577 0.245 27.325));
+  --border: var(--tg-theme-section-separator-color, oklch(0.87 0.012 105));
+  --input: var(--tg-theme-section-separator-color, oklch(0.84 0.014 105));
+  --ring: var(--tg-theme-accent-text-color, var(--tg-theme-link-color, oklch(0.52 0.07 143)));
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+
+.telegram [data-theme-toggle] {
+  display: none;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

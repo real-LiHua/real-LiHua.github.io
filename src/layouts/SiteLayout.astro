@@ -31,23 +31,53 @@ const isPostsSection =
     <title>{title}</title>
     <meta name="color-scheme" content="light dark" />
     <script is:inline>
-      let savedTheme = null;
-      try {
-        const value = localStorage.getItem("reader-theme");
-        if (value === "light" || value === "dark") {
-          savedTheme = value;
-        }
-      } catch {
-        savedTheme = null;
-      }
+      // Telegram Mini App bootstrap. Runs before first paint and never waits
+      // on the network: the launch parameters travel in the URL fragment, so
+      // the forced client palette can be applied synchronously. The SDK
+      // (injected after window.load) only adds ready()/expand()/chrome sync.
+      const tgParams = new URLSearchParams(window.location.hash.replace(/^#/u, ""));
+      const inTelegram = tgParams.has("tgWebAppPlatform") || tgParams.has("tgWebAppData");
+      const colorSchemeMetaEarly = document.querySelector('meta[name="color-scheme"]');
 
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const theme = savedTheme ?? (prefersDark ? "dark" : "light");
-      const colorSchemeMeta = document.querySelector('meta[name="color-scheme"]');
-      if (colorSchemeMeta) {
-        colorSchemeMeta.content = savedTheme ?? "light dark";
+      if (inTelegram) {
+        // Telegram forced mode: the client owns the palette and color scheme;
+        // the reader-theme preference and system media query are ignored.
+        const tgScheme = tgParams.get("tgWebAppColorScheme") === "dark" ? "dark" : "light";
+        const root = document.documentElement;
+        root.classList.add("telegram");
+        root.classList.toggle("dark", tgScheme === "dark");
+        if (colorSchemeMetaEarly) {
+          colorSchemeMetaEarly.content = tgScheme;
+        }
+        try {
+          const themeParams = JSON.parse(tgParams.get("tgWebAppThemeParams") || "{}");
+          for (const [key, value] of Object.entries(themeParams)) {
+            if (typeof value === "string") {
+              root.style.setProperty(`--tg-theme-${key.replaceAll("_", "-")}`, value);
+            }
+          }
+        } catch {
+          // Missing/invalid theme params fall back to the site's light tokens.
+        }
+      } else {
+        let savedTheme = null;
+        try {
+          const value = localStorage.getItem("reader-theme");
+          if (value === "light" || value === "dark") {
+            savedTheme = value;
+          }
+        } catch {
+          savedTheme = null;
+        }
+
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = savedTheme ?? (prefersDark ? "dark" : "light");
+        const colorSchemeMeta = colorSchemeMetaEarly;
+        if (colorSchemeMeta) {
+          colorSchemeMeta.content = savedTheme ?? "light dark";
+        }
+        document.documentElement.classList.toggle("dark", theme === "dark");
       }
-      document.documentElement.classList.toggle("dark", theme === "dark");
     </script>
   </head>
   <body>
@@ -97,6 +127,27 @@ const isPostsSection =
 </html>
 
 <script>
+  import { initTelegram } from "../lib/telegram";
+
+  // Only Telegram launches need the SDK; inject it after window.load so the
+  // external request never delays the load event or the initial paint. The
+  // inline head bootstrap already applied the client palette by then.
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/u, ""));
+  const isTelegramLaunch = hashParams.has("tgWebAppPlatform") || hashParams.has("tgWebAppData");
+
+  if (isTelegramLaunch) {
+    window.addEventListener("load", () => {
+      initTelegram();
+      const sdk = document.createElement("script");
+      sdk.src = "https://telegram.org/js/telegram-web-app.js?65";
+      sdk.async = true;
+      sdk.onload = () => initTelegram();
+      document.head.appendChild(sdk);
+    });
+  }
+</script>
+
+<script>
   const toggle = document.querySelector<HTMLButtonElement>("[data-theme-toggle]");
   const status = document.querySelector<HTMLElement>("[data-theme-status]");
   const colorSchemeMeta = document.querySelector<HTMLMetaElement>('meta[name="color-scheme"]');
@@ -127,7 +178,9 @@ const isPostsSection =
     applyTheme(override ?? (systemDark.matches ? "dark" : "light"), override);
   };
 
-  if (toggle) {
+  // Inside Telegram the client palette is forced and the toggle is hidden;
+  // leave the client-driven classes untouched here.
+  if (toggle && !document.documentElement.classList.contains("telegram")) {
     syncTheme();
 
     toggle.addEventListener("click", () => {

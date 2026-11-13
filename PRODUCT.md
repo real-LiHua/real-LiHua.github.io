@@ -26,6 +26,7 @@ The reading experience itself is the product: a monospace-first editorial system
 - Markdown renders through `satteri`; the unified/remark/rehype ecosystem is not used.
 - Fonts: system-installed `Maple Mono Normal NF CN` in development; GitHub Actions fetches and verifies the official upstream release and emits local WOFF2 subsets (SIL OFL 1.1, attribution preserved).
 - WebMCP exposes read-only post tools to compatible browsers; optional at runtime.
+- The same site works as a read-only Telegram Mini App: inside Telegram the palette follows the client theme (forced), chrome syncs to the client, and the WebApp SDK loads after `window.load`; browsers are unaffected.
 - Site URL is configured as `https://real-lihua.github.io`.
 
 ## Capabilities and Constraints
