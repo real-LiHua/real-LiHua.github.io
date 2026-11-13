@@ -61,12 +61,6 @@ src/posts/drafts/
 .agents/skills/ai-catalog-cli/*
 !.agents/skills/ai-catalog-cli/SKILL.md
 
-# Vendored chrome-extensions and modern-web-guidance skills: only SKILL.md is kept
-.agents/skills/chrome-extensions/*
-!.agents/skills/chrome-extensions/SKILL.md
-.agents/skills/modern-web-guidance/*
-!.agents/skills/modern-web-guidance/SKILL.md
-
 # Misc
 *.tgz
 .cache/
