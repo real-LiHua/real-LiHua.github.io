@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
   font-family: "Maple Mono Normal NF CN", "Noto Sans CJK SC", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -41,6 +41,16 @@
   --sidebar-accent-foreground: oklch(0.29 0.02 140);
   --sidebar-border: oklch(0.87 0.012 105);
   --sidebar-ring: oklch(0.52 0.07 143);
+}
+
+/* <meta name="color-scheme"> is only a presentational hint; map it back onto the
+   property so an explicit light/dark override also reaches UA colors and controls. */
+:root:has(> head > meta[name="color-scheme"][content="dark"]) {
+  color-scheme: dark;
+}
+
+:root:has(> head > meta[name="color-scheme"][content="light"]) {
+  color-scheme: light;
 }
 
 * {
@@ -667,7 +677,13 @@ main {
   color: var(--foreground);
 }
 
+.search-dialog:modal {
+  overscroll-behavior: contain;
+}
+
 .search-dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
   background: rgb(0 0 0 / 45%);
 }
 

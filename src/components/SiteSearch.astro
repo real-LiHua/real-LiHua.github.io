@@ -4,9 +4,10 @@ import Icon from "./Icon.astro";
 interface Props {
   idPrefix: string;
   initialSearch?: boolean;
+  autoFocus?: boolean;
 }
 
-const { idPrefix, initialSearch = false } = Astro.props;
+const { idPrefix, initialSearch = false, autoFocus = false } = Astro.props;
 ---
 
 <form
@@ -25,6 +26,7 @@ const { idPrefix, initialSearch = false } = Astro.props;
       id={`${idPrefix}-search-query`}
       name="q"
       type="search"
+      autofocus={autoFocus}
       toolparamdescription="搜索关键词"
       data-search-input
     />

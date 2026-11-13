@@ -29,18 +29,25 @@ const isPostsSection =
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="description" content={description} />
     <title>{title}</title>
+    <meta name="color-scheme" content="light dark" />
     <script is:inline>
-      let savedTheme;
+      let savedTheme = null;
       try {
-        savedTheme = localStorage.getItem("reader-theme");
+        const value = localStorage.getItem("reader-theme");
+        if (value === "light" || value === "dark") {
+          savedTheme = value;
+        }
       } catch {
         savedTheme = null;
       }
 
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const theme = savedTheme === "dark" || (savedTheme !== "light" && prefersDark) ? "dark" : "light";
+      const theme = savedTheme ?? (prefersDark ? "dark" : "light");
+      const colorSchemeMeta = document.querySelector('meta[name="color-scheme"]');
+      if (colorSchemeMeta) {
+        colorSchemeMeta.content = savedTheme ?? "light dark";
+      }
       document.documentElement.classList.toggle("dark", theme === "dark");
-      document.documentElement.style.colorScheme = theme;
     </script>
   </head>
   <body>
@@ -66,14 +73,19 @@ const isPostsSection =
         <span class="sr-only" role="status" data-theme-status></span>
       </nav>
     </header>
-    <dialog class="search-dialog" aria-labelledby="search-dialog-title" data-search-dialog>
+    <dialog
+      class="search-dialog"
+      closedby="any"
+      aria-labelledby="search-dialog-title"
+      data-search-dialog
+    >
       <div class="search-dialog-header">
         <h2 id="search-dialog-title">站内查找</h2>
         <button class="search-dialog-close" type="button" data-search-close aria-label="关闭" title="关闭">
           <Icon name="close" />
         </button>
       </div>
-      <SiteSearch idPrefix="dialog" />
+      <SiteSearch idPrefix="dialog" autoFocus />
     </dialog>
     <main id="main-content">
       <slot />
@@ -87,27 +99,61 @@ const isPostsSection =
 <script>
   const toggle = document.querySelector<HTMLButtonElement>("[data-theme-toggle]");
   const status = document.querySelector<HTMLElement>("[data-theme-status]");
+  const colorSchemeMeta = document.querySelector<HTMLMetaElement>('meta[name="color-scheme"]');
+  const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
+  const THEME_KEY = "reader-theme";
+
+  const readThemeOverride = (): "light" | "dark" | null => {
+    try {
+      const value = localStorage.getItem(THEME_KEY);
+      return value === "light" || value === "dark" ? value : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const applyTheme = (theme: "light" | "dark", override: "light" | "dark" | null) => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    if (colorSchemeMeta) {
+      colorSchemeMeta.content = override ?? "light dark";
+    }
+    const label = theme === "dark" ? "切换到浅色模式" : "切换到深色模式";
+    toggle?.setAttribute("aria-label", label);
+    toggle?.setAttribute("title", label);
+  };
+
+  const syncTheme = () => {
+    const override = readThemeOverride();
+    applyTheme(override ?? (systemDark.matches ? "dark" : "light"), override);
+  };
 
   if (toggle) {
-    const applyTheme = (theme: "light" | "dark") => {
-      document.documentElement.classList.toggle("dark", theme === "dark");
-      document.documentElement.style.colorScheme = theme;
-      const label = theme === "dark" ? "切换到浅色模式" : "切换到深色模式";
-      toggle.setAttribute("aria-label", label);
-      toggle.setAttribute("title", label);
-    };
+    syncTheme();
 
-    applyTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
     toggle.addEventListener("click", () => {
-      const nextTheme = document.documentElement.classList.contains("dark") ? "light" : "dark";
-      applyTheme(nextTheme);
+      const rendered = document.documentElement.classList.contains("dark") ? "dark" : "light";
+      const target = rendered === "dark" ? "light" : "dark";
+      const system = systemDark.matches ? "dark" : "light";
 
       try {
-        localStorage.setItem("reader-theme", nextTheme);
+        if (target === system) {
+          localStorage.removeItem(THEME_KEY);
+        } else {
+          localStorage.setItem(THEME_KEY, target);
+        }
+        syncTheme();
       } catch {
+        applyTheme(target, target);
         if (status) {
           status.textContent = "无法保存主题偏好，刷新后将恢复系统设置";
         }
+      }
+    });
+
+    systemDark.addEventListener("change", syncTheme);
+    window.addEventListener("storage", (event) => {
+      if (event.key === THEME_KEY || event.key === null) {
+        syncTheme();
       }
     });
   }
@@ -117,15 +163,32 @@ const isPostsSection =
   const searchOpener = document.querySelector<HTMLButtonElement>("[data-search-open]");
   const searchDialog = document.querySelector<HTMLDialogElement>("[data-search-dialog]");
   const searchCloser = document.querySelector<HTMLButtonElement>("[data-search-close]");
-  const dialogSearchInput = searchDialog?.querySelector<HTMLInputElement>("[data-search-input]");
 
   if (searchOpener && searchDialog) {
-    searchOpener.addEventListener("click", () => {
-      searchDialog.showModal();
-      dialogSearchInput?.focus();
-    });
-
-    searchDialog.addEventListener("close", () => searchOpener.focus());
+    searchOpener.addEventListener("click", () => searchDialog.showModal());
     searchCloser?.addEventListener("click", () => searchDialog.close());
+
+    if (!("closedBy" in HTMLDialogElement.prototype)) {
+      const isOutside = (event: PointerEvent) => {
+        const rect = searchDialog.getBoundingClientRect();
+        return (
+          event.clientX < rect.left ||
+          event.clientX > rect.right ||
+          event.clientY < rect.top ||
+          event.clientY > rect.bottom
+        );
+      };
+      let pressedOutside = false;
+
+      searchDialog.addEventListener("pointerdown", (event) => {
+        pressedOutside = isOutside(event);
+      });
+      searchDialog.addEventListener("pointerup", (event) => {
+        if (pressedOutside && isOutside(event)) {
+          searchDialog.close();
+        }
+        pressedOutside = false;
+      });
+    }
   }
 </script>

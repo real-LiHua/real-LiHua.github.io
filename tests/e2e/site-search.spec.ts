@@ -38,6 +38,37 @@ test("search dialog closes with Escape and restores focus to its opener", async 
   await expect(opener).toBeFocused();
 });
 
+test("search dialog closes with a backdrop click and restores focus to its opener", async ({
+  page,
+}) => {
+  await page.goto("/posts/");
+  const opener = page.getByRole("button", { name: "搜索" });
+  await opener.click();
+
+  const dialog = page.getByRole("dialog", { name: "站内查找" });
+  await expect(dialog).toHaveAttribute("closedby", "any");
+  await expect(dialog.getByRole("searchbox", { name: "搜索文章" })).toBeFocused();
+
+  await page.mouse.click(4, 4);
+  await expect(dialog).toBeHidden();
+  await expect(opener).toBeFocused();
+});
+
+test("search dialog contains scrolling instead of chaining to the page", async ({ page }) => {
+  await page.goto("/posts/");
+  await page.getByRole("button", { name: "搜索" }).click();
+
+  const dialog = page.getByRole("dialog", { name: "站内查找" });
+  await expect(dialog).toBeVisible();
+  const styles = await dialog.evaluate((element) => ({
+    dialog: getComputedStyle(element).overscrollBehavior,
+    backdrop: getComputedStyle(element, "::backdrop").overscrollBehavior,
+  }));
+
+  expect(styles.dialog).toBe("contain");
+  expect(styles.backdrop).toBe("contain");
+});
+
 test("search returns matching published article links", async ({ page }) => {
   await page.goto("/search/");
   const searchPage = page.locator("main");
