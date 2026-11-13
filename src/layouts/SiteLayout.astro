@@ -121,6 +121,7 @@ const isPostsSection =
       <nav aria-label="主导航">
         <a href="/" aria-label="首页" title="首页" aria-current={isHome ? "page" : undefined}><Icon name="home" /></a>
         <a href="/posts/" aria-label="文章" title="文章" aria-current={isPostsSection ? "page" : undefined}><Icon name="fileText" /></a>
+        <a href="/test/group-popup/" aria-label="昵称弹窗测试" title="昵称弹窗测试" aria-current={pathname.startsWith("/test/group-popup") ? "page" : undefined}><Icon name="flask" /></a>
         <button
           class="search-nav-trigger"
           type="button"

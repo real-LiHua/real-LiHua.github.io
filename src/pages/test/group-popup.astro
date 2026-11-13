@@ -1,0 +1,229 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+---
+
+<SiteLayout title="昵称弹窗 · 测试页面" description="测试页面：进入即弹窗显示 Telegram 用户昵称（不判断群成员）。">
+  <section class="page-intro">
+    <p class="eyebrow">测试页面</p>
+    <h1>昵称弹窗</h1>
+  </section>
+
+  <section class="test-panel">
+    <p>
+      这是一个<strong>测试页面</strong>。最初设想的场景是「用户位于群组
+      <code>-1002025381790</code> 时弹出窗口显示用户昵称」。当前版本<strong>不判断群成员</strong>：
+      纯前端无法可靠判断群成员身份（启动参数不携带成员信息；真正的校验需要持有 bot token 的服务端
+      调用 Bot API <code>getChatMember</code>，而本站是只读、无后端的 GitHub Pages 站点）。
+      因此<strong>进入页面即弹出窗口</strong>。
+    </p>
+    <p>
+      在 Telegram 客户端（Bot API ≥ 6.2）中，昵称通过原生对话框弹出（<code>WebApp.showPopup</code>）；
+      在浏览器或更旧的客户端中，回退为页内对话框。昵称取自启动参数的 <code>user</code>：
+      <code>first_name</code> + <code>last_name</code>，两者缺失时回退 <code>@username</code>。
+    </p>
+
+    <dl class="test-status" aria-live="polite">
+      <div>
+        <dt>运行环境</dt>
+        <dd data-status-env>—</dd>
+      </div>
+      <div>
+        <dt>解析出的昵称</dt>
+        <dd data-status-nickname>—</dd>
+      </div>
+      <div>
+        <dt>弹窗方式</dt>
+        <dd data-status-path>—</dd>
+      </div>
+    </dl>
+
+    <button type="button" class="reopen-button" data-nickname-reopen>再弹一次</button>
+  </section>
+
+  <dialog class="nickname-dialog" data-nickname-dialog aria-labelledby="nickname-dialog-title">
+    <div class="nickname-dialog-body">
+      <h2 id="nickname-dialog-title">用户昵称</h2>
+      <p class="nickname-line"><strong data-nickname></strong></p>
+      <div class="nickname-dialog-actions">
+        <button type="button" data-nickname-close>关闭</button>
+      </div>
+    </div>
+  </dialog>
+</SiteLayout>
+
+<script>
+  import { nicknameOf, parseLaunchUser, type TelegramUserLike } from "../../lib/nickname";
+  import type { TelegramWebApp } from "../../lib/telegram";
+
+  type PopupWebApp = TelegramWebApp & {
+    initDataUnsafe?: { user?: TelegramUserLike };
+    showPopup?: (params: { title?: string; message: string; buttons?: { type: string }[] }) => void;
+  };
+
+  const query = <T extends Element>(selector: string) => document.querySelector<T>(selector);
+  const setText = (selector: string, text: string) => {
+    const el = query(selector);
+    if (el) {
+      el.textContent = text;
+    }
+  };
+
+  const tg = (window as { Telegram?: { WebApp?: PopupWebApp } }).Telegram?.WebApp;
+  const isTelegram = document.documentElement.classList.contains("telegram");
+  const isRealLaunch = Boolean(tg && (tg.platform !== "unknown" || tg.initData));
+
+  const user = tg?.initDataUnsafe?.user ?? parseLaunchUser(tg?.initData ?? "");
+  const nickname = nicknameOf(user);
+
+  setText("[data-status-env]", isTelegram ? "Telegram 客户端" : "浏览器");
+  setText("[data-status-nickname]", nickname);
+
+  const dialog = query<HTMLDialogElement>("[data-nickname-dialog]");
+  const nicknameSlot = query("[data-nickname]");
+
+  const openDialog = () => {
+    if (nicknameSlot) {
+      nicknameSlot.textContent = nickname;
+    }
+    if (dialog && !dialog.open) {
+      dialog.showModal();
+    }
+    setText("[data-status-path]", "页内对话框（浏览器或旧客户端）");
+  };
+
+  const tryNativePopup = (): boolean => {
+    if (
+      tg &&
+      isRealLaunch &&
+      typeof tg.showPopup === "function" &&
+      (typeof tg.isVersionAtLeast !== "function" || tg.isVersionAtLeast("6.2"))
+    ) {
+      // The message is a plain string — Telegram renders it as text, never as HTML.
+      tg.showPopup({ title: "用户昵称", message: nickname, buttons: [{ type: "ok" }] });
+      setText("[data-status-path]", "原生 showPopup（Bot API ≥ 6.2）");
+      return true;
+    }
+    return false;
+  };
+
+  let tries = 0;
+  const attempt = () => {
+    if (tryNativePopup()) {
+      return;
+    }
+    // Inside Telegram the SDK arrives after window.load; wait briefly for it
+    // before falling back to the in-page dialog. Old clients and browsers land
+    // here on the first pass.
+    if (isTelegram && !isRealLaunch && tries < 15) {
+      tries += 1;
+      window.setTimeout(attempt, 100);
+      return;
+    }
+    openDialog();
+  };
+  attempt();
+
+  query<HTMLButtonElement>("[data-nickname-reopen]")?.addEventListener("click", attempt);
+  query<HTMLButtonElement>("[data-nickname-close]")?.addEventListener("click", () => dialog?.close());
+</script>
+
+<style>
+  .test-panel {
+    max-width: 42rem;
+  }
+
+  .test-panel code {
+    padding: 0.1em 0.35em;
+    border-radius: 0.25rem;
+    background: var(--secondary);
+    font-size: 0.9em;
+  }
+
+  .test-status {
+    display: grid;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--secondary);
+  }
+
+  .test-status div {
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+  }
+
+  .test-status dt {
+    flex: none;
+    min-width: 7em;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+  }
+
+  .test-status dd {
+    margin: 0;
+    word-break: break-word;
+  }
+
+  .reopen-button {
+    padding: 0.5rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    background: var(--background);
+    color: var(--foreground);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .reopen-button:hover {
+    background: var(--secondary);
+  }
+
+  .nickname-dialog {
+    width: min(26rem, calc(100% - 2rem));
+    max-width: none;
+    margin: auto;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  .nickname-dialog::backdrop {
+    background: rgb(0 0 0 / 45%);
+  }
+
+  .nickname-dialog h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  .nickname-line {
+    margin: 0 0 1rem;
+    font-size: 1.25rem;
+    word-break: break-word;
+  }
+
+  .nickname-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .nickname-dialog-actions button {
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    background: var(--background);
+    color: var(--foreground);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .nickname-dialog-actions button:hover {
+    background: var(--secondary);
+  }
+</style>

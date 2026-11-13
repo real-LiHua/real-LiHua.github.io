@@ -61,6 +61,13 @@ Behavior inside Telegram (detected from the `tgWebApp*` launch fragment):
 
 Opened in a regular browser, everything behaves exactly as before.
 
+The site also ships a labeled test page at `/test/group-popup/` (linked from
+the navigation): it demonstrates the Mini App popup path — entering the page
+pops the Telegram user's nickname (`first_name` + `last_name`) via the native
+`showPopup` on Bot API ≥ 6.2, with an in-page dialog fallback elsewhere. It
+deliberately does not check group membership (that requires a bot backend);
+see `openspec/changes/add-test-popup-page/`.
+
 OpenSpec uses the `spec-driven` workflow. The active
 [`design-blog-reader-ui`](openspec/changes/design-blog-reader-ui/) change tracks
 the reader experience and its remaining implementation work.

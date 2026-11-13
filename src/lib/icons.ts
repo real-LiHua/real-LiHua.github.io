@@ -14,6 +14,7 @@ export const iconGlyphs = {
   link: glyph(0xf0c1),
   rss: glyph(0xf09e),
   archive: glyph(0xf187),
+  flask: glyph(0xf0c3),
   sun: glyph(0xf185),
   moon: glyph(0xf186),
 } as const;
