@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+/*
+ * Telegram injects these CSS variables on <html> before the app renders:
+ *   --tg-theme-*, --tg-color-scheme,
+ *   --tg-viewport-height, --tg-viewport-stable-height,
+ *   --tg-safe-area-inset-*, --tg-content-safe-area-inset-*.
+ *
+ * `@theme inline` maps them to Tailwind color utilities, so `bg-tg-bg` and
+ * `text-tg-text` follow the user's Telegram theme without JS. The fallbacks
+ * keep browser previews readable.
+ */
+@theme inline {
+  --color-tg-bg: var(--tg-theme-bg-color, #ffffff);
+  --color-tg-text: var(--tg-theme-text-color, #000000);
+  --color-tg-hint: var(--tg-theme-hint-color, #707579);
+  --color-tg-link: var(--tg-theme-link-color, #2481cc);
+  --color-tg-button: var(--tg-theme-button-color, #2481cc);
+  --color-tg-button-text: var(--tg-theme-button-text-color, #ffffff);
+  --color-tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
+  --color-tg-header: var(--tg-theme-header-bg-color, #ffffff);
+  --color-tg-accent: var(--tg-theme-accent-text-color, #2481cc);
+  --color-tg-section: var(--tg-theme-section-bg-color, #ffffff);
+  --color-tg-section-header: var(--tg-theme-section-header-text-color, #707579);
+  --color-tg-separator: var(--tg-theme-section-separator-color, #e5e5ea);
+  --color-tg-subtitle: var(--tg-theme-subtitle-text-color, #707579);
+  --color-tg-destructive: var(--tg-theme-destructive-text-color, #e53935);
+  --color-tg-bottom-bar: var(--tg-theme-bottom-bar-bg-color, #ffffff);
+}
+
+@layer base {
+  :root {
+    /* The SDK sets --tg-color-scheme to "light" or "dark". */
+    color-scheme: var(--tg-color-scheme, light);
+  }
+
+  html {
+    /* Telegram already scrolls the WebView; avoid double scroll and rubber-band. */
+    overscroll-behavior-y: none;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    /* Native-app feel: no tap flash, no accidental text selection on controls. */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :where(button, [role="button"]) {
+    touch-action: manipulation;
+  }
+
+  /* Pause decorative animation while the Mini App is backgrounded. */
+  [data-tg-active="false"] * {
+    animation-play-state: paused !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/*
+ * Safe-area utilities. `content-safe-area-*` accounts for Telegram's own
+ * header/bottom bar; `safe-area-*` accounts for the device (notch, home
+ * indicator). Use content insets for scrollable content and plain padding for
+ * fixed bars, and never assume either is non-zero.
+ */
+@utility tg-safe-top {
+  padding-top: max(0.75rem, var(--tg-content-safe-area-inset-top, 0px));
+}
+
+@utility tg-safe-bottom {
+  padding-bottom: max(1rem, var(--tg-content-safe-area-inset-bottom, 0px));
+}
+
+@utility tg-safe-x {
+  padding-left: max(1rem, var(--tg-safe-area-inset-left, 0px));
+  padding-right: max(1rem, var(--tg-safe-area-inset-right, 0px));
+}
+
+@utility tg-safe-screen {
+  padding-top: max(0.75rem, var(--tg-content-safe-area-inset-top, 0px));
+  padding-bottom: max(1rem, var(--tg-content-safe-area-inset-bottom, 0px));
+  padding-left: max(1rem, var(--tg-safe-area-inset-left, 0px));
+  padding-right: max(1rem, var(--tg-safe-area-inset-right, 0px));
+}
+
+/* Page wrapper: fills the stable viewport, not the gesture-dependent one. */
+@utility tg-page {
+  min-height: var(--tg-viewport-stable-height, 100dvh);
+}

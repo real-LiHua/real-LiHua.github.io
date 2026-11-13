@@ -1,0 +1,128 @@
+---
+import MiniAppLayout from '../layouts/MiniAppLayout.astro';
+---
+
+<MiniAppLayout title="Settings" description="Mini App starter screen">
+  <header class="py-2">
+    <h1 class="text-2xl font-semibold tracking-tight">Settings</h1>
+    <p class="mt-1 text-sm text-tg-hint">
+      A starter screen wired to Telegram's native chrome.
+    </p>
+  </header>
+
+  <!-- Shown only when window.Telegram is missing (browser tab). -->
+  <p
+    data-preview
+    hidden
+    class="mt-4 rounded-lg bg-tg-secondary-bg px-3 py-2 text-sm text-tg-hint"
+  >
+    Preview mode — open this page in Telegram to use the native features.
+  </p>
+
+  <section class="mt-4 rounded-xl bg-tg-section p-4">
+    <div class="flex items-center gap-3">
+      <span
+        data-avatar
+        class="grid size-10 shrink-0 place-items-center rounded-full bg-tg-button text-sm font-semibold text-tg-button-text"
+        aria-hidden="true">?</span
+      >
+      <div class="min-w-0">
+        <p data-name class="truncate font-medium">Telegram user</p>
+        <p data-handle class="truncate text-sm text-tg-hint">Not connected</p>
+      </div>
+    </div>
+
+    <label class="mt-4 block text-sm font-medium" for="display-name">
+      Display name
+    </label>
+    <input
+      id="display-name"
+      name="display-name"
+      type="text"
+      autocomplete="nickname"
+      enterkeyhint="done"
+      class="mt-1 w-full rounded-lg border border-tg-separator bg-tg-bg px-3 py-2 text-base outline-none focus-visible:ring-2 focus-visible:ring-tg-link"
+      placeholder="Ada Lovelace"
+    />
+    <p data-status class="mt-2 min-h-5 text-sm text-tg-hint" role="status"></p>
+  </section>
+
+  <script>
+    import { initTelegram } from '../lib/telegram';
+
+    const preview = document.querySelector<HTMLElement>('[data-preview]');
+    const nameEl = document.querySelector<HTMLElement>('[data-name]');
+    const handleEl = document.querySelector<HTMLElement>('[data-handle]');
+    const avatarEl = document.querySelector<HTMLElement>('[data-avatar]');
+    const input = document.querySelector<HTMLInputElement>('#display-name');
+    const status = document.querySelector<HTMLElement>('[data-status]');
+
+    const handle = initTelegram({ expand: true });
+
+    if (!handle) {
+      // Browser preview: keep the UI usable, but never fake identity or auth.
+      if (preview) preview.hidden = false;
+      if (handleEl) handleEl.textContent = 'Preview';
+    } else {
+      const { tg } = handle;
+
+      // initDataUnsafe is fine for optimistic rendering. Authorization must use
+      // the server-validated `tg.initData` instead (references/validation.md).
+      const user = tg.initDataUnsafe.user;
+      if (user && nameEl) {
+        nameEl.textContent = [user.first_name, user.last_name]
+          .filter(Boolean)
+          .join(' ');
+        if (handleEl) {
+          handleEl.textContent = user.username
+            ? `@${user.username}`
+            : `id ${user.id}`;
+        }
+        if (avatarEl) {
+          avatarEl.textContent = (user.first_name || '?')
+            .slice(0, 1)
+            .toUpperCase();
+        }
+      }
+
+      tg.MainButton.setText('Save');
+      tg.MainButton.show();
+
+      tg.MainButton.onClick(async () => {
+        const value = input?.value.trim() ?? '';
+        if (!value) {
+          tg.HapticFeedback.notificationOccurred('error');
+          if (status) status.textContent = 'Enter a display name first.';
+          return;
+        }
+
+        // showProgress() disables the button; hideProgress() does NOT re-enable it.
+        tg.MainButton.showProgress();
+        if (status) status.textContent = 'Saving…';
+
+        try {
+          await fetch('/api/settings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              // The raw initData is the credential; the server validates it.
+              Authorization: `tma ${tg.initData}`,
+            },
+            body: JSON.stringify({ displayName: value }),
+          }).then((response) => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          });
+
+          if (status) status.textContent = 'Saved.';
+          tg.HapticFeedback.notificationOccurred('success');
+          tg.MainButton.hide();
+        } catch {
+          if (status) status.textContent = 'Could not save. Try again.';
+          tg.HapticFeedback.notificationOccurred('error');
+          tg.MainButton.hideProgress();
+          tg.MainButton.enable();
+        }
+      });
+    }
+  </script>
+</MiniAppLayout>

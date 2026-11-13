@@ -1,0 +1,65 @@
+{
+  "skill_name": "telegram-mini-apps",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Build the settings screen for my Telegram Mini App. The project is Astro 5 + Tailwind 4 (SSR, Node adapter). The screen should show the signed-in user's name and @username, let them edit a display name, and save it by POSTing to an existing /api/settings endpoint. Use Telegram's native bottom button for Save, with a loading state while the request runs. Light and dark themes must both look right, and the layout must stay usable on a notched iPhone in fullscreen. Write the Astro page, the layout, and the Telegram init helper.",
+      "expected_output": "An Astro layout that loads the Telegram SDK inline in <head>, a typed init helper that calls ready()/expand(), theme tokens based on --tg-theme-* with Tailwind 4, native MainButton with loading/disabled handling, safe-area padding, and a browser-preview fallback that does not fake auth.",
+      "files": [],
+      "expectations": [
+        "Layout loads the Telegram SDK inside <head> before app code — either <script is:inline src=\"https://telegram.org/js/telegram-web-app.js?65\"> or a plain external <script src> (Astro emits external scripts verbatim in place).",
+        "Layout imports src/styles/global.css once so Tailwind theme tokens apply globally.",
+        "telegram.ts calls tg.ready() once the first screen exists, then tg.expand() (unconditionally, or gated on tg.isExpanded).",
+        "telegram.ts mirrors tg.colorScheme / tg.isExpanded / tg.isFullscreen as data-* attributes on <html>.",
+        "telegram.ts is reference-counted: a second initTelegram() call does not tear down an active session; destroy() removes listeners exactly once.",
+        "global.css maps --tg-theme-* CSS variables via Tailwind 4 @theme inline into tokens such as bg-tg-bg / text-tg-text with sensible fallbacks.",
+        "global.css safe-area utilities use var(--tg-content-safe-area-inset-*) / var(--tg-safe-area-inset-*) and tg-page uses var(--tg-viewport-stable-height).",
+        "Every import in the generated files resolves — no cross-framework imports (e.g. from 'svelte'), and no imports of symbols the provided telegram.ts does not export (e.g. getFullName/getUserHandle).",
+        "Page renders the user name and @username from initDataUnsafe.user for optimistic display only.",
+        "Page uses native MainButton (setText/show) with showProgress/hide/enable for the loading state.",
+        "Page never authenticates from initDataUnsafe or logs initData; BOT_TOKEN is server-only.",
+        "Page shows a visibly labelled browser-preview fallback that cannot reach authenticated endpoints."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My Telegram Mini App works in a desktop browser but misbehaves in the real Telegram client on iOS. It is opened from the attachment menu. The MainButton never appears, and in dark mode the page background is dark while the native header stays white. Here is our bootstrap:\n\n```ts\nconst tg = window.Telegram?.WebApp;\nif (tg) {\n  tg.MainButton.setText('Continue');\n  tg.MainButton.show();\n  tg.MainButton.onClick(() => submit());\n}\n\ndocument.body.style.background = '#ffffff';\ndocument.body.style.color = '#000000';\n```\n\nOur Astro layout loads the SDK with `<script src=\"https://telegram.org/js/telegram-web-app.js?65\"></script>`. Diagnose the causes and give me the corrected code.",
+      "expected_output": "Identifies the attachment-menu rule that MainButton stays hidden until first user interaction, the bundled/deferred Astro script problem, and hard-coded colors with no setHeaderColor/theme variables. Provides corrected code using is:inline, theme params or --tg-theme-* tokens, ready()/expand(), setHeaderColor('bg_color'), and a fallback action for the attachment-menu case.",
+      "files": [],
+      "expectations": [
+        "Identifies that on attachment-menu launches MainButton stays hidden until the first user interaction, so show() at boot is silently ignored.",
+        "Identifies that Astro's plain <script src=...> is bundled/deferred and may run before window.Telegram exists; fix is <script is:inline ...> in <head>.",
+        "Recommends calling tg.ready() before MainButton commands (and tg.expand() so iOS compact sheets show the bar).",
+        "Replaces hard-coded document.body.style.background/color with Telegram theme tokens (--tg-theme-* / themeParams).",
+        "Calls setHeaderColor/setBackgroundColor/setBottomBarColor with theme-derived colors (keywords like 'bg_color'/'secondary_bg_color' or the resolved themeParams values) so native chrome matches the page surface.",
+        "States that CSS cannot recolor the native iOS header or status bar; only setHeaderColor / setBackgroundColor can.",
+        "Provides an in-page fallback action so attachment-menu users still have a path before MainButton appears.",
+        "Adds a themeChanged listener so chrome re-syncs when the user switches Telegram theme.",
+        "Provides corrected layout/helper files under realistic relative paths with real content (src/layouts/MiniAppLayout.astro loads the SDK is:inline in <head>; src/lib/telegram.ts calls ready()/expand() and registers a themeChanged listener; src/styles/global.css maps --tg-theme-* tokens).",
+        "States explicitly that CSS cannot recolor the native iOS header/status bar — only setHeaderColor/setBackgroundColor can — and does not propose CSS, a <meta theme-color> tag, or env() variables as the fix for the white header.",
+        "Attributes the missing MainButton to the attachment-menu first-interaction gate or to missing ready(), not to an SDK version problem."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Add Telegram Mini App login to my Astro app. The client should POST Telegram's initData to /api/auth/telegram. The server must validate it with zero third-party dependencies, set an httpOnly session cookie, and never trust initDataUnsafe. After login, also store the bot-issued API token in Telegram's most secure client-side storage so the user doesn't have to re-authorize on this device, with a graceful fallback for clients that don't support it. Explain how to test this without a real phone, and what replay protection I need.",
+      "expected_output": "A zero-dependency HMAC-SHA-256 validator that derives the secret with HMAC('WebAppData', bot_token), excludes only 'hash' from the sorted check string, compares in constant time, and enforces auth_date freshness. An Astro endpoint that sets an httpOnly/secure/sameSite cookie and never logs the payload. SecureStorage usage gated on Bot API 9.0 with limits (10 items) and a fallback, without putting secrets in CloudStorage. Testing guidance using the Telegram test server and a browser preview, plus replay limits tied to auth_date.",
+      "files": [],
+      "expectations": [
+        "Validator derives the HMAC secret as HMAC(\"WebAppData\", bot_token), not by using the bot token directly.",
+        "Signed string excludes only hash; signature remains part of the HMAC input when present (current Bot API docs).",
+        "Decodes values exactly once (URLSearchParams) and rejects duplicate fields.",
+        "Compares the hex digest with timingSafeEqual (constant time).",
+        "Rejects stale auth_date with a configurable max age and rejects far-future auth_date with bounded clock skew.",
+        "Endpoint never trusts initDataUnsafe for authorization; never logs or echoes raw initData or the bot token.",
+        "Endpoint sets an httpOnly (Secure/SameSite=Lax in prod) session cookie and returns minimal user data.",
+        "Client sends only raw initData to the server and stores the issued API token in SecureStorage (Bot API 9.0+, Keychain/Keystore).",
+        "SecureStorage usage is gated on isVersionAtLeast('9.0') with a graceful fallback (memory or session-only) that never downgrades secrets to localStorage or CloudStorage.",
+        "Testing guidance uses the Telegram test server or a scripted payload minter (curl/Playwright), no real phone required.",
+        "Replay protection: single-use payload consumption keyed by hash/auth_date with TTL; per-process caveat plus Redis/DB unique index for multi-instance; session bound to server-side expiry, not auth_date alone.",
+        "Includes at least one test covering duplicate-field rejection (e.g. two user or two auth_date entries must be rejected).",
+        "Includes at least one test covering a payload with a signature field, asserting the signature remains in the HMAC input."
+      ]
+    }
+  ]
+}

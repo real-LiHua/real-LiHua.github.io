@@ -1,0 +1,54 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** BCP-47 language tag for the document. */
+  lang?: string;
+  /** Extra classes for <body>. */
+  bodyClass?: string;
+}
+
+const {
+  title,
+  description = 'Telegram Mini App',
+  lang = 'en',
+  bodyClass = '',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang} data-tg-scheme="light">
+  <head>
+    <meta charset="utf-8" />
+    <!-- viewport-fit=cover is required for safe-area insets on iOS. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" />
+    <title>{title}</title>
+
+    <!--
+      Must run before any app code: the SDK parses launch parameters and
+      attaches its bridge at execution time. `is:inline` stops Astro from
+      bundling, deferring, or reordering this tag.
+    -->
+    <script is:inline src="https://telegram.org/js/telegram-web-app.js?65"></script>
+  </head>
+
+  <body
+    class:list={[
+      'min-h-dvh bg-tg-bg font-sans text-tg-text antialiased',
+      bodyClass,
+    ]}
+  >
+    <main class="tg-page tg-safe-screen mx-auto w-full max-w-xl">
+      <slot />
+    </main>
+    <slot name="scripts" />
+  </body>
+</html>

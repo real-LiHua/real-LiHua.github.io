@@ -16,6 +16,11 @@ export const SKILL_QUERIES: Record<string, readonly string[]> = {
   ],
   "ask-matt": ["Which skill fits my situation?", "Help me pick a workflow from this repo"],
   "canvas-design": ["Create a poster design", "Generate a piece of visual art as PNG"],
+  "chrome-devtools-cli": [
+    "Automate a browser task from the shell",
+    "Click a page element with Chrome DevTools CLI",
+    "Take a snapshot of the current page with chrome-devtools-mcp",
+  ],
   "chrome-extensions": [
     "Build a Chrome extension with Manifest V3",
     "Debug my browser extension's content script",
@@ -129,6 +134,11 @@ export const SKILL_QUERIES: Record<string, readonly string[]> = {
   "transitions-polish": [
     "Polish my transitions",
     "Tighten the durations and easing on these animations",
+  ],
+  "skill-creator": [
+    "Create a new agent skill from scratch",
+    "Optimize a skill's description for better triggering",
+    "Benchmark skill performance with evals",
   ],
   triage: ["Triage this issue", "Move this pull request through triage states"],
   unslop: ["Unslop this UI", "This page looks AI-generated, redesign it"],

@@ -8,6 +8,10 @@
       "type": "http",
       "url": "https://mcp.mdn.mozilla.net/"
     },
+    "chrome-devtools": {
+      "command": "pnx",
+      "args": ["chrome-devtools-mcp"]
+    },
     "playwright": {
       "command": "pnx",
       "args": ["@playwright/mcp"]

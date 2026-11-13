@@ -32,6 +32,10 @@ serde = "1.0.228"
 skim = "5.2"
 slug = "0.1.6"
 
+ai-catalog-cli = "0.4.0"
 [[bin]]
 name = "post-edit"
 path = "src/rust/main.rs"
+
+[dev-dependencies]
+ai-catalog-cli = "0.4.0"

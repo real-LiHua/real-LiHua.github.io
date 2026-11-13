@@ -19,6 +19,12 @@
       "skillPath": "skills/canvas-design/SKILL.md",
       "computedHash": "1866477474e694f562261008bb6a817e53f027b6347b062fbd1e2ee2eb83f20d"
     },
+    "chrome-devtools-cli": {
+      "source": "ChromeDevTools/chrome-devtools-mcp",
+      "sourceType": "github",
+      "skillPath": "skills/chrome-devtools-cli/SKILL.md",
+      "computedHash": "76893b8e50a10076e9cf4fa20b6ae496da04f461a99fa72c769070d3e97aff22"
+    },
     "chrome-extensions": {
       "source": "GoogleChrome/modern-web-guidance",
       "sourceType": "github",
@@ -240,6 +246,12 @@
       "sourceType": "github",
       "skillPath": "skills/shadcn/SKILL.md",
       "computedHash": "388962d16c7a4f13aaeee0d8f128e50a87df8553d42ef7988c39c0e1c74a40e8"
+    },
+    "skill-creator": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/skill-creator/SKILL.md",
+      "computedHash": "2d7f889e6ae93c6c27d699856942c336b5b8644537496987d5571043d059b1dc"
     },
     "tdd": {
       "source": "mattpocock/skills",
