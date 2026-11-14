@@ -1,5 +1,9 @@
 ---
 import SiteLayout from "../../layouts/SiteLayout.astro";
+
+// Deployment uploads only `dist/client`, so this page must be prerendered or it
+// 404s on GitHub Pages and Codeberg Pages.
+export const prerender = true;
 ---
 
 <SiteLayout title="昵称弹窗 · 测试页面" description="测试页面：进入即弹窗显示 Telegram 用户昵称（不判断群成员）。">
