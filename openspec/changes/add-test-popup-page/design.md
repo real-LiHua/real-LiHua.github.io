@@ -20,16 +20,18 @@ Inside Telegram with Bot API >= 6.2 the page calls
 `Telegram.WebApp.showPopup({ title, message, buttons: [{ type: "ok" }] })`.
 Older clients (or a blocked SDK) and regular browsers fall back to an in-page
 `<dialog>`. The SDK loads after `window.load`, so the page polls briefly
-(bounded, ~1.5 s) for a real WebApp before falling back; the dialog fallback
-is also the path for plain browsers where polling never resolves.
+(bounded, ~1.5 s) for a real WebApp before falling back, re-reading
+`window.Telegram.WebApp` on every attempt so a late SDK is observed; the
+dialog fallback is also the path for plain browsers where polling never
+resolves.
 
-### D3. Nickname = first_name + last_name, parsed defensively
+### D3. Nickname = first_name + last_name from initDataUnsafe
 
-`initDataUnsafe.user` is preferred; otherwise the page parses the raw
-`initData` query string (key `user`, percent-encoded JSON) itself. Resolution:
-trimmed `first_name` + `last_name` joined by a single space; if both are
-missing, fall back to `@username`; if nothing is available, an unknown-user
-placeholder. Launch-time theme/palette handling is unchanged.
+The only identity source is `WebApp.initDataUnsafe.user`; the raw `initData`
+query string is not parsed. Resolution: trimmed `first_name` + `last_name`
+joined by a single space; if both are missing, fall back to `@username`; if
+nothing is available, an unknown-user placeholder. Launch-time theme/palette
+handling is unchanged.
 
 ### D4. No HTML interpolation, anywhere
 

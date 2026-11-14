@@ -25,25 +25,3 @@ export const nicknameOf = (user?: TelegramUserLike | null): string => {
   const username = clean(user?.username);
   return username ? `@${username}` : UNKNOWN_USER;
 };
-
-// The raw launch payload is a query string; `user` is percent-encoded JSON.
-// Returns null on any inconsistency instead of throwing — the page is a
-// test harness, not an auth surface.
-export const parseLaunchUser = (initData: string): TelegramUserLike | null => {
-  if (!initData) {
-    return null;
-  }
-  try {
-    const raw = new URLSearchParams(initData).get("user");
-    if (!raw) {
-      return null;
-    }
-    const parsed: unknown = JSON.parse(raw);
-    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
-      return null;
-    }
-    return parsed as TelegramUserLike;
-  } catch {
-    return null;
-  }
-};

@@ -12,8 +12,9 @@ membership is explicitly out of scope (see design D1).
 
 The test page `/test/group-popup/` SHALL, on entry, display the Telegram
 user's nickname (`first_name` + `last_name`, see Scenario: fallbacks) in a
-popup window. It SHALL NOT check or imply group membership in group
--1002025381790.
+popup window. The nickname SHALL come from `WebApp.initDataUnsafe.user`; the
+raw `initData` query string SHALL NOT be parsed. It SHALL NOT check or imply
+group membership in group -1002025381790.
 
 #### Scenario: Telegram client, Bot API >= 6.2
 
@@ -28,6 +29,17 @@ popup window. It SHALL NOT check or imply group membership in group
   client is older than Bot API 6.2
 - **THEN** an in-page `<dialog>` opens automatically showing the resolved
   nickname, with an explicit close button and Escape-to-close
+
+#### Scenario: Nickname source is initDataUnsafe
+
+- **WHEN** the SDK exposes `initDataUnsafe.user`
+- **THEN** the nickname is resolved from that object, even if the raw
+  `initData` payload carries a different or additional `user` value
+
+- **WHEN** `initDataUnsafe.user` is absent but the raw `initData` still
+  contains a `user` key
+- **THEN** the popup shows the unknown-user placeholder (the raw payload is
+  not parsed)
 
 #### Scenario: Nickname fallbacks
 

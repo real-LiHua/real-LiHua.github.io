@@ -16,15 +16,15 @@ pops the window unconditionally.
   from the site navigation (labeled icon entry).
 - On entry, resolve the Telegram nickname as `first_name + last_name` (with
   the agreed fallbacks: `@username`, then an unknown-user placeholder) from
-  the launch payload.
+  `WebApp.initDataUnsafe.user`.
 - Inside Telegram (Bot API >= 6.2 with `showPopup`), show the native
   `Telegram.WebApp.showPopup` with the nickname; otherwise fall back to an
   in-page `<dialog>` (browsers and older clients).
 - Keep the nickname out of HTML parsing: it reaches the popup as a plain
   string and reaches the dialog via `textContent`; nothing is interpolated
   into `innerHTML`.
-- Add unit tests for the nickname resolution/parsing and Playwright e2e
-  coverage for the native-popup, dialog-fallback, and navigation cases.
+- Add unit tests for the nickname resolution and Playwright e2e coverage for
+  the native-popup, late-SDK, dialog-fallback, and navigation cases.
 
 ## Capabilities
 
@@ -41,7 +41,7 @@ None.
 ## Impact
 
 - `src/pages/test/group-popup.astro`: the new page.
-- `src/lib/nickname.ts`: pure nickname resolution and launch-payload parsing.
+- `src/lib/nickname.ts`: pure nickname resolution.
 - `src/lib/icons.ts`: new `flask` icon glyph (test-page entries only).
 - `src/layouts/SiteLayout.astro`: one additional nav link.
 - `tests/unit/nickname.test.ts`, `tests/e2e/group-popup.spec.ts`: coverage.

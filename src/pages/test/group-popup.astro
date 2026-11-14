@@ -22,7 +22,7 @@ export const prerender = true;
     </p>
     <p>
       在 Telegram 客户端（Bot API ≥ 6.2）中，昵称通过原生对话框弹出（<code>WebApp.showPopup</code>）；
-      在浏览器或更旧的客户端中，回退为页内对话框。昵称取自启动参数的 <code>user</code>：
+      在浏览器或更旧的客户端中，回退为页内对话框。昵称取自 <code>WebApp.initDataUnsafe.user</code>：
       <code>first_name</code> + <code>last_name</code>，两者缺失时回退 <code>@username</code>。
     </p>
 
@@ -56,7 +56,7 @@ export const prerender = true;
 </SiteLayout>
 
 <script>
-  import { nicknameOf, parseLaunchUser, type TelegramUserLike } from "../../lib/nickname";
+  import { nicknameOf, type TelegramUserLike } from "../../lib/nickname";
   import type { TelegramWebApp } from "../../lib/telegram";
 
   type PopupWebApp = TelegramWebApp & {
@@ -72,20 +72,20 @@ export const prerender = true;
     }
   };
 
-  const tg = (window as { Telegram?: { WebApp?: PopupWebApp } }).Telegram?.WebApp;
+  // The SDK loads after window.load, so resolve the WebApp on every attempt;
+  // a module-time snapshot would miss initDataUnsafe in real launches.
+  const getWebApp = (): PopupWebApp | undefined =>
+    (window as { Telegram?: { WebApp?: PopupWebApp } }).Telegram?.WebApp;
   const isTelegram = document.documentElement.classList.contains("telegram");
-  const isRealLaunch = Boolean(tg && (tg.platform !== "unknown" || tg.initData));
-
-  const user = tg?.initDataUnsafe?.user ?? parseLaunchUser(tg?.initData ?? "");
-  const nickname = nicknameOf(user);
+  const isRealLaunch = (tg?: PopupWebApp) =>
+    Boolean(tg && (tg.platform !== "unknown" || tg.initData));
 
   setText("[data-status-env]", isTelegram ? "Telegram 客户端" : "浏览器");
-  setText("[data-status-nickname]", nickname);
 
   const dialog = query<HTMLDialogElement>("[data-nickname-dialog]");
   const nicknameSlot = query("[data-nickname]");
 
-  const openDialog = () => {
+  const openDialog = (nickname: string) => {
     if (nicknameSlot) {
       nicknameSlot.textContent = nickname;
     }
@@ -95,35 +95,32 @@ export const prerender = true;
     setText("[data-status-path]", "页内对话框（浏览器或旧客户端）");
   };
 
-  const tryNativePopup = (): boolean => {
+  let tries = 0;
+  const attempt = () => {
+    const tg = getWebApp();
+    const nickname = nicknameOf(tg?.initDataUnsafe?.user);
+    setText("[data-status-nickname]", nickname);
+
     if (
       tg &&
-      isRealLaunch &&
+      isRealLaunch(tg) &&
       typeof tg.showPopup === "function" &&
       (typeof tg.isVersionAtLeast !== "function" || tg.isVersionAtLeast("6.2"))
     ) {
       // The message is a plain string — Telegram renders it as text, never as HTML.
       tg.showPopup({ title: "用户昵称", message: nickname, buttons: [{ type: "ok" }] });
       setText("[data-status-path]", "原生 showPopup（Bot API ≥ 6.2）");
-      return true;
-    }
-    return false;
-  };
-
-  let tries = 0;
-  const attempt = () => {
-    if (tryNativePopup()) {
       return;
     }
     // Inside Telegram the SDK arrives after window.load; wait briefly for it
     // before falling back to the in-page dialog. Old clients and browsers land
     // here on the first pass.
-    if (isTelegram && !isRealLaunch && tries < 15) {
+    if (isTelegram && !isRealLaunch(tg) && tries < 15) {
       tries += 1;
       window.setTimeout(attempt, 100);
       return;
     }
-    openDialog();
+    openDialog(nickname);
   };
   attempt();
 
