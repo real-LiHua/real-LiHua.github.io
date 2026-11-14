@@ -3,6 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import node from "@astrojs/node";
 import sitemap from "@astrojs/sitemap";
 import { markdownProcessor } from "./src/lib/markdown";
+import { findPreparedMapleFont, mapleFontInputDirectory } from "./src/lib/maple-font";
 import { defineConfig } from "astro/config";
 import astroWebMCP from "astro-webmcp";
 import { createRequire } from "node:module";
@@ -60,20 +61,10 @@ const iconGlyphCodePoints = ((): string[] => {
     return [];
   }
 })();
-const mapleFontInputDirectory = fileURLToPath(new URL(".cache/maple-font/input/", import.meta.url));
-const defaultMapleFontPath = join(mapleFontInputDirectory, "MapleMonoNormal-NF-CN.ttf");
-const mapleFontPath = ((): string => {
-  // The extracted archive ships weight-suffixed files (e.g. MapleMonoNormal-NF-CN-Regular.ttf),
-  // so resolve the real file name instead of assuming it.
-  try {
-    const match = readdirSync(mapleFontInputDirectory).find((name) =>
-      /^MapleMonoNormal-NF-CN[^/]*\.(?:ttf|otf)$/iu.test(name),
-    );
-    return match ? join(mapleFontInputDirectory, match) : defaultMapleFontPath;
-  } catch {
-    return defaultMapleFontPath;
-  }
-})();
+const projectRoot = process.cwd();
+const mapleFontPath =
+  findPreparedMapleFont(projectRoot) ??
+  join(mapleFontInputDirectory(projectRoot), "MapleMonoNormal-NF-CN.ttf");
 const postsDirectory = fileURLToPath(new URL("src/content/posts/", import.meta.url));
 
 const listPostRoutes = (directory: string): string[] =>

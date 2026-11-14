@@ -23,7 +23,7 @@ const posts = (await getCollection("posts"))
   .sort((first, second) => first.data.series!.order - second.data.series!.order);
 ---
 
-<SiteLayout title={title}>
+<SiteLayout title={title} image={`/open-graph/series/${Astro.params.id}.png`}>
   <section class="page-intro">
     <p class="eyebrow"><a href="/series/" title="文章系列"><Icon name="arrowLeft" /><span class="sr-only">文章系列</span></a></p>
     <h1>{title}</h1>

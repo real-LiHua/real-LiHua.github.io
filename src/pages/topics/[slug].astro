@@ -29,7 +29,7 @@ const posts = allPosts
   );
 ---
 
-<SiteLayout title={topic.name}>
+<SiteLayout title={topic.name} image={`/open-graph/topics/${slug}.png`}>
   <section class="page-intro">
     <p class="eyebrow"><a href="/posts/" title="文章索引"><Icon name="arrowLeft" /><span class="sr-only">文章索引</span></a></p>
     <h1>{topic.name}</h1>

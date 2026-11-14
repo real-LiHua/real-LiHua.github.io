@@ -38,7 +38,12 @@ const { post, previousPost, nextPost, previousSeriesPost, nextSeriesPost } = Ast
 const { Content } = await render(post);
 ---
 
-<SiteLayout title={post.data.title} description={post.data.description}>
+<SiteLayout
+  title={post.data.title}
+  description={post.data.description}
+  image={`/open-graph/posts/${post.id}.png`}
+  type="article"
+>
   <article class="article">
     {post.data.isPreview && <p class="preview-note">预览示例 · 非正式发布文章</p>}
     <p class="post-meta">{post.data.publishedAt.toISOString().slice(0, 10)} · {post.data.readingTime}</p>

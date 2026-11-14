@@ -19,6 +19,18 @@ does not download font files. GitHub Actions resolves and verifies the latest
 stable official font release, caches it by release tag, then prepares it for
 build-time WOFF2 optimization.
 
+## OpenGraph images
+
+`astro-og-canvas` renders a 1200×630 share card for the home page, article
+index, series, topics, and every post under `/open-graph/**`. Cards are
+prerendered at build time, use the paper/ink palette from `DESIGN.md`, and are
+referenced by the `og:image` and `twitter:image` tags emitted by `SiteLayout`.
+
+Card text uses the same Maple Mono Normal NF CN family as the site. Local
+builds read the installed system font; CI reads the verified release prepared
+by `pnpm run prepare:font`. Set `MAPLE_FONT_PATH` to a TTF/OTF file to point at
+another installation.
+
 ## Checks
 
 | Command                     | Purpose                                                |
