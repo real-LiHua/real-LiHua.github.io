@@ -31,6 +31,19 @@ builds read the installed system font; CI reads the verified release prepared
 by `pnpm run prepare:font`. Set `MAPLE_FONT_PATH` to a TTF/OTF file to point at
 another installation.
 
+## MDX and auto-imported components
+
+MDX is enabled, and `astro-auto-import` makes `src/components/Icon.astro`
+available in MDX without an import statement:
+
+```mdx
+<Icon name="book" /> 阅读与记录
+```
+
+Posts in `src/content/posts` may be `.md` or `.mdx`; both share the same
+frontmatter schema. Plain `.md` files cannot use components. A labeled demo
+page lives at `/test/auto-import/`.
+
 ## Checks
 
 | Command                     | Purpose                                                |

@@ -211,6 +211,9 @@ importers:
       astro:
         specifier: ^7.4.11
         version: 7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      astro-auto-import:
+        specifier: ^0.6.0
+        version: 0.6.0(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       astro-og-canvas:
         specifier: ^0.13.3
         version: 0.13.3(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -2736,6 +2739,11 @@ packages:
   astring@1.9.0:
     resolution: {integrity: sha512-LElXdjswlqjWrPpJFg1Fx4wpkOCxj1TDHlSV4PlaRxHGWko024xICaa97ZkMfs6DRKlCguiAI+rbXv5GWwXIkg==}
     hasBin: true
+
+  astro-auto-import@0.6.0:
+    resolution: {integrity: sha512-ru98hrmIZcLvNIcQWtGHKlYE2C+5+8dp86vGnDiGpdmqcFcG/Tn7uNVGhF1CUkvxNRtE+YZhmWTD94lnxY++rA==}
+    peerDependencies:
+      astro: ^7.2.4
 
   astro-expressive-code@0.44.3:
     resolution: {integrity: sha512-LUpQmmvzr90JXP5QIAopgdjlOKLuT3x0wlPAUpc4OZtPtFS8sbflPcGPpL/lG3pQuUCQV2CXUFgYNBYNu9tphA==}
@@ -7562,6 +7570,11 @@ snapshots:
       tslib: 2.9.1
 
   astring@1.9.0: {}
+
+  astro-auto-import@0.6.0(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)):
+    dependencies:
+      acorn: 8.19.0
+      astro: 7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
 
   astro-expressive-code@0.44.3(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)):
     dependencies:

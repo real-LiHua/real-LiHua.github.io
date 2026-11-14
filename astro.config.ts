@@ -1,7 +1,9 @@
 import type { AstroIntegration } from "astro";
 import tailwindcss from "@tailwindcss/vite";
+import mdx from "@astrojs/mdx";
 import node from "@astrojs/node";
 import sitemap from "@astrojs/sitemap";
+import AutoImport from "astro-auto-import";
 import { markdownProcessor } from "./src/lib/markdown";
 import { findPreparedMapleFont, mapleFontInputDirectory } from "./src/lib/maple-font";
 import { defineConfig } from "astro/config";
@@ -184,7 +186,16 @@ export default defineConfig({
   // Overridable so the Codeberg Pages mirror can emit its own canonical URL;
   // defaults to the GitHub Pages site.
   site: process.env.SITE_URL ?? "https://real-lihua.github.io",
-  integrations: [mapleFontIntegration, webmcpIntegration, sitemap()],
+  // `astro-auto-import` must be initialized before the MDX integration so it can
+  // inject imports into MDX files. The satteri processor is patched through its
+  // shared `mdastPlugins`, so `.md` files stay untouched (they cannot use ESM).
+  integrations: [
+    AutoImport({ imports: ["./src/components/Icon.astro"] }),
+    mdx(),
+    mapleFontIntegration,
+    webmcpIntegration,
+    sitemap(),
+  ],
   markdown: {
     processor: markdownProcessor,
     shikiConfig: {

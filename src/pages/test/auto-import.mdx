@@ -1,0 +1,22 @@
+import SiteLayout from "../../layouts/SiteLayout.astro";
+
+export const prerender = true;
+
+<SiteLayout
+  title="MDX 自动导入 · 测试页面"
+  description="测试页面：验证 astro-auto-import 为 MDX 注入组件导入。"
+>
+  <section class="page-intro">
+    <p class="eyebrow">测试页面</p>
+    <h1>MDX 自动导入</h1>
+  </section>
+
+  <section class="test-panel">
+    <p>
+      本页是 <code>.mdx</code> 文件，没有为图标写入 import 语句。下方的图标来自
+      <code>src/components/Icon.astro</code>，由 <code>astro-auto-import</code> 注入：
+    </p>
+    <p class="auto-import-demo"><Icon name="book" /> 阅读与记录</p>
+    <p>普通 Markdown 段落不受影响，继续按文章排版渲染。</p>
+  </section>
+</SiteLayout>
