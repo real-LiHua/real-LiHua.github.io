@@ -1,4 +1,6 @@
 import { create, insertMultiple, save, type RawData } from "@orama/orama";
+import { toString } from "mdast-util-to-string";
+import { markdownToMdast } from "satteri";
 import { searchSchema } from "./search-config";
 import { createSearchTokenizer } from "./search-tokenizer";
 
@@ -30,18 +32,7 @@ export function createSearchDatabase() {
 }
 
 export function stripMarkdownForSearch(markdown: string): string {
-  return markdown
-    .replaceAll(/<!--[\s\S]*?-->/gu, " ")
-    .replaceAll(/^```[^\n]*$/gmu, " ")
-    .replaceAll(/!\[(?<alt>[^\]]*)\]\([^)]*\)/gu, "$<alt>")
-    .replaceAll(/\[(?<text>[^\]]+)\]\([^)]*\)/gu, "$<text>")
-    .replaceAll(/\[(?<refText>[^\]]+)\]\[[^\]]*\]/gu, "$<refText>")
-    .replaceAll(/^#{1,6}\s+/gmu, "")
-    .replaceAll(/^\s*>\s?/gmu, "")
-    .replaceAll(/^\s*[-+*]\s+/gmu, "")
-    .replaceAll(/^\s*\|?[\s:|-]+\|[\s:|-]*$/gmu, " ")
-    .replaceAll(/[`*_~]/gu, "")
-    .replaceAll(/<[^>]+>/gu, " ")
+  return toString(markdownToMdast(markdown), { includeHtml: false })
     .replaceAll(/\s+/gu, " ")
     .trim();
 }

@@ -60,6 +60,13 @@ describe("stripMarkdownForSearch", () => {
     assert.match(text, /const answer = 42/u);
     assert.doesNotMatch(text, /example\.com|preview-image\.svg|\*\*|##|```|注释/u);
   });
+
+  it("keeps the literal text of inline code", () => {
+    const text = stripMarkdownForSearch("用 `snake_case` 和 `a*b` 命名。");
+
+    assert.match(text, /snake_case/u);
+    assert.match(text, /a\*b/u);
+  });
 });
 
 describe("Orama search index", () => {

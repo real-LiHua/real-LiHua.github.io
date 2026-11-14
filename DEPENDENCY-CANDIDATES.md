@@ -1,8 +1,8 @@
 # Dependency candidates
 
-Astro ecosystem projects published by members of the `withastro` organization,
-filtered to what this repository could adopt. A shortlist with decisions, not a
-wish list: nothing here is installed unless its row says so.
+Projects from the Astro, satteri, and syntax-tree ecosystems, filtered to what
+this repository could adopt. A shortlist with decisions, not a wish list:
+nothing here is installed unless its row says so.
 
 Scan performed **2026-11-14**. Stars, last-push dates, and npm peer ranges are
 point-in-time; re-check before acting on an old entry.
@@ -19,9 +19,14 @@ point-in-time; re-check before acting on an old entry.
 To refresh:
 
 ```sh
+# withastro members → personal repos
 gh api orgs/withastro/members --jq '.[].login' > /tmp/members.txt
 cat /tmp/members.txt | xargs -P 4 -I{} gh api \
   "users/{}/repos?per_page=100&sort=updated" --paginate \
+  --jq '.[] | select(.fork == false and .archived == false)'
+
+# syntax-tree org repos
+gh api "orgs/syntax-tree/repos?per_page=100" --paginate \
   --jq '.[] | select(.fork == false and .archived == false)'
 ```
 
@@ -35,6 +40,61 @@ So there is no member-published satteri plugin to adopt. The site keeps the
 community package `@xingwangzhe/satteri-mermaid`, and remark/rehype plugins are
 out of scope: `src/lib/markdown.ts` runs a satteri processor, not a unified
 pipeline.
+
+## syntax-tree utilities
+
+Scan performed **2026-11-14**: 140 repositories under `syntax-tree` (8 members).
+The org is the AST layer satteri replaces, so only plain tree utilities qualify.
+`satteri` returns standard MDAST/HAST from `markdownToMdast` / `markdownToHast`
+and hands plugins plain node objects, so utilities that do not depend on
+`unified` work; parsers, remark extensions, and `mdast-util-to-hast` are
+redundant.
+
+### Adopted
+
+| Package                | Version  | Use                                   |
+| ---------------------- | -------- | ------------------------------------- |
+| `mdast-util-to-string` | `^4.0.0` | Plain text for the Orama search index |
+
+`src/lib/search.ts` parses each post body with `markdownToMdast` and extracts
+text with `toString(tree, { includeHtml: false })`. The previous regex pass
+stripped `_` and `*` inside inline code (`snake_case` → `snakecase`).
+
+### Removed as unused
+
+`mdast-util-toc`, `hast-util-from-html`, `hast-util-to-html`, and
+`hast-util-to-text` were declared but never imported. The outline is built
+client-side from the rendered DOM, satteri serializes HTML itself, and reading
+time is a hand-written frontmatter field.
+
+### Worth adding later
+
+| Package                                   | ★ · pushed                 | Prerequisite                                  |
+| ----------------------------------------- | -------------------------- | --------------------------------------------- |
+| `hast-util-sanitize`                      | 60 · 2024-10               | Rendering HTML from an untrusted source       |
+| `hast-util-select`, `unist-util-select`   | 43 · 2025-02, 71 · 2026-06 | Needing `querySelector` over a tree           |
+| `unist-util-visit`                        | 359 · 2026-10              | Build scripts walking a whole tree            |
+| `hast-util-reading-time`                  | 57 · 2023-08               | Automating `readingTime` (unreliable for CJK) |
+| `hast-util-truncate`, `hast-util-excerpt` | 4 · 2023-08, 2 · 2023-08   | Auto-generated summaries                      |
+| `unist-util-inspect`                      | 32 · 2024-12               | Debugging trees                               |
+
+### Rejected
+
+- `mdast-util-from-markdown`, `mdast-util-gfm*`, `mdast-util-math`,
+  `mdast-util-directive`, `mdast-util-frontmatter`, `mdast-util-mdx*`:
+  satteri's built-in `features` already parse these.
+- `mdast-util-to-hast`, `mdast-util-to-markdown`: conversion and serialization
+  happen inside satteri, and the site never writes Markdown back.
+- `hast-util-to-estree`, `hast-util-to-jsx-runtime`, `estree-util-*`: Astro and
+  MDX own the JSX stage.
+- `xast-util-sitemap`, `xast-util-feed`: `@astrojs/sitemap` and `@astrojs/rss`
+  already cover them.
+- `nlcst-*`: no natural-language/prose-checking pipeline.
+- `hast-util-from-dom`, `hast-util-to-dom`, `*-parse5`: no DOM or parse5
+  boundary.
+- `hastscript`, `unist-builder`: satteri custom nodes accept plain objects.
+- Predicate helpers (`hast-util-is-element`, `hast-util-has-property`,
+  `hast-util-whitespace`, …): a field check is shorter than a dependency.
 
 ## Already adopted
 

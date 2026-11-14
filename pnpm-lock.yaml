@@ -226,9 +226,9 @@ importers:
       expressive-code-language-badge:
         specifier: ^1.1.0
         version: 1.1.0(@astrojs/starlight@0.42.10(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(typescript@6.0.3))(@expressive-code/core@0.41.7)
-      mdast-util-toc:
-        specifier: ^7.1.0
-        version: 7.1.0
+      mdast-util-to-string:
+        specifier: ^4.0.0
+        version: 4.0.0
       satteri:
         specifier: ^0.10.5
         version: 0.10.5
@@ -296,15 +296,6 @@ importers:
       execa:
         specifier: ^10.2.1
         version: 10.2.1
-      hast-util-from-html:
-        specifier: ^2.1.0
-        version: 2.1.0
-      hast-util-to-html:
-        specifier: ^9.0.6
-        version: 9.0.6
-      hast-util-to-text:
-        specifier: ^4.0.3
-        version: 4.0.3
       husky:
         specifier: ^9.1.7
         version: 9.1.7
@@ -2579,9 +2570,6 @@ packages:
   '@types/sax@1.2.7':
     resolution: {integrity: sha512-rO73L89PJxeYM3s3pPPjiPgVVcymqU490g0YO5n5By0k2Erzj6tay/4lr1CHAAU4JyOWd1rpQ8bCf6cZfHU96A==}
 
-  '@types/ungap__structured-clone@1.2.0':
-    resolution: {integrity: sha512-ZoaihZNLeZSxESbk9PUAPZOlSpcKx81I1+4emtULDVmBLkYutTcMlCj2K9VNlf9EWODxdO6gkAqEaLorXwZQVA==}
-
   '@types/unist@2.0.11':
     resolution: {integrity: sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA==}
 
@@ -4029,9 +4017,6 @@ packages:
 
   mdast-util-to-string@4.0.0:
     resolution: {integrity: sha512-0H44vDimn51F0YwvxSJSm0eCDOJTRlmN0R1yBh4HLj9wiV1Dn0QoXGbvFAWj2hSItVTlCmBF1hqKlIyUBVFLPg==}
-
-  mdast-util-toc@7.1.0:
-    resolution: {integrity: sha512-2TVKotOQzqdY7THOdn2gGzS9d1Sdd66bvxUyw3aNpWfcPXCLYSJCCgfPy30sEtuzkDraJgqF35dzgmz6xlvH/w==}
 
   mdn-data@2.0.28:
     resolution: {integrity: sha512-aylIc7Z9y4yzHYAJNuESG3hfhC+0Ibp/MAMiaOZgNv4pmEdFyfZhhhny4MNiAfWdBQ1RQ2mfDWmM1x8SvGyp8g==}
@@ -7432,8 +7417,6 @@ snapshots:
     dependencies:
       '@types/node': 24.19.2
 
-  '@types/ungap__structured-clone@1.2.0': {}
-
   '@types/unist@2.0.11': {}
 
   '@types/unist@3.0.3': {}
@@ -9204,16 +9187,6 @@ snapshots:
   mdast-util-to-string@4.0.0:
     dependencies:
       '@types/mdast': 4.0.4
-
-  mdast-util-toc@7.1.0:
-    dependencies:
-      '@types/mdast': 4.0.4
-      '@types/ungap__structured-clone': 1.2.0
-      '@ungap/structured-clone': 1.4.0
-      github-slugger: 2.0.0
-      mdast-util-to-string: 4.0.0
-      unist-util-is: 6.0.1
-      unist-util-visit: 5.2.0
 
   mdn-data@2.0.28: {}
 
