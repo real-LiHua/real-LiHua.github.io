@@ -204,6 +204,13 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      // Font subsets must stay as separate WOFF2 files: `check:font-output`
+      // rejects data: URLs, and a content change can shift the subset split so a
+      // tail chunk drops below Vite's 4 kB inline threshold. Keep every font
+      // file external and content-hashed.
+      assetsInlineLimit: (filePath: string) => (/\.woff2?$/iu.test(filePath) ? false : undefined),
+    },
     resolve: {
       alias: [
         { find: /^@orama\/orama$/u, replacement: oramaClientEntry },
