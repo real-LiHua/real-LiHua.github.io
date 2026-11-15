@@ -3,6 +3,7 @@ import SiteLayout from "../../layouts/SiteLayout.astro";
 import Icon from "../../components/Icon.astro";
 import { getCollection } from "astro:content";
 import { assertUniqueSeriesPositions } from "../../lib/content-validation";
+import { getPostDates } from "../../lib/post-dates";
 
 export const prerender = true;
 
@@ -32,7 +33,7 @@ const posts = (await getCollection("posts"))
     {posts.map((post) => (
       <li>
         <article>
-          <p class="post-meta">第 {post.data.series?.order} 篇 · {post.data.publishedAt.toISOString().slice(0, 10)}</p>
+          <p class="post-meta">第 {post.data.series?.order} 篇 · {getPostDates(post).publishedAt.toISOString().slice(0, 10)}</p>
           <h2><a href={`/posts/${post.id}/`}>{post.data.title}</a></h2>
           <p>{post.data.description}</p>
         </article>

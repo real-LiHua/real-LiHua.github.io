@@ -3,16 +3,13 @@ import type { APIRoute } from "astro";
 import { OGImageRoute } from "astro-og-canvas";
 import { assertUniqueSeriesPositions } from "../../lib/content-validation";
 import { ogImageOptions, type OgImageContent } from "../../lib/og-image";
+import { byNewestFirst } from "../../lib/post-dates";
 
 // OpenGraph images are generated once at build time, even though the site is
 // served on demand by the Node adapter.
 export const prerender = true;
 
-const posts = (await getCollection("posts")).sort(
-  (first, second) =>
-    second.data.publishedAt.valueOf() - first.data.publishedAt.valueOf() ||
-    first.id.localeCompare(second.id),
-);
+const posts = (await getCollection("posts")).sort(byNewestFirst);
 assertUniqueSeriesPositions(posts);
 
 const topics = new Map(

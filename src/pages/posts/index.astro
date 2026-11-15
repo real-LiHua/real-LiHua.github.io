@@ -3,19 +3,16 @@ import SiteLayout from "../../layouts/SiteLayout.astro";
 import Icon from "../../components/Icon.astro";
 import { getCollection } from "astro:content";
 import { assertUniqueSeriesPositions } from "../../lib/content-validation";
+import { byNewestFirst, getPostDates } from "../../lib/post-dates";
 
 export const prerender = true;
 
 const collectionPosts = await getCollection("posts");
 assertUniqueSeriesPositions(collectionPosts);
-const posts = collectionPosts.sort(
-  (first, second) =>
-    second.data.publishedAt.valueOf() - first.data.publishedAt.valueOf() ||
-    first.id.localeCompare(second.id),
-);
-const years = [...new Set(posts.map((post) => post.data.publishedAt.getUTCFullYear()))].sort(
-  (first, second) => second - first,
-);
+const posts = collectionPosts.sort(byNewestFirst);
+const years = [
+  ...new Set(posts.map((post) => getPostDates(post).publishedAt.getUTCFullYear())),
+].sort((first, second) => second - first);
 const topics = new Map(
   posts.flatMap((post) => post.data.topics.map((topic) => [topic.slug, topic.name] as const)),
 );
@@ -55,7 +52,7 @@ const topics = new Map(
     {posts.map((post) => (
       <li>
         <article>
-          <p class="post-meta">{post.data.publishedAt.toISOString().slice(0, 10)} · {post.data.readingTime}</p>
+          <p class="post-meta">{getPostDates(post).publishedAt.toISOString().slice(0, 10)} · {post.data.readingTime}</p>
           <h2><a href={`/posts/${post.id}/`}>{post.data.title}</a></h2>
           <p>{post.data.description}</p>
         </article>

@@ -3,6 +3,7 @@ import SiteLayout from "../../layouts/SiteLayout.astro";
 import Icon from "../../components/Icon.astro";
 import { getCollection } from "astro:content";
 import { assertUniqueSeriesPositions } from "../../lib/content-validation";
+import { byNewestFirst, getPostDates } from "../../lib/post-dates";
 
 export const prerender = true;
 
@@ -22,11 +23,7 @@ if (!topic) {throw new Error(`Missing topic "${slug}"`);}
 
 const posts = allPosts
   .filter((post) => post.data.topics.some((item) => item.slug === slug))
-  .sort(
-    (first, second) =>
-      second.data.publishedAt.valueOf() - first.data.publishedAt.valueOf() ||
-      first.id.localeCompare(second.id),
-  );
+  .sort(byNewestFirst);
 ---
 
 <SiteLayout title={topic.name} image={`/open-graph/topics/${slug}.png`}>
@@ -39,7 +36,7 @@ const posts = allPosts
     {posts.map((post) => (
       <li>
         <article>
-          <p class="post-meta">{post.data.publishedAt.toISOString().slice(0, 10)} · {post.data.readingTime}</p>
+          <p class="post-meta">{getPostDates(post).publishedAt.toISOString().slice(0, 10)} · {post.data.readingTime}</p>
           <h2><a href={`/posts/${post.id}/`}>{post.data.title}</a></h2>
           <p>{post.data.description}</p>
         </article>

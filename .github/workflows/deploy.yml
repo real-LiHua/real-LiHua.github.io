@@ -36,6 +36,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Article publication/modification times come from `git log`; a
+          # shallow clone would collapse every file onto the HEAD commit.
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
         with:
@@ -95,6 +99,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Article publication/modification times come from `git log`; a
+          # shallow clone would collapse every file onto the HEAD commit.
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
         with:

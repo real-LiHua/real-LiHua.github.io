@@ -3,15 +3,14 @@ import SiteLayout from "../../layouts/SiteLayout.astro";
 import Icon from "../../components/Icon.astro";
 import { getCollection, render } from "astro:content";
 import { assertUniqueSeriesPositions } from "../../lib/content-validation";
+import { buildArticleMetadata } from "../../lib/article-metadata";
+import { byNewestFirst, getPostDates } from "../../lib/post-dates";
+import { siteAuthor } from "../../lib/site-metadata";
 
 export const prerender = true;
 
 export async function getStaticPaths() {
-  const posts = (await getCollection("posts")).sort(
-    (first, second) =>
-      second.data.publishedAt.valueOf() - first.data.publishedAt.valueOf() ||
-      first.id.localeCompare(second.id),
-  );
+  const posts = (await getCollection("posts")).sort(byNewestFirst);
   assertUniqueSeriesPositions(posts);
   return posts.map((post, index) => {
     const seriesPosts = post.data.series
@@ -36,6 +35,16 @@ export async function getStaticPaths() {
 
 const { post, previousPost, nextPost, previousSeriesPost, nextSeriesPost } = Astro.props;
 const { Content } = await render(post);
+const postDates = getPostDates(post);
+const articleMetadata = buildArticleMetadata(
+  {
+    publishedAt: postDates.publishedAt,
+    updatedAt: postDates.updatedAt,
+    topics: post.data.topics,
+    series: post.data.series,
+  },
+  { author: siteAuthor },
+);
 ---
 
 <SiteLayout
@@ -43,10 +52,11 @@ const { Content } = await render(post);
   description={post.data.description}
   image={`/open-graph/posts/${post.id}.png`}
   type="article"
+  article={articleMetadata}
 >
   <article class="article">
     {post.data.isPreview && <p class="preview-note">预览示例 · 非正式发布文章</p>}
-    <p class="post-meta">{post.data.publishedAt.toISOString().slice(0, 10)} · {post.data.readingTime}</p>
+    <p class="post-meta">{postDates.publishedAt.toISOString().slice(0, 10)} · {post.data.readingTime}</p>
     <h1>{post.data.title}</h1>
     <p class="article-lede">{post.data.description}</p>
     {post.data.series && (
