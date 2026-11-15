@@ -16,6 +16,9 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
       - "src/rust/**"
+      # Preview sample posts used only by the test suite; excluded from
+      # production builds (see src/content.config.ts) and not worth a deploy.
+      - "tests/fixtures/**"
   workflow_dispatch:
 
 permissions:
@@ -40,6 +43,10 @@ jobs:
           # Article publication/modification times come from `git log`; a
           # shallow clone would collapse every file onto the HEAD commit.
           fetch-depth: 0
+          # The post collection lives in the private `content` repo; the
+          # read-only deploy key only grants access to that repository.
+          submodules: true
+          ssh-key: ${{ secrets.CONTENT_DEPLOY_KEY }}
 
       - uses: pnpm/action-setup@v4
         with:
@@ -103,6 +110,9 @@ jobs:
           # Article publication/modification times come from `git log`; a
           # shallow clone would collapse every file onto the HEAD commit.
           fetch-depth: 0
+          # Same private `content` submodule as the github job above.
+          submodules: true
+          ssh-key: ${{ secrets.CONTENT_DEPLOY_KEY }}
 
       - uses: pnpm/action-setup@v4
         with:
