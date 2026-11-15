@@ -1,0 +1,33 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  publishedAt: Date;
+  heroImage?: string;
+}
+
+const { title, description, publishedAt, heroImage } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" type="application/rss+xml" href="/rss.xml" />
+    <slot name="head" />
+  </head>
+  <body>
+    <article>
+      <h1>{title}</h1>
+      {heroImage && <img src={heroImage} alt="" />}
+      <slot />
+    </article>
+  </body>
+</html>

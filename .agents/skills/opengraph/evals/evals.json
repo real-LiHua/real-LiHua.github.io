@@ -1,0 +1,55 @@
+{
+  "skill_name": "opengraph",
+  "evals": [
+    {
+      "id": 0,
+      "name": "audit-broken-landing-page",
+      "prompt": "Here's the exact HTML our pricing page serves: /tmp/opencode/og-eval/inputs/landing-broken.html. When anyone drops the link in Slack or LinkedIn it shows a tiny grey card with just 'acme.example'. Can you tell me what's wrong and give me the corrected head?",
+      "expected_output": "A prioritised list of what is wrong (missing og:type and og:url, relative og:image, duplicate og:title, og:site_name outside head, en-US locale) plus a corrected <head> with absolute URLs, og:url matching canonical, image dimensions and alt.",
+      "files": ["evals/fixtures/landing-broken.html"],
+      "assertions": [
+        { "text": "Identifies that og:type is missing", "type": "boolean" },
+        { "text": "Identifies that og:url is missing", "type": "boolean" },
+        { "text": "Identifies that the og:image value is relative and must be absolute", "type": "boolean" },
+        { "text": "Identifies the duplicate og:title and explains that the first value wins", "type": "boolean" },
+        { "text": "Identifies that og:site_name sits outside <head>", "type": "boolean" },
+        { "text": "Provides a corrected head where og:url equals the canonical URL and og:image is absolute https", "type": "boolean" },
+        { "text": "Corrected head includes og:image:alt and width/height of 1200x630", "type": "boolean" },
+        { "text": "Does not invent property names that are not in the Open Graph protocol", "type": "boolean" }
+      ]
+    },
+    {
+      "id": 1,
+      "name": "fix-astro-blog-layout",
+      "prompt": "Blog posts on our Astro site unfurl with only the site name - no headline, no image. The layout that renders every post's <head> is /tmp/opencode/og-eval/inputs/astro-blog/src/layouts/BlogPost.astro and the site URL is in astro.config.mjs next to it. Make the social metadata right for every post, and write the updated layout to <OUTPUT_DIR>/BlogPost.astro (keep the rest of the file intact).",
+      "expected_output": "Updated Astro layout emitting og:title, og:type=article, absolute og:url and og:image derived from Astro.site, image dimensions and alt, og:description, og:site_name, og:locale, and article:published_time from the publishedAt prop.",
+      "files": [
+        "evals/fixtures/astro-blog/src/layouts/BlogPost.astro",
+        "evals/fixtures/astro-blog/astro.config.mjs"
+      ],
+      "assertions": [
+        { "text": "Emits og:title from the post title prop", "type": "boolean" },
+        { "text": "Emits og:type with the value article", "type": "boolean" },
+        { "text": "Builds og:url as an absolute URL from Astro.site rather than a hardcoded domain", "type": "boolean" },
+        { "text": "Emits an absolute og:image URL for the post, with a sane fallback when heroImage is absent", "type": "boolean" },
+        { "text": "Includes og:image:alt, og:image:width and og:image:height", "type": "boolean" },
+        { "text": "Emits og:description, og:site_name and a valid og:locale", "type": "boolean" },
+        { "text": "Emits article:published_time as an ISO 8601 value", "type": "boolean" },
+        { "text": "Leaves the existing title, description, canonical link and slot intact without duplicating them", "type": "boolean" }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "clean-page-regression",
+      "prompt": "Quick pre-ship check: is the social metadata on /tmp/opencode/og-eval/inputs/clean-article.html ready to go, or is anything missing? Be specific.",
+      "expected_output": "Confirms the four required properties are present and valid, that the image has dimensions/type/alt, locale and article metadata are correct. Optional suggestions must not be presented as defects.",
+      "files": ["evals/fixtures/clean-article.html"],
+      "assertions": [
+        { "text": "States that all four required properties are present", "type": "boolean" },
+        { "text": "Does not claim any required property is missing", "type": "boolean" },
+        { "text": "Confirms og:url matches the canonical URL and og:image is absolute", "type": "boolean" },
+        { "text": "Distinguishes optional improvements from actual problems", "type": "boolean" }
+      ]
+    }
+  ]
+}
