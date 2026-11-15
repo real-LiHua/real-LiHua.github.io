@@ -1,11 +1,11 @@
 # Validating `initData`
 
-`initData` is a signed launch payload. Treat it as a bearer credential: anyone who obtains
-it can impersonate the user until it expires. Validate it **on the server**, then issue your
-own short-lived session.
+`initData` is a signed launch payload. You MUST treat it as a bearer credential: anyone who
+obtains it can impersonate the user until it expires. You MUST validate it **on the
+server**, then issue your own short-lived session.
 
-Never validate in the browser. The bot token is the signing key; shipping it to clients
-defeats the whole scheme. Never authenticate from `initDataUnsafe`.
+You MUST NOT validate in the browser. The bot token is the signing key; shipping it to
+clients defeats the whole scheme. You MUST NOT authenticate from `initDataUnsafe`.
 
 ## What Telegram signs
 
@@ -20,15 +20,16 @@ expected_hash     = hex(HMAC_SHA256(key=secret_key, data=data_check_string))
 
 Rules that matter:
 
-- Use **decoded** values (`URLSearchParams` / `parse_qsl` do this).
-- Sort by field name; join `key=value` pairs with `\n` (0x0A), no trailing newline.
-- Exclude only `hash` from the string. If `signature` is present, it **is included** in the
-  HMAC check. (It is excluded only from the third-party Ed25519 check.)
-- Compare the hex digest in constant time.
-- Reject stale `auth_date` (recommended max age: 1 day; shorter for sensitive actions).
-- Reject `auth_date` far in the future (allow a few minutes of clock skew).
+- You MUST use **decoded** values (`URLSearchParams` / `parse_qsl` do this).
+- You MUST sort by field name; join `key=value` pairs with `\n` (0x0A), no trailing newline.
+- You MUST exclude only `hash` from the string. If `signature` is present, it **is included**
+  in the HMAC check. (It is excluded only from the third-party Ed25519 check.)
+- You MUST compare the hex digest in constant time.
+- You MUST reject stale `auth_date` (recommended max age: 1 day; shorter for sensitive
+  actions).
+- You MUST reject `auth_date` far in the future (allow a few minutes of clock skew).
 
-`initData` is empty for keyboard-button and inline-mode launches. Those flows must
+`initData` is empty for keyboard-button and inline-mode launches. Those flows MUST
 authenticate from the bot update that triggered the app, not from `initData`.
 
 ## Node.js (zero dependencies)
@@ -161,7 +162,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 };
 ```
 
-Do not return the raw `initData` or the bot token in any response or log.
+You MUST NOT return the raw `initData` or the bot token in any response or log.
 
 ## Python (zero dependencies)
 
@@ -208,19 +209,19 @@ def validate_init_data(init_data: str, bot_token: str, max_age: int = 86_400) ->
 ```
 
 `dict(parse_qsl(...))` keeps the last duplicate key. Telegram does not send duplicates; if
-you need strictness, reject repeated keys before converting to a dict.
+you need strictness, you SHOULD reject repeated keys before converting to a dict.
 
 ## Third-party validation (Ed25519)
 
-Use this when a service other than the bot's backend must verify the data. It requires only
+You SHOULD use this when a service other than the bot's backend needs to verify the data. It requires only
 the public `bot_id` and Telegram's Ed25519 public key.
 
 ```text
 data_check_string = "<bot_id>:WebAppData\n" + sorted("key=value" pairs joined by "\n")
 ```
 
-Exclude **both** `hash` and `signature` from those pairs. Verify the base64url `signature`
-against the key for the environment:
+You MUST exclude **both** `hash` and `signature` from those pairs. You MUST verify the
+base64url `signature` against the key for the environment:
 
 - Production: `e7bf03a2fa4602af4580703d88dda5bb59f32ed8b02a56c187fe7d34caed242d`
 - Test: `40055058a4ee38156a06562e52eece92a771bcd8346a8c4615cb7376eddf72ec`
@@ -276,19 +277,19 @@ export function validateInitDataThirdParty(
 
 Third-party validation proves Telegram issued the data for that `bot_id`. It does **not**
 prove the user is still logged in, and it does not prevent replay inside the `auth_date`
-window. Apply your own session and authorization rules.
+window. You MUST apply your own session and authorization rules.
 
 ## `auth_date` and replay
 
 `auth_date` is when Telegram issued the payload, not when your server received it. A
 captured `initData` remains valid until your max-age cutoff, so:
 
-- Use the shortest max age your UX allows (5–15 minutes for login, up to 24 hours for
-  low-risk session refresh).
-- Bind the resulting session to your own expiry, not to `initData`.
-- For destructive or payment actions, require a server-issued challenge or re-authentication
-  rather than replaying the original payload.
-- Store `auth_date` and the validated `user.id` with the session for audit.
+- You SHOULD use the shortest max age your UX allows (5–15 minutes for login, up to 24 hours
+  for low-risk session refresh).
+- You MUST bind the resulting session to your own expiry, not to `initData`.
+- For destructive or payment actions, you MUST require a server-issued challenge or
+  re-authentication rather than replaying the original payload.
+- You MUST store `auth_date` and the validated `user.id` with the session for audit.
 
 ## Failure modes
 
@@ -305,11 +306,11 @@ captured `initData` remains valid until your max-age cutoff, so:
 
 ## Logging and transport
 
-- Send `initData` in a POST body or `Authorization` header; avoid query strings (length and
-  proxy logs).
-- Log the validation result and `user.id`, never the raw payload or token.
-- Rate-limit the auth endpoint; failed validation is cheap but not free.
-- Use HTTPS. The test environment allows HTTP, production does not.
+- You SHOULD send `initData` in a POST body or `Authorization` header; avoid query strings
+  (length and proxy logs).
+- Log the validation result and `user.id`; you MUST NOT log the raw payload or token.
+- You MUST rate-limit the auth endpoint; failed validation is cheap but not free.
+- You MUST use HTTPS. The test environment allows HTTP, production does not.
 
 ## Runnable CLI
 
@@ -333,9 +334,9 @@ Exit codes: `0` valid, `1` invalid, `2` usage error. `--json` prints one object 
 `chatType`, `queryId`, and `chatJoinRequestQueryId` on success. The payload and token are
 never printed.
 
-`--init-data` accepts the string directly, but prefer `--file` or stdin: command-line
-arguments are visible to other processes. The script rejects duplicate fields, requires
-`auth_date` to be Unix seconds, and enforces a maximum age (default 24 hours, `0`
+`--init-data` accepts the string directly, but you SHOULD prefer `--file` or stdin:
+command-line arguments are visible to other processes. The script rejects duplicate fields,
+requires `auth_date` to be Unix seconds, and enforces a maximum age (default 24 hours, `0`
 disables). Tests live in `scripts/validate-init-data.test.mjs` (`node --test scripts/`).
 
 The functions are importable for use in a server route:

@@ -1,6 +1,6 @@
 # Astro Mini App starter
 
-Copy these files into an Astro + Tailwind 4 project:
+You MUST copy these files into an Astro + Tailwind 4 project:
 
 | Source | Destination | Required |
 |---|---|---|
@@ -12,16 +12,16 @@ Copy these files into an Astro + Tailwind 4 project:
 Then:
 
 1. The layout imports the stylesheet itself; if you use a different base layout,
-   import `../styles/global.css` once there.
-2. Wrap Mini App pages in `<MiniAppLayout title="...">`.
-3. Keep `BOT_TOKEN` server-only (for example in `.env`), never prefixed with `PUBLIC_`.
-4. Replace the `?65` SDK query with the current build from the official docs when you
-   intentionally upgrade.
+   you MUST import `../styles/global.css` once there.
+2. You MUST wrap Mini App pages in `<MiniAppLayout title="...">`.
+3. `BOT_TOKEN` MUST stay server-only (for example in `.env`) and MUST NOT be prefixed with `PUBLIC_`.
+4. You SHOULD replace the `?65` SDK query with the current build from the official docs
+   when you intentionally upgrade.
 
 ## Why it is built this way
 
 - The layout uses `<script is:inline>` for the Telegram SDK. Astro's normal `<script>` is
-  bundled, deferred, and may run after app code; the SDK must run first, in `<head>`.
+  bundled, deferred, and may run after app code; the SDK MUST run first, in `<head>`.
 - `global.css` maps `--tg-theme-*` to Tailwind tokens with `@theme inline`, so dark mode
   and theme switches work without JS. Safe-area helpers use content insets, not fixed
   offsets.
@@ -29,7 +29,7 @@ Then:
   events, and Astro view transitions. `initTelegram()` is reference-counted for multiple
   callers; `observeTelegram()` survives `astro:page-load` and cleans up on `astro:before-swap`.
 - Outside Telegram the helper returns `null` and the example page shows a labelled preview.
-  The preview never fakes `initData` or bypasses server auth.
+  The preview MUST NOT fake `initData` or bypass server auth.
 
 The full API is documented in `references/sdk-core.md`; server-side validation is in
 `references/validation.md`.

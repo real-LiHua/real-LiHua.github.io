@@ -2,10 +2,10 @@
 
 Feature gates are based on the **Bot API version supported by the client**, exposed as
 `Telegram.WebApp.version`. The SDK build (`telegram-web-app.js?65`) is a different number;
-do not compare them.
+you MUST NOT compare them.
 
-Check features with `Telegram.WebApp.isVersionAtLeast('8.0')`. Methods that are too new
-usually warn and no-op in the SDK, so a “missing” button is often a version issue.
+You MUST check features with `Telegram.WebApp.isVersionAtLeast('8.0')`. Methods that are too
+new usually warn and no-op in the SDK, so a “missing” button is often a version issue.
 
 Source: <https://core.telegram.org/bots/webapps#recent-changes> (current through Bot API
 10.1, June 11, 2026).
@@ -47,33 +47,35 @@ if (tg.isVersionAtLeast('8.0')) {
 }
 ```
 
-Prefer capability checks over version checks when both are available. For example, test
-`typeof tg.requestFullscreen === 'function'` in addition to the version gate; it protects
-against clients that report a version but do not implement a platform-specific feature.
+You SHOULD prefer capability checks over version checks when both are available. For
+example, test `typeof tg.requestFullscreen === 'function'` in addition to the version gate;
+it protects against clients that report a version but do not implement a platform-specific
+feature.
 
 ## Migration notes
 
 - **7.10:** the class is `BottomButton`; `WebApp.MainButton` still exists and is the primary
-  instance. Code that referenced `MainButton` as a type should be updated.
-- **8.0:** fullscreen makes safe areas mandatory. If you adopt fullscreen, adopt
+  instance. Code that referenced `MainButton` as a type SHOULD be updated.
+- **8.0:** fullscreen makes safe areas mandatory. If you adopt fullscreen, you MUST adopt
   `contentSafeAreaInset` in the same change.
 - **8.0:** `photo_url` is now available to all Mini Apps (subject to privacy settings), not
   only attachment-menu launches.
 - **9.0:** `DeviceStorage`/`SecureStorage` are not a replacement for a server database.
-  They are per-device caches and secret stores; entitlements stay server-side.
-- **10.1:** join-request launches use a separate query id. Do not reuse `query_id` handling
-  for `chat_join_request_query_id`.
+  They are per-device caches and secret stores; entitlements MUST stay server-side.
+- **10.1:** join-request launches use a separate query id. You MUST NOT reuse `query_id`
+  handling for `chat_join_request_query_id`.
 
 ## Version support policy
 
 Telegram clients update independently and users can stay on old versions. A practical
 policy:
 
-- Require **6.1+** for the native back button, header colors, and `isVersionAtLeast`.
-- Treat **7.x** features as enhancements, not requirements.
-- Treat **8.0+** features (fullscreen, sensors, location, sharing, emoji status) as
-  progressive enhancements with in-page fallbacks.
-- Treat **9.0+** storage as optional; fall back to `localStorage` only for non-sensitive
-  data.
-- If a feature has no fallback, show a clear message (“Update Telegram to use this”) rather
-  than a dead button.
+- You SHOULD require **6.1+** for the native back button, header colors, and
+  `isVersionAtLeast`.
+- You SHOULD treat **7.x** features as enhancements, not requirements.
+- You SHOULD treat **8.0+** features (fullscreen, sensors, location, sharing, emoji status)
+  as progressive enhancements with in-page fallbacks.
+- You SHOULD treat **9.0+** storage as optional; fall back to `localStorage` only for
+  non-sensitive data.
+- If a feature has no fallback, you SHOULD show a clear message (“Update Telegram to use
+  this”) rather than a dead button.

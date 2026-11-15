@@ -28,7 +28,7 @@ resolves.
 ### D3. Nickname = first_name + last_name from initDataUnsafe
 
 The only identity source is `WebApp.initDataUnsafe.user`; the raw `initData`
-query string is not parsed. Resolution: trimmed `first_name` + `last_name`
+query string MUST NOT be parsed. Resolution: trimmed `first_name` + `last_name`
 joined by a single space; if both are missing, fall back to `@username`; if
 nothing is available, an unknown-user placeholder. Launch-time theme/palette
 handling is unchanged.

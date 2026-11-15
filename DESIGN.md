@@ -97,24 +97,24 @@ components:
 
 **Creative North Star: "墨页 The Inked Page"**
 
-A printed page with ink, generous margins, and soft reading light. The interface is bookish, measured, and quietly precise: warm paper surfaces in light mode, ink-backed muted surfaces in dark mode, hairline rules instead of boxes, and exactly one restrained moss-green accent. Emphasis is carried by article typography and well-framed code examples, never by decoration. Gradients, glows, decorative blobs, emoji labels, and dashboard-style card grids are rejected by the openspec design decision.
+A printed page with ink, generous margins, and soft reading light. The interface MUST stay bookish, measured, and quietly precise: warm paper surfaces in light mode, ink-backed muted surfaces in dark mode, hairline rules instead of boxes, and exactly one restrained moss-green accent. Emphasis MUST be carried by article typography and well-framed code examples, never by decoration. Gradients, glows, decorative blobs, emoji labels, and dashboard-style card grids MUST be rejected by the openspec design decision.
 
-The system is monospace-first: a single font family, Maple Mono Normal NF CN (with a Noto Sans CJK SC fallback), carries UI text, article prose, code, and even icons — icons are Nerd Font glyphs bundled inside that same font. `font-synthesis` is disabled, so size, color, and spacing do the emphasizing that fake bold would otherwise do. Latin and CJK glyphs share one rhythm, which gives the page its measured, typeset character.
+The system is monospace-first: a single font family, Maple Mono Normal NF CN (with a Noto Sans CJK SC fallback), carries UI text, article prose, code, and even icons — icons are Nerd Font glyphs bundled inside that same font. `font-synthesis` MUST stay disabled, so size, color, and spacing do the emphasizing that fake bold would otherwise do. Latin and CJK glyphs share one rhythm, which gives the page its measured, typeset character.
 
-The signature element is the movable article outline control: a small circular floating toggle that reads as a bookmark at the page edge — flat-page default position on the left at vertical center on wide viewports, lower-right on narrow ones, draggable and persisted per visitor.
+The signature element is the movable article outline control: a small circular floating toggle that reads as a bookmark at the page edge — flat-page default position on the left at vertical center on wide viewports, lower-right on narrow ones, and it MUST be draggable and persisted per visitor.
 
 **Key Characteristics:**
 
-- Monospace-first editorial system; one family carries text, code, and icons
+- Monospace-first editorial system; one family MUST carry text, code, and icons
 - Warm paper light mode; ink-backed, muted-contrast dark mode
-- One restrained moss-green accent reserved for interaction and current location
+- One restrained moss-green accent, reserved for interaction and current location only
 - Flat surfaces separated by hairline rules; shadows only on floating controls
 - Generous margins: 48rem shell, 42rem reading measure
-- Motion is brief, quiet, and asymmetric: open 180ms ease-out, close 80ms ease-in
+- Motion MUST be brief, quiet, and asymmetric: open 180ms ease-out, close 80ms ease-in
 
 ## Colors
 
-A warm near-neutral ramp of paper and ink tones with a single moss-green accent; nothing saturated, nothing pure black or pure white.
+A warm near-neutral ramp of paper and ink tones with a single moss-green accent; saturated colors MUST be avoided, and pure black and pure white MUST NOT be used.
 
 ### Primary
 
@@ -133,9 +133,9 @@ A warm near-neutral ramp of paper and ink tones with a single moss-green accent;
 
 ### Color Rules
 
-**The One Ink Rule.** Moss green appears only on interactive emphasis and the current reading location — at most a tenth of any view. Its rarity is the point; it never fills large surfaces or decorates.
+**The One Ink Rule.** Moss green MUST appear only on interactive emphasis and the current reading location — at most a tenth of any view. Its rarity is the point; it MUST NOT fill large surfaces or decorate.
 
-**The Ink Swap Rule.** Dark mode swaps paper for ink-backed surfaces at muted chroma (background oklch(0.19 0.012 140), text oklch(0.91 0.012 100)). Never pure black, never pure white; contrast stays legible but low-glare.
+**The Ink Swap Rule.** Dark mode MUST swap paper for ink-backed surfaces at muted chroma (background oklch(0.19 0.012 140), text oklch(0.91 0.012 100)). Pure black and pure white MUST NOT be used; contrast MUST stay legible but low-glare.
 
 The shadcn base theme (initialized via `components.json`) still defines dormant semantic slots (popover, secondary, destructive, chart, sidebar) for future source components; the reader UI described here uses only the tokens above.
 
@@ -145,7 +145,7 @@ The shadcn base theme (initialized via `components.json`) still defines dormant 
 **Body Font:** Maple Mono Normal NF CN (with Noto Sans CJK SC fallback)
 **Label/Mono Font:** the same family — code, labels, and icons share it
 
-**Character:** A single monospace voice for everything — Latin and CJK on one grid, UI and code indistinguishable in kind. The system-font pairing reads as typeset rather than templated; with `font-synthesis: none`, hierarchy comes from size, color, and space rather than synthetic bold.
+**Character:** A single monospace voice for everything — Latin and CJK on one grid, UI and code indistinguishable in kind. The system-font pairing MUST read as typeset rather than templated; with `font-synthesis: none`, hierarchy MUST come from size, color, and space rather than synthetic bold.
 
 ### Hierarchy
 
@@ -159,67 +159,67 @@ The shadcn base theme (initialized via `components.json`) still defines dormant 
 
 ### Type Rules
 
-**The Single Voice Rule.** One family carries UI, prose, code, and icons (Nerd Font glyphs from Maple Mono NF). Never introduce a second decorative face; never fake bold with synthesis — emphasize with size, color, and space.
+**The Single Voice Rule.** One family MUST carry UI, prose, code, and icons (Nerd Font glyphs from Maple Mono NF). A second decorative face MUST NOT be introduced, and bold MUST NOT be faked with synthesis — emphasis MUST come from size, color, and space.
 
 ## Layout
 
-One column, centered. The shell (header, footer, main) is `min(100% - 2rem, 48rem)` wide with 1.5rem vertical padding at the header and footer; main content gets 3rem top and 5rem bottom (2rem/3rem below 32rem). Articles tighten to a 42rem measure. The minimum supported viewport is 20rem, and no page may scroll horizontally: wide tables and code blocks scroll inside their own labeled regions.
+One column, centered. The shell (header, footer, main) MUST be `min(100% - 2rem, 48rem)` wide with 1.5rem vertical padding at the header and footer; main content MUST get 3rem top and 5rem bottom (2rem/3rem below 32rem). Articles MUST tighten to a 42rem measure. The minimum supported viewport is 20rem, and no page MAY scroll horizontally: wide tables and code blocks MUST scroll inside their own labeled regions.
 
-Navigation is a single quiet row of icon-only controls (home, posts, search, theme) with 1.5rem gaps (1rem below 32rem). Lists are hairline-separated rows, not cards: post rows 1.25rem apart with a 1px bottom rule, descriptions under titles. The archive browse area is a two-column grid that collapses to one column below 32rem. The outline control anchors left at vertical center on viewports at least 64rem wide, and lower-right below that. Focus rings are 2px at 3px offset.
+Navigation MUST stay a single quiet row of icon-only controls (home, posts, search, theme) with 1.5rem gaps (1rem below 32rem). Lists MUST be hairline-separated rows, not cards: post rows 1.25rem apart with a 1px bottom rule, descriptions under titles. The archive browse area MUST be a two-column grid that collapses to one column below 32rem. The outline control MUST anchor left at vertical center on viewports at least 64rem wide, and lower-right below that. Focus rings MUST be 2px at 3px offset.
 
 ## Elevation & Depth
 
-Flat by default. Depth on the page is expressed by hairline rules and tonal steps between Warm Paper, Raised Card, and Mist — not by shadows. Only elements that float above the page cast shadows, and each has exactly one: the draggable outline toggle (0 2px 12px rgb(0 0 0 / 12%)), the outline panel (0 4px 20px rgb(0 0 0 / 14%)), and the search dialog's dim scrim (rgb(0 0 0 / 45%) on the native dialog backdrop). In dark mode, layering is tonal: Raised Card (0.23 lightness) sits a step above the page (0.19) with translucent white hairlines.
+Flat by default. Depth on the page MUST be expressed by hairline rules and tonal steps between Warm Paper, Raised Card, and Mist — not by shadows. Only elements that float above the page MAY cast shadows, and each MUST have exactly one: the draggable outline toggle (0 2px 12px rgb(0 0 0 / 12%)), the outline panel (0 4px 20px rgb(0 0 0 / 14%)), and the search dialog's dim scrim (rgb(0 0 0 / 45%) on the native dialog backdrop). In dark mode, layering MUST be tonal: Raised Card (0.23 lightness) sits a step above the page (0.19) with translucent white hairlines.
 
 ### Elevation Rules
 
-**The Floating Ink Rule.** Shadows belong only to elements that float above the page — the outline toggle, its panel, and the search dialog scrim. A surface that is part of the page never gets a shadow.
+**The Floating Ink Rule.** Shadows MUST belong only to elements that float above the page — the outline toggle, its panel, and the search dialog scrim. A surface that is part of the page MUST NOT get a shadow.
 
 ## Shapes
 
-Small, almost-square radii and hairline edges. Controls are rounded at 0.25rem (0.2rem for tiny copy buttons), blocks like code fences and the outline panel at 0.35rem, the search dialog at 0.5rem. The one deliberate exception is the outline toggle: a perfect circle (3.5rem, 50% radius) — the bookmark silhouette. Borders are 1px and always Hairline-colored. Images and code keep their intrinsic ratios; nothing is cropped.
+Small, almost-square radii and hairline edges. Controls MUST be rounded at 0.25rem (0.2rem for tiny copy buttons), blocks like code fences and the outline panel at 0.35rem, the search dialog at 0.5rem. The one deliberate exception is the outline toggle: a perfect circle (3.5rem, 50% radius) — the bookmark silhouette. Borders MUST be 1px and always Hairline-colored. Images and code MUST keep their intrinsic ratios; nothing MAY be cropped.
 
 ## Components
 
-Quiet controls with a single filled button; the article body is where visual interest lives.
+Quiet controls with a single filled button; the article body MUST be where visual interest lives.
 
 ### Buttons
 
-- **Shape:** gently rounded (0.25rem), inline-flex centered.
+- **Shape:** MUST be gently rounded (0.25rem), inline-flex centered.
 - **Quiet (default):** transparent background, Ink text, 0.3rem 0.6rem padding — the header navigation and theme toggle.
-- **Hover/Focus:** quiet buttons fill with the accent wash (oklch(0.93 0.018 140)) on hover; all buttons show the 2px focus ring at 3px offset. State colors transition in 180ms ease-out.
-- **Primary:** the one filled button — Moss Green background with near-white text and a 1px same-color border (0.65rem 1rem padding); used only for the search submit action.
-- **Ghost copy controls:** transparent, Fog Text color, tiny (0.25rem 0.4rem, 0.2rem radius); on hover or focus they gain a Hairline border and Raised Card background. Used for code-copy and heading-link copy.
+- **Hover/Focus:** quiet buttons MUST fill with the accent wash (oklch(0.93 0.018 140)) on hover; all buttons MUST show the 2px focus ring at 3px offset. State colors MUST transition in 180ms ease-out.
+- **Primary:** the one filled button — Moss Green background with near-white text and a 1px same-color border (0.65rem 1rem padding); it MUST be used only for the search submit action.
+- **Ghost copy controls:** transparent, Fog Text color, tiny (0.25rem 0.4rem, 0.2rem radius); on hover or focus they MUST gain a Hairline border and Raised Card background. Used for code-copy and heading-link copy.
 
 ### Chips
 
-- **Preview note:** inline-block, Hairline border, Raised Card background, Fog Text text, 0.25rem 0.5rem padding, 0.25rem radius. Labels preview content wherever it appears.
+- **Preview note:** inline-block, Hairline border, Raised Card background, Fog Text text, 0.25rem 0.5rem padding, 0.25rem radius. It MUST label preview content wherever that content appears.
 
 ### Cards / Containers
 
-- **Post rows:** not cards — hairline-separated list rows with Fog Text metadata above the title.
+- **Post rows:** MUST NOT be cards — hairline-separated list rows with Fog Text metadata above the title.
 - **Not-found panel:** a single bordered panel (Hairline border, Raised Card background, no radius) with generous padding (clamp(1.25rem, 5vw, 2.5rem)) and the HTTP status code in Moss Green.
 - **Outline panel:** floating bordered panel (0.35rem radius, Raised Card background, 0.5rem inner padding), viewport-clamped, with its own scroll and a 1px left rule guiding nested heading levels.
 
 ### Inputs / Fields
 
-- **Search input:** Hairline-to-Input-Edge border (1px, Input Edge color), Raised Card background, 0.7rem padding, 0.25rem radius, inherits the body font.
-- **Focus:** 2px Focus Ring outline at 3px offset — the same treatment as every control.
+- **Search input:** Hairline-to-Input-Edge border (1px, Input Edge color), Raised Card background, 0.7rem padding, 0.25rem radius, inheriting the body font.
+- **Focus:** MUST use the 2px Focus Ring outline at 3px offset — the same treatment as every control.
 
 ### Navigation
 
-- **Style:** icon-only links and buttons in one quiet row (Nerd Font glyphs), transparent until hovered; links underline with a 0.2em offset and dim underline that turns current-color on hover. No logo, no site-name wordmark — direct text/icon links only.
-- **Mobile:** the row wraps with 1rem gaps; nothing hides behind a hamburger.
+- **Style:** icon-only links and buttons in one quiet row (Nerd Font glyphs), transparent until hovered; links MUST underline with a 0.2em offset and dim underline that turns current-color on hover. A logo or site-name wordmark MUST NOT appear — only direct text/icon links.
+- **Mobile:** the row MUST wrap with 1rem gaps; nothing MAY hide behind a hamburger.
 
 ### Outline Widget (signature)
 
-The movable bookmark: a 3.5rem circular toggle (Raised Card background, Hairline border, its soft 0 2px 12px shadow, grab cursor) fixed at the page edge — left vertical-center on wide viewports, lower-right on narrow ones. It is draggable by pointer/touch with a 6px movement threshold that distinguishes drag from click, clamps to the viewport, and persists its position. The panel it opens nests headings beneath their nearest preceding parent with a 1px left rule per level; the current reading position is highlighted with a Mist background, Moss Green text, and `aria-current="location"`, and the panel keeps that entry scrolled into view without scrolling the article.
+The movable bookmark: a 3.5rem circular toggle (Raised Card background, Hairline border, its soft 0 2px 12px shadow, grab cursor) fixed at the page edge — left vertical-center on wide viewports, lower-right on narrow ones. It MUST be draggable by pointer/touch with a 6px movement threshold that distinguishes drag from click, MUST clamp to the viewport, and MUST persist its position. The panel it opens MUST nest headings beneath their nearest preceding parent with a 1px left rule per level; the current reading position MUST be highlighted with a Mist background, Moss Green text, and `aria-current="location"`, and the panel MUST keep that entry scrolled into view without scrolling the article.
 
-**The Quick Close Rule.** Panels open in 180ms ease-out (a 0.25rem rise and fade) and close in 80ms ease-in (a 0.05rem settle) — dismissal is always quicker and quieter than opening. With reduced motion, nonessential transitions are removed entirely while state changes, focus, and controls stay perceivable; the theme cross-fade (`body` background/color and the theme toggle, 180ms) is retained as an essential state change.
+**The Quick Close Rule.** Panels MUST open in 180ms ease-out (a 0.25rem rise and fade) and close in 80ms ease-in (a 0.05rem settle) — dismissal MUST always be quicker and quieter than opening. With reduced motion, nonessential transitions MUST be removed entirely while state changes, focus, and controls stay perceivable; the theme cross-fade (`body` background/color and the theme toggle, 180ms) MUST be retained as an essential state change.
 
 ### Code Block (signature)
 
-A 0.35rem-radius block with 2.75rem top padding reserving room for its controls: a compact language badge derived from the fenced-code language at the upper right, and a ghost copy control beside it. Long lines scroll horizontally inside the block's own area; code is never wrapped or clipped, and the page never overflows. The block's surface is the syntax highlighter's fixed dark ink (GitHub Dark, #24292e with light text) in both themes — printed ink regardless of page theme. The block's controls (language badge, copy button) use a fixed light ink (#e1e4e8) on the dark surface in both themes, never the theme foreground. Mermaid diagrams render beside code as a hairline-bordered Raised Card block whose fills and lines reuse the site tokens (Mist fills, Moss Green lines) so they follow the active theme.
+A 0.35rem-radius block with 2.75rem top padding reserving room for its controls: a compact language badge derived from the fenced-code language at the upper right, and a ghost copy control beside it. Long lines MUST scroll horizontally inside the block's own area; code MUST NOT be wrapped or clipped, and the page MUST NOT overflow. The block's surface MUST be the syntax highlighter's fixed dark ink (GitHub Dark, #24292e with light text) in both themes — printed ink regardless of page theme. The block's controls (language badge, copy button) MUST use a fixed light ink (#e1e4e8) on the dark surface in both themes, never the theme foreground. Mermaid diagrams MUST render beside code as a hairline-bordered Raised Card block whose fills and lines reuse the site tokens (Mist fills, Moss Green lines) so they follow the active theme.
 
 ## Do's and Don'ts
 
@@ -241,3 +241,5 @@ A 0.35rem-radius block with 2.75rem top padding reserving room for its controls:
 - **Don't** introduce a second font family or synthetic bold for emphasis.
 - **Don't** create page-level horizontal overflow at any viewport down to 20rem.
 - **Don't** present preview articles as published content.
+
+Normative keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY) follow [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119); see `AGENTS.md`.

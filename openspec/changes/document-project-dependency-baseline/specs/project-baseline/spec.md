@@ -8,7 +8,7 @@ The project baseline gives contributors a verifiable description of the reposito
 
 ### Requirement: Project baseline reflects the checked-out repository
 
-Project documentation SHALL describe project structure, toolchain, and available workflows using evidence from the current repository, and SHALL distinguish present, absent, and unverified components.
+Project documentation MUST describe project structure, toolchain, and available workflows using evidence from the current repository, and MUST distinguish present, absent, and unverified components.
 
 #### Scenario: Documentation describes a component
 
@@ -22,7 +22,7 @@ Project documentation SHALL describe project structure, toolchain, and available
 
 ### Requirement: Dependency inventory distinguishes declarations from resolved state
 
-The project baseline SHALL identify dependency manifests and package managers, classify direct dependencies by toolchain and declared purpose, and distinguish manifest declarations from lockfile resolution or successful execution.
+The project baseline MUST identify dependency manifests and package managers, classify direct dependencies by toolchain and declared purpose, and distinguish manifest declarations from lockfile resolution or successful execution.
 
 #### Scenario: Dependency declarations change
 

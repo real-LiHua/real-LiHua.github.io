@@ -8,7 +8,7 @@ The blog reader UI lets visitors discover, search, and read published posts thro
 
 ### Requirement: Public reader pages share a clear, responsive navigation
 
-The site SHALL provide home, post-listing/archive, search, and article-reading pages with consistent navigation, and SHALL NOT display a site-name wordmark or logo in the shared interface.
+The site MUST provide home, post-listing/archive, search, and article-reading pages with consistent navigation, and MUST NOT display a site-name wordmark or logo in the shared interface.
 
 #### Scenario: Navigate between reader pages
 
@@ -32,7 +32,7 @@ The site SHALL provide home, post-listing/archive, search, and article-reading p
 
 ### Requirement: Missing pages show a truthful, helpful 404
 
-The site SHALL render a custom, visitor-facing not-found page with an IIS-inspired visual treatment, preserve the actual HTTP 404 status for missing resources, and provide clear navigation back to the site. The visual treatment SHALL NOT impersonate IIS to mislead scanners or falsify server identity.
+The site MUST render a custom, visitor-facing not-found page with an IIS-inspired visual treatment, preserve the actual HTTP 404 status for missing resources, and provide clear navigation back to the site. The visual treatment MUST NOT impersonate IIS to mislead scanners or falsify server identity.
 
 #### Scenario: Visitor requests a missing page
 
@@ -46,7 +46,7 @@ The site SHALL render a custom, visitor-facing not-found page with an IIS-inspir
 
 ### Requirement: Readers can bypass repeated navigation
 
-Reader pages SHALL provide a skip link as the first keyboard-focusable control, leading to the main content and remaining visibly identifiable when focused.
+Reader pages MUST provide a skip link as the first keyboard-focusable control, leading to the main content and remaining visibly identifiable when focused.
 
 #### Scenario: Keyboard user skips shared navigation
 
@@ -55,7 +55,7 @@ Reader pages SHALL provide a skip link as the first keyboard-focusable control, 
 
 ### Requirement: Reader pages use a calm, consistent visual system
 
-The site SHALL use a restrained, eye-comfortable visual style, use an installed Maple Mono Normal NF CN font during local development, and serve optimized local font assets in CI-built output, with a readable fallback if the font cannot be loaded.
+The site MUST use a restrained, eye-comfortable visual style, use an installed Maple Mono Normal NF CN font during local development, and serve optimized local font assets in CI-built output, with a readable fallback if the font cannot be loaded.
 
 #### Scenario: Local development uses the installed font
 
@@ -89,7 +89,7 @@ The site SHALL use a restrained, eye-comfortable visual style, use an installed 
 
 ### Requirement: Reader interactions respect motion preferences
 
-The reader interface SHALL reserve motion for meaningful state changes and interaction feedback, avoid decorative or looping animation, and honor reduced-motion preferences without impairing operation or obscuring state.
+The reader interface MUST reserve motion for meaningful state changes and interaction feedback, avoid decorative or looping animation, and honor reduced-motion preferences without impairing operation or obscuring state.
 
 #### Scenario: Reader uses an interactive control
 
@@ -103,7 +103,7 @@ The reader interface SHALL reserve motion for meaningful state changes and inter
 
 ### Requirement: Article code blocks are identifiable, readable, and copyable
 
-Article code blocks SHALL show a language badge derived from the fenced-code language when available, keep long lines within the code-block area without causing page-level horizontal overflow, and provide an accessible, keyboard-operable control to copy the code text without syntax-highlighting markup.
+Article code blocks MUST show a language badge derived from the fenced-code language when available, keep long lines within the code-block area without causing page-level horizontal overflow, and provide an accessible, keyboard-operable control to copy the code text without syntax-highlighting markup.
 
 #### Scenario: Reader views a language-labeled code block
 
@@ -127,7 +127,7 @@ Article code blocks SHALL show a language badge derived from the fenced-code lan
 
 ### Requirement: Article headings have shareable anchors
 
-Article headings SHALL have stable, unique fragment identifiers and a keyboard-accessible way to copy a direct link to each heading.
+Article headings MUST have stable, unique fragment identifiers and a keyboard-accessible way to copy a direct link to each heading.
 
 #### Scenario: Reader copies a heading link
 
@@ -141,7 +141,7 @@ Article headings SHALL have stable, unique fragment identifiers and a keyboard-a
 
 ### Requirement: Article images and tables fit narrow screens
 
-Article images SHALL stay within the content width while preserving aspect ratio and meaningful alternative-text semantics. Wide tables SHALL scroll within their own labeled region without causing page-level horizontal overflow, and the region SHALL be keyboard-accessible.
+Article images MUST stay within the content width while preserving aspect ratio and meaningful alternative-text semantics. Wide tables MUST scroll within their own labeled region without causing page-level horizontal overflow, and the region MUST be keyboard-accessible.
 
 #### Scenario: Reader views an image on a narrow screen
 
@@ -155,7 +155,7 @@ Article images SHALL stay within the content width while preserving aspect ratio
 
 ### Requirement: Appearance mode is consistent and persistent
 
-The site SHALL provide light and dark appearance modes, apply the selected mode consistently to all reader pages and controls, and preserve an explicit visitor choice across navigation and reloads.
+The site MUST provide light and dark appearance modes, apply the selected mode consistently to all reader pages and controls, and preserve an explicit visitor choice across navigation and reloads.
 
 #### Scenario: Visitor changes appearance
 
@@ -174,7 +174,7 @@ The site SHALL provide light and dark appearance modes, apply the selected mode 
 
 ### Requirement: Visitors can search published site content
 
-The site SHALL provide a shared search entry point that returns matching published content and communicates empty-query, no-result, and unavailable-search states.
+The site MUST provide a shared search entry point that returns matching published content and communicates empty-query, no-result, and unavailable-search states.
 
 #### Scenario: Search finds matching posts
 
@@ -193,7 +193,7 @@ The site SHALL provide a shared search entry point that returns matching publish
 
 ### Requirement: Compatible browser agents can discover public post tools
 
-The site SHALL progressively expose public post search, section listing, page navigation, and current-page metadata through Astro WebMCP. WebMCP tools SHALL be limited to post routes and SHALL NOT mutate article content or expose non-public data.
+The site MUST progressively expose public post search, section listing, page navigation, and current-page metadata through Astro WebMCP. WebMCP tools MUST be limited to post routes and MUST NOT mutate article content or expose non-public data.
 
 #### Scenario: Browser does not support WebMCP
 
@@ -217,7 +217,7 @@ The site SHALL progressively expose public post search, section listing, page na
 
 ### Requirement: Article pages are sourced from a validated content collection
 
-The site SHALL store article bodies as Markdown entries in an Astro Content Collection with validated frontmatter, and SHALL derive the home feed, article archive, and article detail routes from those entries. Preview articles SHALL be visibly identified as examples and SHALL NOT be represented as published real posts.
+The site MUST store article bodies as Markdown entries in an Astro Content Collection with validated frontmatter, and MUST derive the home feed, article archive, and article detail routes from those entries. Preview articles MUST be visibly identified as examples and MUST NOT be represented as published real posts.
 
 #### Scenario: Reader browses collection-backed articles
 
@@ -241,7 +241,7 @@ The site SHALL store article bodies as Markdown entries in an Astro Content Coll
 
 ### Requirement: Article outline is collapsible and repositionable
 
-Article pages SHALL provide an outline derived from article headings, with a collapsible control that visitors can reposition without obscuring article content or losing keyboard access.
+Article pages MUST provide an outline derived from article headings, with a collapsible control that visitors can reposition without obscuring article content or losing keyboard access.
 
 #### Scenario: Wide viewport uses an ergonomic default position
 
@@ -320,7 +320,7 @@ Article pages SHALL provide an outline derived from article headings, with a col
 
 ### Requirement: Article external links offer an explicit archive lookup
 
-Article pages SHALL open external HTTP(S) links in a separate browsing context and provide an adjacent, accessible Internet Archive lookup control for each eligible external link. The site SHALL NOT automatically probe external destinations or recursively retry archive links.
+Article pages MUST open external HTTP(S) links in a separate browsing context and provide an adjacent, accessible Internet Archive lookup control for each eligible external link. The site MUST NOT automatically probe external destinations or recursively retry archive links.
 
 #### Scenario: Reader opens an external article link
 

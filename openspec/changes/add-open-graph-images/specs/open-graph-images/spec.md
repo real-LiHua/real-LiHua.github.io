@@ -9,7 +9,7 @@ title and description, using the site's own monospace CJK typeface and palette.
 
 ### Requirement: Reader pages advertise a share image
 
-The site SHALL emit `og:image` and `twitter:image` tags pointing at a
+The site MUST emit `og:image` and `twitter:image` tags pointing at a
 prerendered 1200×630 PNG for the home page, article index, series index, each
 series, each topic, and each post, alongside `og:title`, `og:description`,
 `og:url`, and a canonical link built from the configured site URL.
@@ -31,8 +31,8 @@ series, each topic, and each post, alongside `og:title`, `og:description`,
 
 ### Requirement: Cards use the reader's visual language
 
-Cards SHALL use the paper and ink palette from `DESIGN.md`, the Maple Mono
-Normal NF CN family for all card text, and SHALL NOT depend on remote font or
+Cards MUST use the paper and ink palette from `DESIGN.md`, the Maple Mono
+Normal NF CN family for all card text, and MUST NOT depend on remote font or
 image providers at render time.
 
 #### Scenario: Chinese title is rendered
@@ -42,9 +42,9 @@ image providers at render time.
 
 ### Requirement: Card generation reuses the existing font strategy
 
-Card rendering SHALL resolve the font from `MAPLE_FONT_PATH` when set, the
+Card rendering MUST resolve the font from `MAPLE_FONT_PATH` when set, the
 checksum-verified release prepared by CI, or the installed system font, and
-SHALL fail with an actionable message when none is available.
+MUST fail with an actionable message when none is available.
 
 #### Scenario: Developer builds locally
 

@@ -9,19 +9,19 @@ Source: <https://core.telegram.org/bots/webapps> (Bot API 10.1, June 2026).
 <script src="https://telegram.org/js/telegram-web-app.js?65"></script>
 ```
 
-Place it in `<head>` **before any other scripts**. The `?65` suffix pins the SDK build used
-by the official docs; the client's Bot API version is a separate value in
+You MUST place it in `<head>` **before any other scripts**. The `?65` suffix pins the SDK
+build used by the official docs; the client's Bot API version is a separate value in
 `Telegram.WebApp.version`.
 
 The SDK also exposes `window.Telegram.WebView` (lower-level events and `postEvent`). App
-code should normally use `WebApp`.
+code SHOULD normally use `WebApp`.
 
 ## WebApp fields
 
 | Field | Type | Notes |
 |---|---|---|
-| `initData` | String | Raw launch payload (query string). Validate server-side before trusting. |
-| `initDataUnsafe` | WebAppInitData | Parsed copy. **Never** use for authentication. |
+| `initData` | String | Raw launch payload (query string). You MUST validate it server-side before trusting. |
+| `initDataUnsafe` | WebAppInitData | Parsed copy. You MUST NOT use it for authentication. |
 | `version` | String | Bot API version supported by the client, e.g. `"8.0"`. |
 | `platform` | String | `android`, `ios`, `tdesktop`, `macos`, `web`, `weba`, `webk`, … |
 | `colorScheme` | String | `light` or `dark`; also `var(--tg-color-scheme)`. |
@@ -64,7 +64,7 @@ code should normally use `WebApp`.
 | `setBottomBarColor(color)` | 7.10 | Hex or `bg_color` / `secondary_bg_color` / `bottom_bar_bg_color`; also Android nav bar. |
 | `enableClosingConfirmation()` | 6.2 | Native "close anyway?" prompt. |
 | `disableClosingConfirmation()` | 6.2 | — |
-| `enableVerticalSwipes()` | 7.7 | Recommended unless the app uses vertical gestures. |
+| `enableVerticalSwipes()` | 7.7 | SHOULD be enabled unless the app uses vertical gestures. |
 | `disableVerticalSwipes()` | 7.7 | Header swipe still closes/minimizes. |
 | `requestFullscreen()` | 8.0 | Immersive mode; header becomes transparent; set header color for contrast. |
 | `exitFullscreen()` | 8.0 | — |
@@ -179,8 +179,9 @@ Global variables: `--tg-color-scheme`, `--tg-viewport-height`,
 - **Safe area** — system UI: notches, navigation bars, rounded corners.
 - **Content safe area** — Telegram UI: header, bottom bar, context menu.
 
-Use `padding: max(<design spacing>, var(--tg-content-safe-area-inset-top))`. The content
-inset is the one that matters in fullscreen; the device inset prevents clipping by hardware.
+You SHOULD use `padding: max(<design spacing>, var(--tg-content-safe-area-inset-top))`. The
+content inset is the one that matters in fullscreen; the device inset prevents clipping by
+hardware.
 
 ## WebAppInitData
 

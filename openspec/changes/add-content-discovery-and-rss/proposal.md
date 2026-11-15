@@ -10,7 +10,7 @@ The blog now has a validated Markdown content collection, but readers cannot nav
 - Add year and topic archive routes backed by validated article metadata.
 - Support ordered article series with navigable series context.
 - Generate an RSS feed from published collection entries.
-- Exclude preview entries from RSS so sample content is never presented as a real publication.
+- Exclude preview entries from RSS so sample content MUST NOT be presented as a real publication.
 - Add representative preview metadata and browser coverage for these content journeys.
 
 ## Capabilities

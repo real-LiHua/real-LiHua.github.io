@@ -8,7 +8,7 @@ Content syndication lets readers follow newly published blog articles through st
 
 ### Requirement: The site provides an RSS feed of published articles
 
-The site SHALL provide a valid RSS feed containing published articles and stable links to their canonical article pages.
+The site MUST provide a valid RSS feed containing published articles and stable links to their canonical article pages.
 
 #### Scenario: Reader subscribes to the feed
 

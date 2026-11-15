@@ -8,7 +8,7 @@ Define how the repository measures built-site quality with Lighthouse so the rea
 
 ### Requirement: Audit the production build, not the dev server
 
-The audit tooling SHALL build the site and compare its production output, served through the same standalone Node server used by `pnpm preview`-style deployments, before running Lighthouse.
+The audit tooling MUST build the site and compare its production output, served through the same standalone Node server used by `pnpm preview`-style deployments, before running Lighthouse.
 
 #### Scenario: Audit input
 
@@ -17,7 +17,7 @@ The audit tooling SHALL build the site and compare its production output, served
 
 ### Requirement: Representative built routes
 
-The audit SHALL cover at least the home page, one article page, and the search entry, and SHALL allow the route list to be overridden from the command line.
+The audit MUST cover at least the home page, one article page, and the search entry, and MUST allow the route list to be overridden from the command line.
 
 #### Scenario: Default route set
 
@@ -31,7 +31,7 @@ The audit SHALL cover at least the home page, one article page, and the search e
 
 ### Requirement: Four Lighthouse categories
 
-Every audited route SHALL run with the `performance`, `accessibility`, `best-practices`, and `seo` categories enabled, and the per-route summary SHALL report all four scores.
+Every audited route MUST run with the `performance`, `accessibility`, `best-practices`, and `seo` categories enabled, and the per-route summary MUST report all four scores.
 
 #### Scenario: Summary output
 
@@ -40,7 +40,7 @@ Every audited route SHALL run with the `performance`, `accessibility`, `best-pra
 
 ### Requirement: Reports are local artifacts, not committed content
 
-Lighthouse JSON/HTML reports SHALL be written under `.cache/lighthouse/` (gitignored) so auditing the site never adds generated files to the repository.
+Lighthouse JSON/HTML reports MUST be written under `.cache/lighthouse/` (gitignored) so auditing the site never adds generated files to the repository.
 
 #### Scenario: Report location
 
@@ -49,7 +49,7 @@ Lighthouse JSON/HTML reports SHALL be written under `.cache/lighthouse/` (gitign
 
 ### Requirement: Failing audits are distinguishable from low scores
 
-The audit command SHALL exit non-zero when Lighthouse itself errors (Chrome missing, server did not start, evaluation failed) and SHALL NOT fail merely because a category scores below an arbitrary threshold; no budgets or assertions are enforced by this capability yet.
+The audit command MUST exit non-zero when Lighthouse itself errors (Chrome missing, server did not start, evaluation failed) and MUST NOT fail merely because a category scores below an arbitrary threshold; no budgets or assertions are enforced by this capability yet.
 
 #### Scenario: Chrome missing
 

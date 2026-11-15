@@ -20,8 +20,8 @@ injected `--tg-theme-*` (snake_case → kebab-case, e.g. `bg_color` →
 `--tg-theme-bg-color`) land before first paint. This makes the palette
 independent of the SDK's network latency or availability. Only when the
 fragment indicates a Telegram launch is the SDK injected — after
-`window.load`, so the external request never delays rendering or the load
-event; regular browsers never contact telegram.org.
+`window.load`, so the external request MUST NOT delay rendering or the load
+event; regular browsers MUST NOT contact telegram.org.
 
 ### D2. A `telegram` class on `<html>` switches the token source
 
@@ -37,19 +37,19 @@ and for the shadcn `@custom-variant dark` utilities.
 
 ### D3. Telegram colors are forced, not an override preference
 
-Inside Telegram the site palette is replaced; `reader-theme` is neither read
-nor written there, and `themeChanged` from the client re-applies scheme,
-meta, and chrome colors immediately. The theme toggle is hidden under
+Inside Telegram the site palette is replaced; `reader-theme` MUST be neither
+read nor written there, and `themeChanged` from the client re-applies scheme,
+meta, and chrome colors immediately. The theme toggle MUST be hidden under
 `.telegram` (forced follow was chosen; no in-client escape hatch).
 
 ### D4. Browser fallback is the absence of the class
 
 No `telegram` class ⇒ the stylesheet and head script are byte-for-byte the
-current behavior; no SDK request is ever issued. If the SDK fails to load
+current behavior; an SDK request MUST NOT be issued. If the SDK fails to load
 inside Telegram (offline, CSP, CDN hiccup), the head bootstrap has already
 applied the client palette and injected the theme variables — only `ready()`,
 chrome sync, and live `themeChanged` are lost. A Telegram-side script error
-must not break rendering.
+MUST NOT break rendering.
 
 ### D5. Chrome colors use keywords, not hex
 

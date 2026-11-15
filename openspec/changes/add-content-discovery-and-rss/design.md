@@ -49,7 +49,7 @@ and shown separately from chronological neighbors.
 
 Use static route generation for year, topic, and series routes. A topic route
 is keyed by its stable slug; a series route is keyed by its stable ID. A
-missing year/topic/series route must not be generated and remains a truthful 404.
+missing year/topic/series route MUST NOT be generated and remains a truthful 404.
 
 ### Generate a published-only RSS feed
 
@@ -79,7 +79,7 @@ pipeline.
 - [Display names can change after links are shared] → Use authored stable
   topic slugs and series IDs as route keys, not labels.
 - [Preview-only content produces an empty feed] → Keep the feed valid and
-  clearly link to it; do not misrepresent preview fixtures as published
+  clearly link to it; MUST NOT misrepresent preview fixtures as published
   articles.
 - [Date ties make chronological neighbors ambiguous] → Use a deterministic
   secondary sort by collection ID and apply it consistently across archive

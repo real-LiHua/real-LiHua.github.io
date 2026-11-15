@@ -16,48 +16,50 @@ A personal blog reader. It publishes Markdown posts through an Astro content col
 
 ## Positioning
 
-The reading experience itself is the product: a monospace-first editorial system where one font carries text, code, and icons, one restrained moss-green accent marks interaction, and no logo or site-name wordmark exists. Content, not chrome, is the identity.
+The reading experience itself is the product: a monospace-first editorial system where one font carries text, code, and icons, one restrained moss-green accent marks interaction, and no logo or site-name wordmark exists. Content, not chrome, MUST be the identity.
 
 ## Operating Context
 
-- Content lives as Markdown in `src/content/posts/` (Astro Content Collection, zod-validated frontmatter). Current entries are preview samples (`isPreview: true`) that must stay visibly labeled and excluded from RSS; real content sources arrive later.
+- Content MUST live as Markdown in `src/content/posts/` (Astro Content Collection, zod-validated frontmatter). Current entries are preview samples (`isPreview: true`) that MUST stay visibly labeled and MUST be excluded from RSS; real content sources arrive later.
 - Routes: home feed, `/posts/` archive, year/topic/series archives, search, article pages, RSS (`/rss.xml`), custom not-found page.
-- Search: Orama index at `/search-index.json`, Mandarin tokenizer shared by build and browser, native dialog without route change.
-- Markdown renders through `satteri`; the unified/remark/rehype ecosystem is not used.
-- Fonts: system-installed `Maple Mono Normal NF CN` in development; GitHub Actions fetches and verifies the official upstream release and emits local WOFF2 subsets (SIL OFL 1.1, attribution preserved).
-- WebMCP exposes read-only post tools to compatible browsers; optional at runtime.
-- The same site works as a read-only Telegram Mini App: inside Telegram the palette follows the client theme (forced, across in-app navigations), chrome syncs to the client, and the WebApp SDK loads after `window.load`; browsers are unaffected. A labeled test page (`/test/group-popup/`) exercises the native-popup path with the user's nickname, without any group-membership check.
-- Site URL is configured as `https://real-lihua.github.io`.
+- Search: Orama index at `/search-index.json`, with the Mandarin tokenizer shared by build and browser, presented as a native dialog without route change.
+- Markdown MUST render through `satteri`; the unified/remark/rehype ecosystem MUST NOT be used.
+- Fonts: system-installed `Maple Mono Normal NF CN` in development; GitHub Actions MUST fetch and verify the official upstream release and emit local WOFF2 subsets (SIL OFL 1.1, attribution preserved).
+- WebMCP MAY expose read-only post tools to compatible browsers; this MUST stay optional at runtime.
+- The same site MUST work as a read-only Telegram Mini App: inside Telegram the palette MUST follow the client theme (forced, across in-app navigations), chrome MUST sync to the client, and the WebApp SDK MUST load after `window.load`; browsers MUST stay unaffected. A labeled test page (`/test/group-popup/`) MAY exercise the native-popup path with the user's nickname, without any group-membership check.
+- Site URL MUST be configured as `https://real-lihua.github.io`.
 
 ## Capabilities and Constraints
 
-- Light/dark theme persisted in `localStorage` (`reader-theme`); system preference by default; applied before first paint.
-- Draggable article outline control with persisted, viewport-clamped position; code blocks with language badge and copy control; shareable heading anchors; explicit Internet Archive lookup beside external links, never automatic probing or retrying.
-- Missing pages return a truthful HTTP 404 with an IIS-inspired presentation only — no forged server identity.
-- OpenSpec (`pnpm run openspec`) is the source of truth for requirements; behavior changes follow TDD.
+- Light/dark theme MUST persist in `localStorage` (`reader-theme`), default to the system preference, and be applied before first paint.
+- The article outline control MUST be draggable with a persisted, viewport-clamped position; code blocks MUST carry a language badge and copy control; heading anchors MUST be shareable; the Internet Archive lookup beside external links MUST be explicit and MUST NOT probe or retry automatically.
+- Missing pages MUST return a truthful HTTP 404 with an IIS-inspired presentation only — server identity MUST NOT be forged.
+- OpenSpec (`pnpm run openspec`) MUST remain the source of truth for requirements; behavior changes MUST follow TDD.
 - Out of scope: logo or wordmark, author profile, comments, authentication, admin or editor UI.
 
 ## Brand Commitments
 
-- No logo and no site-name wordmark anywhere in the shared interface.
-- Simplified Chinese UI copy.
-- Maple Mono Normal NF CN is the identity font (Noto Sans CJK SC fallback) with `font-synthesis: none`.
-- Visual direction: bookish, measured, quietly precise — a printed page with ink, generous margins, and soft reading light. Avoid gradients, glows, decorative blobs, emoji labels, and dashboard-style card grids.
+- No logo and no site-name wordmark MUST NOT appear anywhere in the shared interface.
+- UI copy MUST be Simplified Chinese.
+- Maple Mono Normal NF CN MUST remain the identity font (Noto Sans CJK SC fallback) with `font-synthesis: none`.
+- Visual direction MUST stay bookish, measured, quietly precise — a printed page with ink, generous margins, and soft reading light. Gradients, glows, decorative blobs, emoji labels, and dashboard-style card grids MUST NOT be introduced.
 
 ## Evidence on Hand
 
 - Implemented reader UI: `src/layouts/SiteLayout.astro`, `src/pages/**`, `src/styles/global.css`, `src/lib/**`.
-- Four preview posts in `src/content/posts/`. No real published content exists yet — never fabricate published articles or present preview entries as real.
+- Four preview posts in `src/content/posts/`. No real published content exists yet — published articles MUST NOT be fabricated and preview entries MUST NOT be presented as real.
 - OpenSpec changes: `design-blog-reader-ui`, `add-content-discovery-and-rss`, `document-project-dependency-baseline`.
 
 ## Product Principles
 
-1. Reading first — article typography and code examples carry emphasis; navigation and controls stay quiet.
-2. Truthful states — preview labels, real 404, honest search and availability feedback.
-3. Calm persistence — theme and outline-position choices survive navigation and reload.
-4. Accessible by default — keyboard operation, visible focus, reduced motion, CJK legibility, no page-level overflow.
-5. Restraint — one accent; motion only for state changes; dismissal quicker than opening.
+1. Reading first — article typography and code examples MUST carry emphasis; navigation and controls MUST stay quiet.
+2. Truthful states — preview labels MUST be explicit, 404 MUST be real, and search and availability feedback MUST be honest.
+3. Calm persistence — theme and outline-position choices MUST survive navigation and reload.
+4. Accessible by default — keyboard operation, visible focus, reduced motion, CJK legibility, and no page-level overflow MUST be maintained.
+5. Restraint — one accent only; motion MUST serve state changes; dismissal MUST be quicker than opening.
 
 ## Accessibility & Inclusion
 
-Keyboard-operable controls with visible 2px focus rings at 3px offset, skip link as the first focusable control, reduced-motion honored, CJK-aware search tokenization and fonts, muted-contrast dark mode.
+Controls MUST be keyboard-operable with visible 2px focus rings at 3px offset, the skip link MUST be the first focusable control, reduced motion MUST be honored, search tokenization and fonts MUST be CJK-aware, and dark mode MUST retain muted contrast.
+
+Normative keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY) follow [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119); see `AGENTS.md`.

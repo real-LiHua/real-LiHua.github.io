@@ -1,7 +1,7 @@
 # Storage, identity devices, and Serverless
 
-All Telegram storage APIs are asynchronous and callback-based. Wrap them once instead of
-writing nested callbacks at every call site.
+All Telegram storage APIs are asynchronous and callback-based. You MUST wrap them once
+instead of writing nested callbacks at every call site.
 
 ```ts
 function call<T>(fn: (cb: (err: Error | null, value?: T) => void) => void): Promise<T> {
@@ -14,7 +14,7 @@ function call<T>(fn: (cb: (err: Error | null, value?: T) => void) => void): Prom
 ## CloudStorage (Bot API 6.9+)
 
 Per-bot, per-user, synced across the user's devices. Not encrypted: the bot's backend can
-read it, so do not put secrets here.
+read it, so you MUST NOT put secrets here.
 
 Limits: 1,024 keys per bot per user; key 1–128 chars (`A-Z`, `a-z`, `0-9`, `_`, `-`);
 value 0–4,096 chars.
@@ -38,9 +38,9 @@ const all = await call<Record<string, string>>((cb) =>
 );
 ```
 
-CloudStorage is for small state that must follow the user between devices: preferences,
-last tab, compact drafts. For large data use `DeviceStorage`; for sensitive items use
-`SecureStorage`.
+CloudStorage is for small state that MUST follow the user between devices: preferences,
+last tab, compact drafts. For large data you SHOULD use `DeviceStorage`; for sensitive
+items you SHOULD use `SecureStorage`.
 
 ## DeviceStorage (Bot API 9.0+)
 
@@ -54,8 +54,9 @@ the bot and available inside Telegram's WebView. Up to **5 MB per bot per user**
 | `removeItem(key[, cb])` | `(err, removed: boolean)` |
 | `clear([cb])` | `(err, cleared: boolean)` |
 
-Use it for caches, offline copies, media metadata, and large UI state. It is local, so it
-does not sync and disappears if the user clears Telegram data or changes device.
+You SHOULD use it for caches, offline copies, media metadata, and large UI state. It is
+local, so it does not sync and disappears if the user clears Telegram data or changes
+device.
 
 ## SecureStorage (Bot API 9.0+)
 
@@ -69,13 +70,14 @@ Encrypted at rest — iOS Keychain, Android Keystore. Up to **10 items per bot p
 | `removeItem(key[, cb])` | `(err, removed: boolean)` |
 | `clear([cb])` | `(err, cleared: boolean)` |
 
-Use it for refresh tokens, session keys, and biometric tokens. Ten items is small: store
-one session blob rather than one key per field. If `getItem` returns `canRestore = true`,
-offer `restoreItem` instead of silently logging the user out.
+You SHOULD use it for refresh tokens, session keys, and biometric tokens. Ten items is
+small, so you SHOULD store one session blob rather than one key per field. If `getItem`
+returns `canRestore = true`, you SHOULD offer `restoreItem` instead of silently logging the
+user out.
 
 ## BiometricManager (Bot API 7.2+)
 
-Call `init()` before reading any field.
+You MUST call `init()` before reading any field.
 
 | Field | Notes |
 |---|---|
@@ -114,9 +116,9 @@ bm.authenticate({ reason: 'Confirm payment' }, async (ok, token) => {
 });
 ```
 
-Biometric auth proves presence to the **client**; treat the returned token as a secret and
-verify the session server-side. Do not use biometric success alone to authorize payments
-without a server-issued challenge.
+Biometric auth proves presence to the **client**; you MUST treat the returned token as a
+secret and verify the session server-side. You MUST NOT use biometric success alone to
+authorize payments without a server-issued challenge.
 
 ## Motion sensors (Bot API 8.0+)
 
@@ -144,16 +146,16 @@ DeviceOrientation.start({ refresh_rate: 100, need_absolute: true });
 | `DeviceOrientation` | `isStarted`, `absolute`, `alpha`, `beta`, `gamma` (radians) | `refresh_rate`, `need_absolute` (default `false`) |
 
 Events: `<name>Started`, `<name>Stopped`, `<name>Changed`, `<name>Failed` with
-`error: 'UNSUPPORTED'`. Values are read from the object, not the event payload. Always
-stop sensors when the screen is hidden (`deactivated`) to protect battery; the client may
-not do it for you.
+`error: 'UNSUPPORTED'`. Values are read from the object, not the event payload. You MUST
+always stop sensors when the screen is hidden (`deactivated`) to protect battery; the
+client may not do it for you.
 
 `DeviceOrientation.absolute` tells you whether the client actually supplied absolute data,
 even when `need_absolute: true` was requested.
 
 ## LocationManager (Bot API 8.0+)
 
-Call `init()` before use.
+You MUST call `init()` before use.
 
 | Field | Notes |
 |---|---|
@@ -183,9 +185,9 @@ lm.getLocation((data) => {
 });
 ```
 
-Location is sensitive: request it only when the user triggers a location feature, explain
-why, and send it to the server only when needed. `openSettings()` is the recovery path when
-permission was denied permanently.
+Location is sensitive: you MUST request it only when the user triggers a location feature,
+explain why, and send it to the server only when needed. `openSettings()` is the recovery
+path when permission was denied permanently.
 
 ## Serverless (Telegram Serverless)
 
@@ -218,5 +220,5 @@ a generic backend proxy.
 | Non-critical UI state during a session | In-memory store |
 | Anything security-critical | Server database, keyed by validated `user.id` |
 
-Never treat client storage as authoritative for entitlements, balances, or identity. The
-client can be modified; the server cannot.
+You MUST NOT treat client storage as authoritative for entitlements, balances, or
+identity. The client can be modified; the server cannot.

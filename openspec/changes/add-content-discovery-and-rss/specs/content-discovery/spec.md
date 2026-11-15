@@ -8,7 +8,7 @@ Content discovery helps readers move through the blog's own articles by chronolo
 
 ### Requirement: Readers can navigate to chronologically adjacent articles
 
-An article page SHALL provide previous and next article links according to publication date, without presenting the current article as its own neighbor.
+An article page MUST provide previous and next article links according to publication date, without presenting the current article as its own neighbor.
 
 #### Scenario: An article has both neighbors
 
@@ -22,7 +22,7 @@ An article page SHALL provide previous and next article links according to publi
 
 ### Requirement: Readers can browse articles by publication year
 
-The archive SHALL expose available publication years and allow readers to view the articles for a selected year in chronological order.
+The archive MUST expose available publication years and allow readers to view the articles for a selected year in chronological order.
 
 #### Scenario: Reader selects an available year
 
@@ -36,7 +36,7 @@ The archive SHALL expose available publication years and allow readers to view t
 
 ### Requirement: Readers can browse articles by topic
 
-Articles MAY declare one or more topics, and the archive SHALL expose available topics and provide a page listing articles for a selected topic.
+Articles MAY declare one or more topics, and the archive MUST expose available topics and provide a page listing articles for a selected topic.
 
 #### Scenario: Reader selects an available topic
 
@@ -50,7 +50,7 @@ Articles MAY declare one or more topics, and the archive SHALL expose available 
 
 ### Requirement: Readers can follow an ordered article series
 
-Articles MAY belong to an explicitly named series with a unique position, and series pages SHALL present their articles in that authored order.
+Articles MAY belong to an explicitly named series with a unique position, and series pages MUST present their articles in that authored order.
 
 #### Scenario: Reader opens a series
 

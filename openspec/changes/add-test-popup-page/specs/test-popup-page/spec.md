@@ -10,10 +10,10 @@ membership is explicitly out of scope (see design D1).
 
 ### Requirement: Entry pops the nickname window
 
-The test page `/test/group-popup/` SHALL, on entry, display the Telegram
+The test page `/test/group-popup/` MUST, on entry, display the Telegram
 user's nickname (`first_name` + `last_name`, see Scenario: fallbacks) in a
-popup window. The nickname SHALL come from `WebApp.initDataUnsafe.user`; the
-raw `initData` query string SHALL NOT be parsed. It SHALL NOT check or imply
+popup window. The nickname MUST come from `WebApp.initDataUnsafe.user`; the
+raw `initData` query string MUST NOT be parsed. It MUST NOT check or imply
 group membership in group -1002025381790.
 
 #### Scenario: Telegram client, Bot API >= 6.2
@@ -59,7 +59,7 @@ group membership in group -1002025381790.
 
 ### Requirement: The page is labeled and discoverable
 
-The page SHALL be labeled as a test page in its visible copy and SHALL be
+The page MUST be labeled as a test page in its visible copy and MUST be
 linked from the site navigation with an accessible, labeled icon entry.
 
 #### Scenario: Labeled test page

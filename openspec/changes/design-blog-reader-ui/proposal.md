@@ -36,8 +36,8 @@ draggable article outline — before implementation.
   viewport defaults.
 - Offer an explicit Internet Archive lookup beside eligible external links,
   without unreliable automatic dead-link detection.
-- Require test-driven development, with behavior tests written and observed
-  failing before the corresponding code, and focused responsive,
+- Require test-driven development, with behavior tests that MUST be written
+  and observed failing before the corresponding code, and focused responsive,
   interaction, accessibility, and persistence checks.
 
 ## Capabilities
@@ -65,4 +65,4 @@ font already installed on the developer's system, and GitHub Actions
 fetches the latest stable official release, verifies its published
 checksum, caches the source by release tag, and uses `vite-plugin-font` to
 generate locally served optimized subsets. The font identifies as SIL OFL
-1.1; preserve its license and attribution.
+1.1; its license and attribution MUST be preserved.

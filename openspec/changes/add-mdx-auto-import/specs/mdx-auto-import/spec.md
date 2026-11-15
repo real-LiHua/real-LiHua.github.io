@@ -9,7 +9,7 @@ without repeating import statements.
 
 ### Requirement: MDX can use auto-imported components
 
-The site SHALL register the MDX integration and auto-import
+The site MUST register the MDX integration and auto-import
 `src/components/Icon.astro`, so MDX modules can render `<Icon name="…" />`
 without an import statement.
 
@@ -30,7 +30,7 @@ without an import statement.
 
 ### Requirement: MDX support does not change existing content behavior
 
-The posts collection SHALL accept both `.md` and `.mdx` files with the same
+The posts collection MUST accept both `.md` and `.mdx` files with the same
 frontmatter schema, ordering, series validation, RSS, search indexing, and card
 generation.
 

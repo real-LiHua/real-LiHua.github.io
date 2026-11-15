@@ -1,8 +1,8 @@
 # Testing and debugging Mini Apps
 
 A Mini App cannot be fully tested in a normal browser tab: the browser has no
-`window.Telegram`, no signed `initData`, and no native chrome. Use a browser for layout and
-unit tests, then verify behavior in a real Telegram client.
+`window.Telegram`, no signed `initData`, and no native chrome. You SHOULD use a browser for
+layout and unit tests, then verify behavior in a real Telegram client.
 
 ## Test environment
 
@@ -56,7 +56,7 @@ restricted to major advertisers in production.
 
 ## Browser preview
 
-Keep a fallback so development does not require Telegram every time:
+You SHOULD keep a fallback so development does not require Telegram every time:
 
 ```ts
 const tg = window.Telegram?.WebApp;
@@ -71,10 +71,11 @@ if (!tg) {
 
 Rules for the fallback:
 
-- Label it visibly as a preview (`Preview mode — open in Telegram`).
-- Never let it call authenticated endpoints or bypass server checks.
-- Keep the same routing and component tree as production so layout bugs still surface.
-- Do not fake `initData`; the server must reject it.
+- You MUST label it visibly as a preview (`Preview mode — open in Telegram`).
+- You MUST NOT let it call authenticated endpoints or bypass server checks.
+- You MUST keep the same routing and component tree as production so layout bugs still
+  surface.
+- You MUST NOT fake `initData`; the server MUST reject it.
 
 A browser preview is also the fastest way to test responsive layout, keyboard navigation,
 and focus states. Telegram Web (web.telegram.org) is a real client and a useful second
@@ -123,7 +124,7 @@ Also test:
 
 ## Diagnostic snippet
 
-Log this once at startup; it answers most “works on my device” reports:
+You SHOULD log this once at startup; it answers most “works on my device” reports:
 
 ```ts
 const tg = window.Telegram?.WebApp;
@@ -141,7 +142,7 @@ console.table({
 });
 ```
 
-Do not log `initData` itself; it is a credential.
+You MUST NOT log `initData` itself; it is a credential.
 
 ## Release checklist
 
@@ -167,9 +168,9 @@ Do not log `initData` itself; it is a credential.
 - **Opening the URL in a browser** and concluding `initData` is broken. It is absent by
   design outside Telegram.
 - **Using the production bot token** against the test server. They are different bots.
-- **Caching the HTML aggressively.** The WebView may keep an old bundle; version assets or
-  set `Cache-Control: no-cache` for the shell during development.
-- **Assuming `viewportHeight` is stable.** It changes during gestures; use
+- **Caching the HTML aggressively.** The WebView may keep an old bundle; you SHOULD version
+  assets or set `Cache-Control: no-cache` for the shell during development.
+- **Assuming `viewportHeight` is stable.** It changes during gestures; you SHOULD use
   `viewportStableHeight` for layout.
 - **Testing only on a high-end phone.** Low-performance Android devices expose animation
   and sensor problems.

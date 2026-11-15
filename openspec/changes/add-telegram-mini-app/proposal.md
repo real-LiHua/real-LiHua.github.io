@@ -2,8 +2,8 @@
 
 ## Why
 
-The site is deployed at `https://real-lihua.github.io` and should double as a
-Telegram Mini App. Inside the Telegram client the reader must present colors
+The site is deployed at `https://real-lihua.github.io` and SHOULD double as a
+Telegram Mini App. Inside the Telegram client the reader MUST present colors
 that match the user's Telegram theme instead of the site's own light/dark
 palette; outside Telegram the existing appearance behavior stays unchanged.
 
@@ -21,8 +21,8 @@ palette; outside Telegram the existing appearance behavior stays unchanged.
 - The Telegram WebApp SDK (pinned `?65`) is injected dynamically after
   `window.load` — only when the launch fragment is present — and handles
   `ready()`/`expand()`, version-gated chrome sync, and `themeChanged`. The SDK
-  never blocks rendering or the load event, and regular browsers make no
-  external request to telegram.org.
+  MUST NOT block rendering or the load event, and regular browsers MUST NOT
+  make an external request to telegram.org.
 - Inside Telegram, hide the reader theme toggle (client colors are forced);
   the `reader-theme` localStorage preference is untouched and still governs
   browser viewing.

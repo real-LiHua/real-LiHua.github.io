@@ -2,7 +2,7 @@
 
 ## Context
 
-See `proposal.md` for motivation and `specs/lighthouse-audit/spec.md` for the required behavior. The site builds to a Node standalone server (`output: "server"`, `@astrojs/node`), so Lighthouse must run against that served production build rather than against `astro dev`. Chrome is not installed as `google-chrome` on the developer machine; `chromium` exists at `/usr/bin/chromium` and Playwright ships a headless shell, so Chrome discovery must handle the Chromium binary explicitly. `.cache/` is already gitignored, which suits generated reports.
+See `proposal.md` for motivation and `specs/lighthouse-audit/spec.md` for the required behavior. The site builds to a Node standalone server (`output: "server"`, `@astrojs/node`), so Lighthouse MUST run against that served production build rather than against `astro dev`. Chrome is not installed as `google-chrome` on the developer machine; `chromium` exists at `/usr/bin/chromium` and Playwright ships a headless shell, so Chrome discovery MUST handle the Chromium binary explicitly. `.cache/` is already gitignored, which suits generated reports.
 
 ## Goals / Non-Goals
 
@@ -31,11 +31,11 @@ Use the `lighthouse` package's Node API (`lighthouse(url, options)`) with `chrom
 
 Build with `pnpm build` (or reuse an existing `dist/` when invoked with a flag), start `node ./dist/server/entry.mjs` with `HOST=127.0.0.1` and an OS-chosen or fixed local `PORT`, poll until `/` returns, audit, then `SIGTERM` the server.
 
-**Alternative considered:** serve `dist/` statically with a file server. Rejected: the deploy target is the Node standalone server (adapter `node`), so the audit must exercise the same output path.
+**Alternative considered:** serve `dist/` statically with a file server. Rejected: the deploy target is the Node standalone server (adapter `node`), so the audit MUST exercise the same output path.
 
 ### Chrome discovery: explicit search, then actionable error
 
-Resolve Chrome in this order: `CHROME_PATH` env var, `google-chrome`, `chromium`, `chromium-browser` on `PATH`. If none is found, exit non-zero and print the searched names plus how to set `CHROME_PATH`. Do not auto-download Chrome in this change; developers on this machine have `/usr/bin/chromium`.
+Resolve Chrome in this order: `CHROME_PATH` env var, `google-chrome`, `chromium`, `chromium-browser` on `PATH`. If none is found, exit non-zero and print the searched names plus how to set `CHROME_PATH`. Chrome MUST NOT be auto-downloaded in this change; developers on this machine have `/usr/bin/chromium`.
 
 **Alternative considered:** auto-download Chrome for Testing on first run. Rejected for now: adds a network dependency and cache semantics to a measurement script; revisit if CI adoption is wanted.
 
@@ -47,7 +47,7 @@ Default routes: `/`, `/posts/first-reading/`, `/search/`. Any arguments passed t
 
 ### No budgets yet
 
-This change wires measurement only. Score thresholds, category gating, and Lighthouse CI come in a follow-up change once baseline numbers exist. The script therefore never fails on a low score, only on audit errors.
+This change wires measurement only. Score thresholds, category gating, and Lighthouse CI come in a follow-up change once baseline numbers exist. The script therefore MUST NOT fail on a low score, only on audit errors.
 
 ## Risks / Trade-offs
 

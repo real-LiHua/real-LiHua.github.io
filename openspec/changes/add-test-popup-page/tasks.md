@@ -4,7 +4,7 @@
 
 - [x] 1.1 Add `src/lib/nickname.ts`: `nicknameOf(user)` (trimmed
       first_name + last_name joined by one space; fallback `@username`; else
-      unknown-user placeholder). No HTML-escape helper — callers must not
+      unknown-user placeholder). No HTML-escape helper — callers MUST NOT
       interpolate into markup.
 - [x] 1.2 Add failing unit tests in `tests/unit/nickname.test.ts` first, then
       make them pass.

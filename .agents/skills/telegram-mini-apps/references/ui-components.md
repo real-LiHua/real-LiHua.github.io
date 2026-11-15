@@ -24,8 +24,8 @@ BackButton.show();
 BackButton.hide();
 ```
 
-`BackButton` is not browser history. Decide per screen; hiding it at the root prevents a
-dead-end tap. On desktop/web, the header may also show a close button.
+`BackButton` is not browser history. You SHOULD decide per screen; hiding it at the root
+prevents a dead-end tap. On desktop/web, the header may also show a close button.
 
 ## BottomButton (MainButton and SecondaryButton)
 
@@ -76,11 +76,11 @@ MainButton.onClick(async () => {
 
 Gotchas:
 
-- Attachment-menu launches keep the main button hidden until the first interaction. Provide
-  an in-page action as well.
+- Attachment-menu launches keep the main button hidden until the first interaction. You
+  SHOULD provide an in-page action as well.
 - `showProgress()` disables the button; calling `hideProgress()` alone leaves it disabled.
-- The buttons are global singletons. In a component-heavy app, bind once in a layout or
-  store and update `text` on route changes; do not stack handlers.
+- The buttons are global singletons. In a component-heavy app, you MUST bind once in a
+  layout or store and update `text` on route changes; you MUST NOT stack handlers.
 - Secondary button `position` is ignored when it is the only visible button.
 
 ## SettingsButton
@@ -93,8 +93,8 @@ Context-menu “Settings” item, hidden by default; requires BotFather configur
 | `show()` / `hide()` | 7.0+. |
 | `onClick(cb)` / `offClick(cb)` | Alias for `settingsButtonClicked`. |
 
-Use it for account, notifications, or app preferences; it keeps settings out of the main
-navigation.
+You SHOULD use it for account, notifications, or app preferences; it keeps settings out of
+the main navigation.
 
 ## HapticFeedback
 
@@ -104,8 +104,8 @@ navigation.
 | `notificationOccurred(type)` | `error`, `success`, `warning` |
 | `selectionChanged()` | No argument; only on selection change, not confirmation |
 
-Haptics are best-effort: some devices/platforms ignore them. Never make haptics the only
-feedback for an action.
+Haptics are best-effort: some devices/platforms ignore them. You MUST NOT make haptics the
+only feedback for an action.
 
 ## Native popups
 
@@ -142,8 +142,8 @@ Telegram.WebApp.showPopup(
 ```
 
 `showAlert(message)` and `showConfirm(message)` are shortcuts; each accepts a callback.
-The `popupClosed` event fires with `{ button_id }` as well. Prefer native popups over
-`window.confirm`: the latter is inconsistent in WebViews and blocks the page.
+The `popupClosed` event fires with `{ button_id }` as well. You SHOULD prefer native popups
+over `window.confirm`: the latter is inconsistent in WebViews and blocks the page.
 
 ## QR scanner
 
@@ -162,7 +162,7 @@ Telegram.WebApp.showScanQrPopup({ text: 'Scan a product code' }, (data) => {
 ```
 
 `closeScanQrPopup()` closes it programmatically. Since 7.7, `scanQrPopupClosed` fires when
-the user dismisses the scanner; do not assume the callback ran.
+the user dismisses the scanner; you MUST NOT assume the callback ran.
 
 ## Stories
 
@@ -187,7 +187,7 @@ Telegram.WebApp.shareToStory('https://cdn.example.com/story.jpg', {
 });
 ```
 
-`media_url` must be HTTPS. Story sharing opens the native editor; success is not guaranteed
+`media_url` MUST be HTTPS. Story sharing opens the native editor; success is not guaranteed
 and there is no completion callback.
 
 ## Emoji status
@@ -205,7 +205,7 @@ Telegram.WebApp.setEmojiStatus('5368324170671202286', { duration: 3600 }, (ok) =
 });
 ```
 
-`setEmojiStatus` always shows a native confirmation. For programmatic updates, call
+`setEmojiStatus` always shows a native confirmation. For programmatic updates, you MUST call
 `requestEmojiStatusAccess()` and then use Bot API `setUserEmojiStatus` with the user's
 permission.
 
@@ -218,7 +218,7 @@ permission.
 | `url` | String | HTTPS URL. |
 | `file_name` | String | Suggested filename. |
 
-Server response should include `Content-Disposition: attachment; filename="..."` and
+Server response SHOULD include `Content-Disposition: attachment; filename="..."` and
 `Access-Control-Allow-Origin: https://web.telegram.org`, otherwise the download may fail on
 web.
 
@@ -240,21 +240,23 @@ Telegram.WebApp.openInvoice(invoiceUrl, (status) => {
 ```
 
 Also listen for `invoiceClosed` with `{ url, status }`. `pending` is not failure: the bot
-receives `successful_payment` when it settles. Do not grant entitlements from the client
-callback; confirm on the server via the payment update.
+receives `successful_payment` when it settles. You MUST NOT grant entitlements from the
+client callback; confirm on the server via the payment update.
 
 ## Clipboard
 
 `readTextFromClipboard(callback)` only works for **attachment-menu** launches and only
-from a user gesture. For other launch types, show an input and let the user paste. Writing
-to the clipboard is not exposed by the SDK; use the browser Clipboard API from a gesture.
+from a user gesture. For other launch types, you SHOULD show an input and let the user
+paste. Writing to the clipboard is not exposed by the SDK; you SHOULD use the browser
+Clipboard API from a gesture.
 
 ## Design notes
 
-- Prefer one primary action per screen. Two bottom buttons are for genuine alternatives
-  (Buy / Cancel), not for equally weighted navigation.
-- Use `HapticFeedback.selectionChanged()` on pickers and segmented controls, and
+- You SHOULD prefer one primary action per screen. Two bottom buttons are for genuine
+  alternatives (Buy / Cancel), not for equally weighted navigation.
+- You SHOULD use `HapticFeedback.selectionChanged()` on pickers and segmented controls, and
   `notificationOccurred('success' | 'error')` after async outcomes.
-- Native popups are limited to three buttons; for richer flows build a bottom sheet or a
-  separate screen with the back button visible.
-- Keep button labels short: Telegram truncates long labels, especially on small screens.
+- Native popups are limited to three buttons; for richer flows you SHOULD build a bottom
+  sheet or a separate screen with the back button visible.
+- You SHOULD keep button labels short: Telegram truncates long labels, especially on small
+  screens.

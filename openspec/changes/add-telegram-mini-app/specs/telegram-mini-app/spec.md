@@ -10,7 +10,7 @@ and opened in a regular browser it behaves exactly as before.
 
 ### Requirement: Shared pages bootstrap inside Telegram
 
-The shared layout SHALL detect a Telegram launch from the URL fragment (`tgWebAppPlatform` or `tgWebAppData`) in an inline head script, apply the client palette before first paint, and mark `<html>` with a `telegram` class. In-app navigations (full page loads without the fragment) SHALL restore Telegram mode from a per-tab `sessionStorage` launch record written at launch and synced on `themeChanged`. The SDK SHALL load asynchronously after `window.load`, only for Telegram launches.
+The shared layout MUST detect a Telegram launch from the URL fragment (`tgWebAppPlatform` or `tgWebAppData`) in an inline head script, apply the client palette before first paint, and mark `<html>` with a `telegram` class. In-app navigations (full page loads without the fragment) MUST restore Telegram mode from a per-tab `sessionStorage` launch record written at launch and synced on `themeChanged`. The SDK MUST load asynchronously after `window.load`, only for Telegram launches.
 
 #### Scenario: Palette is applied before first paint
 
@@ -44,13 +44,13 @@ The shared layout SHALL detect a Telegram launch from the URL fragment (`tgWebAp
 
 ### Requirement: Telegram client colors take precedence inside Telegram
 
-When the `telegram` class is present, the shared design tokens SHALL resolve
+When the `telegram` class is present, the shared design tokens MUST resolve
 to the client-provided `--tg-theme-*` variables (with the site's light values
 as fallback for missing fields), the `dark` class and `color-scheme` meta
-SHALL mirror the client's `colorScheme`, and a `themeChanged` event SHALL
+MUST mirror the client's `colorScheme`, and a `themeChanged` event MUST
 re-apply scheme, tokens, and chrome colors without a reload. The site theme
-toggle SHALL be hidden inside Telegram, and the `reader-theme` preference
-SHALL be neither read nor written.
+toggle MUST be hidden inside Telegram, and the `reader-theme` preference
+MUST be neither read nor written.
 
 #### Scenario: Client is in dark mode
 
@@ -79,8 +79,8 @@ SHALL be neither read nor written.
 
 ### Requirement: Telegram chrome colors match the page background
 
-Inside Telegram, the bootstrap SHALL call `setHeaderColor("bg_color")` and
-`setBackgroundColor("bg_color")`, and SHALL call
+Inside Telegram, the bootstrap MUST call `setHeaderColor("bg_color")` and
+`setBackgroundColor("bg_color")`, and MUST call
 `setBottomBarColor("bottom_bar_bg_color")` when the client supports Bot API
 ≥ 7.10.
 

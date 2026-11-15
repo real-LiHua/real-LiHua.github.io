@@ -22,14 +22,17 @@ Two constraints explain most bugs and design mistakes:
 
 1. **The launch context decides what the app can do.** A Mini App opened from a keyboard
    button can call `sendData()`; one opened from a menu button cannot. Attachment-menu
-   launches get `receiver`/`chat` data and clipboard access; most others do not. Check the
-   matrix below before promising a feature.
+   launches get `receiver`/`chat` data and clipboard access; most others do not. You MUST
+   check the matrix below before promising a feature.
 2. **`initData` is the only trustworthy identity**, and only after the server validates
-   it. `initDataUnsafe` is a convenience copy for optimistic rendering, not authentication.
+   it. `initDataUnsafe` is a convenience copy for optimistic rendering, and you MUST NOT
+   treat it as authentication.
 
 Official docs: <https://core.telegram.org/bots/webapps> · SDK:
 <https://telegram.org/js/telegram-web-app.js> · Bot API:
 <https://core.telegram.org/bots/api> · Serverless: <https://core.telegram.org/bots/serverless>
+
+Normative keywords follow [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119): MUST and MUST NOT are requirements; SHOULD and SHOULD NOT are strong recommendations that may be deviated from only with a stated reason; MAY is genuine permission.
 
 ## Launch context matrix
 
@@ -50,18 +53,19 @@ parsing the hash.
 
 ## Bootstrap sequence
 
-Do these in this order; each step depends on the previous one.
+You MUST do these in this order; each step depends on the previous one.
 
 1. **Load the SDK in `<head>` before app scripts.** Unlike most scripts, this one attaches
    event listeners and parses launch parameters at execution time. Astro's default
-   `<script>` is bundled and deferred, so use `is:inline`:
+   `<script>` is bundled and deferred, so you MUST use `is:inline`:
 
    ```astro
    <script is:inline src="https://telegram.org/js/telegram-web-app.js?65"></script>
    ```
 
-   The `?65` query pins the SDK build used by the current docs. Update it deliberately;
-   the client's Bot API version is separate and exposed as `Telegram.WebApp.version`.
+   The `?65` query pins the SDK build used by the current docs. You MUST update it
+   deliberately; the client's Bot API version is separate and exposed as
+   `Telegram.WebApp.version`.
 
 2. **Call `ready()` after the essential UI exists**, not at module top. It hides the
    loading placeholder. Calling it before the first screen renders produces a flash of
@@ -69,14 +73,14 @@ Do these in this order; each step depends on the previous one.
 
 3. **Expand or go fullscreen deliberately.** `expand()` gives the maximum available
    height. `requestFullscreen()` (Bot API 8.0+) is for immersive media/games and requires
-   handling safe areas. Do not call both blindly.
+   handling safe areas. You MUST NOT call both blindly.
 
-4. **Sync chrome colors.** Set header, background, and bottom bar so fullscreen and status
-   bar contrast are correct. Telegram applies theme CSS variables automatically, but
-   native chrome colors need explicit values.
+4. **Sync chrome colors.** You MUST set header, background, and bottom bar so fullscreen
+   and status bar contrast are correct. Telegram applies theme CSS variables
+   automatically, but native chrome colors need explicit values.
 
 5. **Bind events once.** `themeChanged`, `viewportChanged`, `safeAreaChanged`,
-   `contentSafeAreaChanged`, `activated`, `deactivated`. Rebind after Astro view
+   `contentSafeAreaChanged`, `activated`, `deactivated`. You MUST rebind after Astro view
    transitions (`astro:page-load`), or listeners point at removed DOM.
 
 ```ts
@@ -105,9 +109,9 @@ export function initTelegram() {
 }
 ```
 
-Wrap version-gated calls in `isVersionAtLeast` and a `try/catch` when the feature is
-optional. The SDK warns and no-ops on older clients, but an exception in one feature should
-not abort the rest of your init.
+You MUST wrap version-gated calls in `isVersionAtLeast` and a `try/catch` when the feature
+is optional. The SDK warns and no-ops on older clients, but an exception in one feature MUST
+NOT abort the rest of your init.
 
 ## Use native chrome instead of rebuilding it
 
@@ -140,24 +144,25 @@ BackButton.onClick(() => navigateBack());
 
 Rules that prevent surprises:
 
-- Buttons are **singletons**. Bind handlers once and update text/state; do not create a
-  handler per render.
+- Buttons MUST be treated as **singletons**. Bind handlers once and update text/state; you
+  MUST NOT create a handler per render.
 - `MainButton.show()` is ignored on attachment-menu launches until the user interacts with
-  the page. If the button must exist immediately, provide an in-page fallback action too.
-- `hideProgress()` does **not** re-enable a button disabled by `showProgress()`; call
-  `enable()` when the operation finishes.
+  the page. If the button MUST exist immediately, you MUST provide an in-page fallback
+  action too.
+- `hideProgress()` does **not** re-enable a button disabled by `showProgress()`; you MUST
+  call `enable()` when the operation finishes.
 - SecondaryButton `position` (`left`/`right`/`top`/`bottom`) only matters when both bottom
   buttons are visible.
-- The back button belongs to the Mini App's own navigation, not browser history. Hide it at
-  the root screen.
+- The back button belongs to the Mini App's own navigation, not browser history. You MUST
+  hide it at the root screen.
 
 ## Identity and server validation
 
-Send the raw `Telegram.WebApp.initData` string to your backend — usually in an
-`Authorization` header or a POST body — then validate it before trusting `user.id`.
+You MUST send the raw `Telegram.WebApp.initData` string to your backend — usually in an
+`Authorization` header or a POST body — and MUST validate it before trusting `user.id`.
 Validation is an HMAC-SHA-256 over a sorted `key=value` string, keyed by
-`HMAC_SHA256(bot_token, "WebAppData")`. Also reject stale `auth_date` values, otherwise a
-captured payload works forever.
+`HMAC_SHA256(bot_token, "WebAppData")`. You MUST also reject stale `auth_date` values,
+otherwise a captured payload works forever.
 
 ```ts
 // Client: send once, keep the session server-side.
@@ -170,8 +175,8 @@ await fetch('/api/auth/telegram', {
 
 The full algorithm, Node/Python implementations, third-party Ed25519 validation, and a
 runnable CLI live in `references/validation.md` and `scripts/validate-init-data.mjs`.
-Never validate in the browser: the bot token must not ship to clients, and client-side
-checks are trivially bypassed.
+You MUST NOT validate in the browser: the bot token MUST NOT ship to clients, and
+client-side checks are trivially bypassed.
 
 Other identity paths:
 
@@ -186,22 +191,22 @@ Other identity paths:
 
 | API | Scope | Limits | Use for |
 |---|---|---|---|
-| `CloudStorage` | Per bot, per user, synced across devices | 1,024 keys; key 1–128 chars (`A-Za-z0-9_-`); value ≤ 4,096 chars | Small preferences, progress, drafts that must follow the user |
+| `CloudStorage` | Per bot, per user, synced across devices | 1,024 keys; key 1–128 chars (`A-Za-z0-9_-`); value ≤ 4,096 chars | Small preferences, progress, drafts that MUST follow the user |
 | `DeviceStorage` | Per bot, per user, local device (Bot API 9.0+) | 5 MB | Caches, offline data, large local state |
 | `SecureStorage` | iOS Keychain / Android Keystore (Bot API 9.0+) | 10 items | Tokens, secrets, auth state |
-| `localStorage` | Web origin only | Browser quota | Non-critical UI state; do not treat as identity or secure storage |
+| `localStorage` | Web origin only | Browser quota | Non-critical UI state; you MUST NOT treat it as identity or secure storage |
 
-All three Telegram storages are callback-based (`(error, value)`) and asynchronous. Wrap
-them in promises so failures are handled rather than silently swallowed. CloudStorage is
-**not** encrypted and is readable by the bot's backend; keep secrets out of it.
+All three Telegram storages are callback-based (`(error, value)`) and asynchronous. You MUST
+wrap them in promises so failures are handled rather than silently swallowed. CloudStorage
+is **not** encrypted and is readable by the bot's backend; you MUST keep secrets out of it.
 
 ## Version gating
 
-`Telegram.WebApp.isVersionAtLeast('8.0')` checks the client's Bot API version. Use it for
-optional features; core flows should degrade to an in-page equivalent. The SDK no-ops and
-logs a warning when a method is newer than the client, so a missing button is often a
-version issue rather than a logic bug. `platform` (`ios`, `android`, `tdesktop`, `web`, …)
-and `version` are the first things to log in a bug report.
+`Telegram.WebApp.isVersionAtLeast('8.0')` checks the client's Bot API version. You SHOULD
+use it for optional features; core flows MUST degrade to an in-page equivalent. The SDK
+no-ops and logs a warning when a method is newer than the client, so a missing button is
+often a version issue rather than a logic bug. `platform` (`ios`, `android`, `tdesktop`,
+`web`, …) and `version` are the first things you SHOULD log in a bug report.
 
 Major gates: 6.1 back/settings buttons and invoices · 6.2 popups and closing confirmation ·
 6.4 QR/clipboard/Instant View · 6.7 inline query switching · 6.9 CloudStorage,
@@ -213,13 +218,13 @@ request query id.
 
 ## Astro + Tailwind specifics
 
-**SDK placement.** Use `<script is:inline src="...">` in the layout `<head>`. Astro
-processes normal `<script>` tags (bundling, `type="module"`, deferral), which violates the
-"before any other scripts" requirement.
+**SDK placement.** You MUST use `<script is:inline src="...">` in the layout `<head>`.
+Astro processes normal `<script>` tags (bundling, `type="module"`, deferral), which violates
+the "before any other scripts" requirement.
 
 **Theme tokens.** Telegram injects `--tg-theme-*`, `--tg-color-scheme`, and
-`--tg-safe-area-inset-*` on the root element. Map them once with Tailwind 4's `@theme
-inline`; then use normal utilities and keep browser-preview fallbacks:
+`--tg-safe-area-inset-*` on the root element. You MUST map them once with Tailwind 4's
+`@theme inline`; then use normal utilities and keep browser-preview fallbacks:
 
 ```css
 /* src/styles/global.css */
@@ -246,34 +251,36 @@ inline`; then use normal utilities and keep browser-preview fallbacks:
 }
 ```
 
-Use `bg-tg-bg text-tg-text` on `<body>` and section surfaces, not hard-coded grays, or dark
-mode will be half-styled.
+You MUST use `bg-tg-bg text-tg-text` on `<body>` and section surfaces, not hard-coded
+grays, or dark mode will be half-styled.
 
-**SSR and hydration.** `window.Telegram` does not exist during SSR. Read it in client
-scripts, `onMount`, or `useEffect`; render Telegram-dependent branches after hydration.
-For components that cannot render a meaningful server fallback, use `client:only`. Do not
-branch on `initDataUnsafe` during SSR — the markup will not match.
+**SSR and hydration.** `window.Telegram` does not exist during SSR. You MUST read it in
+client scripts, `onMount`, or `useEffect`, and MUST render Telegram-dependent branches after
+hydration. For components that cannot render a meaningful server fallback, you SHOULD use
+`client:only`. You MUST NOT branch on `initDataUnsafe` during SSR — the markup will not
+match.
 
 **View transitions.** With Astro's `<ClientRouter />`, page scripts may not re-run the way
-you expect. Bind Telegram listeners on `astro:page-load` and remove them on
+you expect. You MUST bind Telegram listeners on `astro:page-load` and remove them on
 `astro:before-swap`; otherwise you leak handlers across navigations.
 
-**Dev preview.** Outside Telegram the SDK is undefined. Keep a small fallback (mock user,
-light theme) so the page is still usable in a browser, but label it as a preview and never
-let it bypass server auth.
+**Dev preview.** Outside Telegram the SDK is undefined. You SHOULD keep a small fallback
+(mock user, light theme) so the page is still usable in a browser, but you MUST label it as
+a preview and MUST NOT let it bypass server auth.
 
-**Generated-code hygiene.** Code you write against this skill must build as-is:
+**Generated-code hygiene.** Code you write against this skill MUST build as-is:
 
-- `.astro` files use `interface Props` and Astro components only. Never `import … from 'svelte'`
-  (or any other framework) — Astro has no such module.
-- Import only symbols that are actually exported. The starter's `src/lib/telegram.ts` exports
-  `initTelegram` (returning `{ tg, sync, destroy }`), `getTelegram`, `isTelegram`,
+- `.astro` files MUST use `interface Props` and Astro components only. You MUST NOT
+  `import … from 'svelte'` (or any other framework) — Astro has no such module.
+- You MUST import only symbols that are actually exported. The starter's `src/lib/telegram.ts`
+  exports `initTelegram` (returning `{ tg, sync, destroy }`), `getTelegram`, `isTelegram`,
   `isVersionAtLeast`, `syncChrome`, `observeTelegram`, plus types. It does **not** export
   display-name helpers — build full name/handle inline
   (`` `${user.first_name}${user.last_name ? ` ${user.last_name}` : ''}` ``) or write and export
   the helper yourself.
-- Before returning, resolve every import/export you used: check the imported file for that exact
-  symbol. A broken import chain means the page cannot compile, whatever the assertions say.
+- Before returning, you MUST resolve every import/export you used: check the imported file
+  for that exact symbol. A broken import chain means the page cannot compile, whatever the
+  assertions say.
 
 ## Debugging quickly
 
@@ -291,11 +298,11 @@ let it bypass server auth.
 | Back button does nothing | No handler, or handler bound before SDK ready | Bind after `ready()`; hide at root |
 
 For device debugging (iOS Safari, `chrome://inspect`, Desktop beta), test-server accounts,
-and a pre-release checklist, read `references/testing.md`.
+and a pre-release checklist, you SHOULD read `references/testing.md`.
 
 ## Code review checklist
 
-When reviewing a Mini App, check in this order:
+When reviewing a Mini App, you MUST check in this order:
 
 1. SDK script is inline in `<head>` and pinned.
 2. `ready()` runs after the first screen; `expand()`/fullscreen is intentional.

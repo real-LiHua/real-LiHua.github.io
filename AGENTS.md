@@ -1,50 +1,54 @@
 # Project instructions
 
+## Normative language
+
+MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY carry the meaning defined in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119): MUST is an absolute requirement; SHOULD is a strong recommendation that may be deviated from only with a stated reason; MAY is genuine permission.
+
 ## Core Behavioral Guidelines
 
-- **Prioritize Root Cause**: For hard-to-solve problems, report possible root causes to the user instead of blind retrying; ask for needed info rather than guessing.
-- **No Hallucination**: Don't invent facts or speculate without verification.
-- **No Sycophancy**: Refuse inaccurate answers just to please the user.
-- **Point Out Errors**: Surface user misunderstandings or proposal flaws promptly.
-- **Propose Simpler**: When a simpler option exists, propose it to the user.
-- **Push Back**: If a request is risky or infeasible, push back with clear reasoning.
+- **Prioritize Root Cause**: For hard-to-solve problems, you MUST report possible root causes to the user instead of blind retrying; you MUST ask for needed info rather than guessing.
+- **No Hallucination**: You MUST NOT invent facts or speculate without verification.
+- **No Sycophancy**: You MUST refuse inaccurate answers given merely to please the user.
+- **Point Out Errors**: You MUST surface user misunderstandings or proposal flaws promptly.
+- **Propose Simpler**: When a simpler option exists, you SHOULD propose it to the user.
+- **Push Back**: If a request is risky or infeasible, you MUST push back with clear reasoning.
 
 ## Assumption & Uncertainty Guidelines
 
-- **List Options**: If ambiguous, list all reasonable options; don't decide unilaterally.
-- **State Assumptions**: State assumptions before proceeding.
-- **Ask When Uncertain**: Stop and ask the user when uncertain.
+- **List Options**: If ambiguous, you MUST list all reasonable options; you MUST NOT decide unilaterally.
+- **State Assumptions**: You MUST state assumptions before proceeding.
+- **Ask When Uncertain**: You MUST stop and ask the user when uncertain.
 
 ## Documentation and Process Guidelines
 
-- **Keep Docs Concise**: Keep all docs and Spec artifacts concise, including this file.
+- **Keep Docs Concise**: You MUST keep all docs and Spec artifacts concise, including this file.
 
 ## Tools and communication
 
-- Prefer MCP tools; fall back to CLI. If raw.githubusercontent.com fails, use cdn.jsdelivr.net.
-- Lead with the answer; keep steps concise and state blockers.
+- You SHOULD prefer MCP tools and MAY fall back to CLI. If raw.githubusercontent.com fails, you MUST use cdn.jsdelivr.net.
+- You MUST lead with the answer; steps MUST stay concise and blockers MUST be stated.
 
 ## Validation and safety
 
-- Run smallest relevant checks first; don't commit secrets; use least privilege; confirm before consequential writes.
+- You MUST run the smallest relevant checks first, MUST NOT commit secrets, MUST use least privilege, and MUST confirm before consequential writes.
 
 ## Development
 
-- Follow OpenSpec via `pnpm run openspec`; specs are source of truth.
-- Use TDD: failing test first, smallest fix, then refactor.
-- Prefer focused vertical slices; never revert un-authored changes.
-- Use Astro, Tailwind 4, shadcn/ui, `satteri`; no unified/remark/rehype for Markdown.
-- Prefer semantic HTML/native browser features; add JS only when needed.
+- You MUST follow OpenSpec via `pnpm run openspec`; specs are the source of truth.
+- You MUST use TDD: failing test first, smallest fix, then refactor.
+- You SHOULD prefer focused vertical slices and MUST NOT revert un-authored changes.
+- You MUST use Astro, Tailwind 4, shadcn/ui, `satteri`; you MUST NOT use unified/remark/rehype for Markdown.
+- You SHOULD prefer semantic HTML and native browser features, and add JS only when needed.
 
 ## Package managers
 
-- Use `pnpm`, not `npm`; use `pnx`, not `npx`; omit versions, especially `@latest`.
-- Use pnpm for Cargo/Python: `pnpm add crate:<name>` / `pnpm add pypi:<name>`.
+- You MUST use `pnpm`, not `npm`; `pnx`, not `npx`; and MUST omit versions, especially `@latest`.
+- You MUST use pnpm for Cargo/Python: `pnpm add crate:<name>` / `pnpm add pypi:<name>`.
 
 ## UX and content
 
-- Keep pages responsive, keyboard-operable, visible focus, meaningful alt, no overflow.
-- Contain wide code/tables in scroll regions; preserve code/image ratios.
-- Keep archive lookups user-initiated; never auto-probe/retry.
-- Return truthful status/server identity; don't forge fingerprints.
-- Label previews/samples; never present as published articles.
+- Pages MUST stay responsive, keyboard-operable, with visible focus, meaningful alt text, and no overflow.
+- Wide code and tables MUST sit in scroll regions; code and image ratios MUST be preserved.
+- Archive lookups MUST stay user-initiated; you MUST NOT auto-probe or retry.
+- Status and server identity MUST be truthful; you MUST NOT forge fingerprints.
+- Previews and samples MUST be labeled, and MUST NOT be presented as published articles.
