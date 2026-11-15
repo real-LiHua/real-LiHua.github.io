@@ -140,6 +140,25 @@ export const SKILL_QUERIES: Record<string, readonly string[]> = {
     "Optimize a skill's description for better triggering",
     "Benchmark skill performance with evals",
   ],
+  "setup-ts-deep-modules": [
+    "Set up TypeScript deep modules",
+    "Configure module resolution for deep imports",
+  ],
+  teach: [
+    "Create a learning mission for this codebase",
+    "Record a learning session",
+    "Format a glossary entry",
+  ],
+  "to-questionnaire": [
+    "Turn this idea into a structured questionnaire",
+    "Generate a decision questionnaire from a proposal",
+  ],
+  "to-spec": ["Convert this idea into a spec", "Write a spec from these requirements"],
+  tdd: [
+    "Write a failing test first",
+    "Implement the feature to make the test pass",
+    "Refactor with tests as safety net",
+  ],
   triage: ["Triage this issue", "Move this pull request through triage states"],
   unslop: ["Unslop this UI", "This page looks AI-generated, redesign it"],
   "vercel-composition-patterns": [
