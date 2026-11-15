@@ -17,8 +17,15 @@ export const resolvePostDates = (publishedAt: Date, gitTimes: GitTimes | null): 
   updatedAt: gitTimes?.updatedAt ?? publishedAt,
 });
 
+// Preview sample posts live in the parent repository only for tests; their
+// git dates are repo-maintenance artifacts, not publication dates. They are
+// excluded here so their frontmatter publishedAt applies, mirroring the real
+// articles in the content submodule (invisible to the parent `git log`).
+const FIXTURE_PATTERN = /(^|[\\/])tests[\\/]fixtures[\\/]/u;
+
 export const getPostDates = (post: PostDateSource): PostDates => {
-  const gitTimes = post.filePath ? getGitTimes(post.filePath) : null;
+  const gitTimes =
+    post.filePath && !FIXTURE_PATTERN.test(post.filePath) ? getGitTimes(post.filePath) : null;
   return resolvePostDates(post.data.publishedAt, gitTimes);
 };
 
