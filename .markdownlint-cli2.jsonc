@@ -33,6 +33,8 @@
     ".agents/learning/**",
     ".agents/reports/**",
     ".venv/**",
+    ".pnpm/**",
+    "src/content/**",
     ".*/**/{command{,s},prompts,skills,workflows}/**",
     "openspec/changes/spec-realignment/**",
     "CHANGELOG.md",
