@@ -32,6 +32,7 @@
     ".astro/**",
     ".agents/learning/**",
     ".agents/reports/**",
+    ".venv/**",
     ".*/**/{command{,s},prompts,skills,workflows}/**",
     "openspec/changes/spec-realignment/**",
     "CHANGELOG.md",
