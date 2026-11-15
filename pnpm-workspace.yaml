@@ -25,3 +25,6 @@ allowBuilds:
   puppeteer: true
   sharp: false
   vnu-jar: false
+permissions:
+  modern-web-guidance:
+    skills: true

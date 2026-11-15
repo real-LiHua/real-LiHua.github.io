@@ -12,6 +12,10 @@
       "command": "pnx",
       "args": ["chrome-devtools-mcp"]
     },
+    "grep": {
+      "type": "http",
+      "url": "https://mcp.grep.app"
+    },
     "playwright": {
       "command": "pnx",
       "args": ["@playwright/mcp"]
