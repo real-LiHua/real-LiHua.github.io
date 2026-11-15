@@ -43,11 +43,14 @@ labeled demo pages, and a custom 404 page.
 
 ## Content and routes
 
-Posts live in `src/content/posts/` as `.md` or `.mdx`; the Astro Content
-Collection validates frontmatter (`title`, `description`, `publishedAt`,
-`readingTime`, `isPreview`, optional `topics`, and optional ordered `series`).
-`isPreview` defaults to `true`. Preview entries stay visible in the UI with a
-preview label and stay out of the feed.
+Posts live in `src/content/posts/` as `.md` or `.mdx` (mounted as a git
+submodule); the Astro Content Collection validates frontmatter (`title`,
+`description`, `publishedAt`, `readingTime`, `isPreview`, optional `topics`,
+and optional ordered `series`). `isPreview` defaults to `true`. Preview
+entries stay visible in the UI with a preview label and stay out of the feed.
+The sample posts used by the test suite live in `tests/fixtures/posts/`; they
+are included in local builds and excluded when the `CI` environment variable
+is set, so CI builds ship only `src/content/posts/`.
 
 | Route                                      | Purpose                                                              |
 | ------------------------------------------ | -------------------------------------------------------------------- |

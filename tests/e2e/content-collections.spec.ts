@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect, test } from "@playwright/test";
 
-const postsDirectory = fileURLToPath(new URL("../../src/content/posts/", import.meta.url));
+const postsDirectory = fileURLToPath(new URL("../../tests/fixtures/posts/", import.meta.url));
 
 function getPreviewTitles(): Set<string> {
   const titles = new Set<string>();

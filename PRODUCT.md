@@ -20,7 +20,7 @@ The reading experience itself is the product: a monospace-first editorial system
 
 ## Operating Context
 
-- Content MUST live as Markdown in `src/content/posts/` (Astro Content Collection, zod-validated frontmatter). Current entries are preview samples (`isPreview: true`) that MUST stay visibly labeled and MUST be excluded from RSS; real content sources arrive later.
+- Content MUST live as Markdown in `src/content/posts/` (Astro Content Collection, zod-validated frontmatter), which is mounted as a git submodule. Preview sample posts live in `tests/fixtures/posts/`, MUST stay visibly labeled and MUST be excluded from RSS; they MUST NOT be part of CI builds (`src/content.config.ts` excludes them when `CI` is set).
 - Routes: home feed, `/posts/` archive, year/topic/series archives, search, article pages, RSS (`/rss.xml`), custom not-found page.
 - Search: Orama index at `/search-index.json`, with the Mandarin tokenizer shared by build and browser, presented as a native dialog without route change.
 - Markdown MUST render through `satteri`; the unified/remark/rehype ecosystem MUST NOT be used.
@@ -47,7 +47,7 @@ The reading experience itself is the product: a monospace-first editorial system
 ## Evidence on Hand
 
 - Implemented reader UI: `src/layouts/SiteLayout.astro`, `src/pages/**`, `src/styles/global.css`, `src/lib/**`.
-- Four preview posts in `src/content/posts/`. No real published content exists yet — published articles MUST NOT be fabricated and preview entries MUST NOT be presented as real.
+- Four preview posts in `tests/fixtures/posts/`; `src/content/posts/` is empty until the content submodule is mounted. No real published content exists yet — published articles MUST NOT be fabricated and preview entries MUST NOT be presented as real.
 - OpenSpec changes: `design-blog-reader-ui`, `add-content-discovery-and-rss`, `document-project-dependency-baseline`.
 
 ## Product Principles

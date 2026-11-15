@@ -9,7 +9,7 @@ import { findPreparedMapleFont, mapleFontInputDirectory } from "./src/lib/maple-
 import { defineConfig } from "astro/config";
 import astroWebMCP from "astro-webmcp";
 import { createRequire } from "node:module";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -68,24 +68,32 @@ const mapleFontPath =
   findPreparedMapleFont(projectRoot) ??
   join(mapleFontInputDirectory(projectRoot), "MapleMonoNormal-NF-CN.ttf");
 const postsDirectory = fileURLToPath(new URL("src/content/posts/", import.meta.url));
+const fixturePostsDirectory = fileURLToPath(new URL("tests/fixtures/posts/", import.meta.url));
+// Keep this allowlist in sync with src/content.config.ts: fixture posts are
+// included in local/test builds and excluded when CI is set.
+const postDirectories = process.env.CI ? [postsDirectory] : [postsDirectory, fixturePostsDirectory];
 
 const listPostRoutes = (directory: string): string[] =>
-  readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) {
-      return listPostRoutes(path);
-    }
-    if (!entry.isFile() || !/\.mdx?$/u.test(entry.name)) {
-      return [];
-    }
-    const id = relative(postsDirectory, path)
-      .replace(/\.mdx?$/u, "")
-      .split(sep)
-      .join("/");
-    return [`/posts/${id}/`];
-  });
+  // `src/content/posts` is empty until the content submodule is mounted, and
+  // `readdirSync` would throw on the missing directory during a CI build.
+  existsSync(directory)
+    ? readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+        const path = join(directory, entry.name);
+        if (entry.isDirectory()) {
+          return listPostRoutes(path);
+        }
+        if (!entry.isFile() || !/\.mdx?$/u.test(entry.name)) {
+          return [];
+        }
+        const id = relative(directory, path)
+          .replace(/\.mdx?$/u, "")
+          .split(sep)
+          .join("/");
+        return [`/posts/${id}/`];
+      })
+    : [];
 
-const publicPostRoutes = new Set(listPostRoutes(postsDirectory));
+const publicPostRoutes = new Set(postDirectories.flatMap(listPostRoutes));
 
 const mapleFontEntryPlugin = {
   name: "blog-maple-font-entry",
