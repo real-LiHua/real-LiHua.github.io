@@ -29,12 +29,15 @@
 
 - **DOC-1 Keep docs concise.** All docs and Spec artifacts, including this file, MUST stay concise.
 - **DOC-2 Standing preferences.** Durable preferences and conventions MUST be recorded here (or in the relevant Spec), not held only in agent memory.
+- **DOC-3 Rule proposals are evidenced.** When something you read would improve this file, you MAY propose it, but the proposal MUST name the source, quote the exact text to add or change, and list any existing rule it conflicts with; the user decides.
 
 ## Tools and communication
 
 - **TOOL-1** You SHOULD prefer MCP tools and MAY fall back to CLI.
 - **TOOL-2** Notwithstanding TOOL-1, if raw.githubusercontent.com fails, you MUST use cdn.jsdelivr.net.
 - **TOOL-3** You MUST lead with the answer; steps MUST stay concise and blockers MUST be stated.
+- **TOOL-4 Tool inventory first.** Before acting you SHOULD inventory the available tools and what each can obtain, and use a tool where one covers the need; a built-in capability that already covers it is used as-is, so no external tool is invoked only to appear thorough.
+- **TOOL-5 Missing tools.** If a needed tool is unavailable, you MUST name it and state how to install it. If the user declines, you MUST offer a complete manual alternative and ask before carrying it out.
 
 ## Validation and safety
 
@@ -52,6 +55,7 @@
 - **DEV-5 Semantic HTML.** You SHOULD prefer semantic HTML and native browser features; add JS only when needed.
 - **DEV-6 Manual edits are authoritative.** The user's direct edits are authoritative. Before applying any edit whose context may have changed, you MUST re-read it; you MUST NOT re-add or restore content the user has removed; if an edit would reintroduce it, STOP and ask.
 - **DEV-7 Bulk structural edits are scripted.** Any repeated structural transformation across many places MUST be done with a throwaway script, NOT repeated Edit calls: snapshot first; the script MUST transform structure only and re-emit prose verbatim; diff-verify (unrelated regions byte-identical, anchors preserved); skip already-converted items; delete the script and snapshots afterward; then run the check covering the change.
+- **DEV-8 Least additive change.** In code and docs, prefer delete to rewrite and rewrite to add. A deletion that changes behaviour, drops coverage, or removes undocumented code MUST be justified like an addition. `src/content` is out of scope.
 
 ## Package managers
 
@@ -69,3 +73,4 @@
 ## Precedence
 
 - **PRE-1** In case of conflict between rules, surface the conflict to the user rather than silently dropping either. Direct user instructions take precedence over this file only where compliance would not violate SAFE-2 or SAFE-4.
+- **PRE-2 Conflicting sources.** When sources disagree on a fact, settle it in this order: this file and the repo's Specs → current security advisories, for security matters only → official upstream documentation → RFCs → mature community practice. Sources of the same rank that still conflict MUST be escalated to the user.
