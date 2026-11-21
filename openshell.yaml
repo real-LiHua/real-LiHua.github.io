@@ -1,0 +1,17 @@
+created_at: "2026-11-21 12:45:02"
+driver_config:
+  podman:
+    mounts:
+      - read_only: false
+        source: /home/agent/Projects/github.com/real-LiHua
+        target: /sandbox/Projects/github.com/real-LiHua
+        type: bind
+      - read_only: true
+        source: /home/agent/.config/openshell/sandbox-hosts
+        target: /etc/hosts
+        type: bind
+id: aa39d999-2cb6-4298-9a45-a4a1ef2746ef
+image: localhost/openshell-agent:latest
+name: agent-project
+resource_version: 1
+workspace: default
